@@ -4,3 +4,8 @@
 *.jar
 *.war
 *.ear
+
+/easycluster-core/.project
+/easycluster-core/target
+/easycluster-core/.classpath
+/easycluster-core/target
