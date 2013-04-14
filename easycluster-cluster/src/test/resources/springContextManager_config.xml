@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+	<bean id="bean1" class="java.lang.String">
+		<constructor-arg value="test-string1" />
+	</bean>
+
+	<bean id="bean2" class="java.lang.String">
+		<constructor-arg value="test-string2" />
+	</bean>
+</beans>
+
