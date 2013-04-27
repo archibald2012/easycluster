@@ -6,8 +6,13 @@ import org.easycluster.easycluster.cluster.common.IpPortPair;
 import org.easycluster.easycluster.cluster.common.MessageContext;
 import org.easycluster.easycluster.core.Closure;
 import org.jboss.netty.channel.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultEndpoint implements Endpoint {
+
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(DefaultEndpoint.class);
 
 	private Channel channel = null;
 	private IEndpointListener endpointListener = null;
@@ -33,6 +38,9 @@ public class DefaultEndpoint implements Endpoint {
 	@Override
 	public void send(Object message) {
 		if (message != null) {
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("send - [{}]", message);
+			}
 			channel.write(new MessageContext(message));
 		}
 	}

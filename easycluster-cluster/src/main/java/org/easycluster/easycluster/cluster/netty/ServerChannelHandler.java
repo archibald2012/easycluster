@@ -184,6 +184,9 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 					((Identifiable) message).setIdentification(requestId);
 				}
 
+				if(LOGGER.isDebugEnabled()){
+					LOGGER.debug("send - [{}]", message);
+				}
 				endpoint.send(message);
 			}
 		}
