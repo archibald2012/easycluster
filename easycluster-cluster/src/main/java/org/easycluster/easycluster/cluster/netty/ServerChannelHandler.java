@@ -5,6 +5,7 @@ import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.cluster.netty.endpoint.DefaultEndpointFactory;
 import org.easycluster.easycluster.cluster.netty.endpoint.Endpoint;
 import org.easycluster.easycluster.cluster.netty.endpoint.EndpointFactory;
+import org.easycluster.easycluster.cluster.netty.endpoint.IEndpointListener;
 import org.easycluster.easycluster.cluster.server.MessageClosureRegistry;
 import org.easycluster.easycluster.cluster.server.MessageExecutor;
 import org.easycluster.easycluster.core.Closure;
@@ -103,6 +104,15 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 
 		Endpoint endpoint = getEndpointOfSession(channel);
 
+		if (endpoint == null) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e1) {
+				LOGGER.error("", e1);
+			}
+			endpoint = getEndpointOfSession(channel);
+		}
+
 		if (null != endpoint) {
 			TransportUtil.attachSender(request, endpoint);
 
@@ -130,7 +140,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	}
 
 	public Endpoint getEndpointOfSession(Channel channel) {
-		return (Endpoint) endpoints.remove(channel);
+		return (Endpoint) endpoints.get(channel);
 	}
 
 	public Endpoint removeEndpointOfSession(Channel channel) {
@@ -194,6 +204,10 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 
 	public void setEndpointFactory(EndpointFactory endpointFactory) {
 		this.endpointFactory = endpointFactory;
+	}
+
+	public void setEndpointListener(IEndpointListener endpointListener) {
+		this.endpointFactory.setEndpointListener(endpointListener);
 	}
 
 	public void setKeyTransformer(KeyTransformer keyTransformer) {

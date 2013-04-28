@@ -3,7 +3,6 @@ package org.easycluster.easycluster.cluster.netty.endpoint;
 import java.net.InetSocketAddress;
 
 import org.easycluster.easycluster.cluster.common.MessageContext;
-import org.easycluster.easycluster.core.Closure;
 import org.easycluster.easycluster.core.IpPortPair;
 import org.jboss.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -43,11 +42,6 @@ public class DefaultEndpoint implements Endpoint {
 			}
 			channel.write(new MessageContext(message));
 		}
-	}
-
-	@Override
-	public void send(Object message, Closure arg1) {
-		throw new UnsupportedOperationException("not implemented yet!");
 	}
 
 	@Override

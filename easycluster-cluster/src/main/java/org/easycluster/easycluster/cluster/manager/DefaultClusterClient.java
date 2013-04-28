@@ -111,7 +111,7 @@ public class DefaultClusterClient implements ClusterClient {
 		Set<Node> nodes = getNodes();
 		Node node = null;
 		for (Node n : nodes) {
-			if (n.getId() == nodeId) {
+			if (n.getId().equals(nodeId)) {
 				node = n;
 				break;
 			}

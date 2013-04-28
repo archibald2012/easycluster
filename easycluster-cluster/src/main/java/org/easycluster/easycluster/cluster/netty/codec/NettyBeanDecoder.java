@@ -11,16 +11,20 @@ import org.easycluster.easycluster.serialization.bytebean.codec.array.LenArrayCo
 import org.easycluster.easycluster.serialization.bytebean.codec.array.LenListCodec;
 import org.easycluster.easycluster.serialization.bytebean.codec.bean.BeanFieldCodec;
 import org.easycluster.easycluster.serialization.bytebean.codec.bean.EarlyStopBeanCodec;
+import org.easycluster.easycluster.serialization.bytebean.codec.primitive.BooleanCodec;
 import org.easycluster.easycluster.serialization.bytebean.codec.primitive.ByteCodec;
-import org.easycluster.easycluster.serialization.bytebean.codec.primitive.CStyleStringCodec;
+import org.easycluster.easycluster.serialization.bytebean.codec.primitive.DoubleCodec;
+import org.easycluster.easycluster.serialization.bytebean.codec.primitive.FloatCodec;
 import org.easycluster.easycluster.serialization.bytebean.codec.primitive.IntCodec;
 import org.easycluster.easycluster.serialization.bytebean.codec.primitive.LenByteArrayCodec;
+import org.easycluster.easycluster.serialization.bytebean.codec.primitive.LenStringCodec;
 import org.easycluster.easycluster.serialization.bytebean.codec.primitive.LongCodec;
 import org.easycluster.easycluster.serialization.bytebean.codec.primitive.ShortCodec;
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultDecContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultEncContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.field.DefaultField2Desc;
 import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
+import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
 import org.easycluster.easycluster.serialization.protocol.xip.XipHeader;
 import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -73,12 +77,13 @@ public class NettyBeanDecoder extends OneToOneDecoder {
 		byte[] bodyBytes = ArrayUtils.subarray(bytes, XipHeader.HEADER_LENGTH,
 				bytes.length);
 
-		XipSignal signal = (XipSignal) getByteBeanCodec().decode(
+		AbstractXipSignal signal = (AbstractXipSignal) getByteBeanCodec().decode(
 				getByteBeanCodec().getDecContextFactory().createDecContext(
 						bodyBytes, type, null, null)).getValue();
 
 		if (null != signal) {
 			signal.setIdentification(header.getSequence());
+			signal.setClient(header.getClientId());
 		}
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
@@ -99,13 +104,13 @@ public class NettyBeanDecoder extends OneToOneDecoder {
 
 			codecProvider.addCodec(new AnyCodec()).addCodec(new ByteCodec())
 					.addCodec(new ShortCodec()).addCodec(new IntCodec())
-					.addCodec(new LongCodec())
-					.addCodec(new CStyleStringCodec())
+					.addCodec(new LongCodec()).addCodec(new BooleanCodec())
+					.addCodec(new FloatCodec()).addCodec(new DoubleCodec())
+					.addCodec(new LenStringCodec())
 					.addCodec(new LenByteArrayCodec())
 					.addCodec(new LenListCodec()).addCodec(new LenArrayCodec());
 
-			EarlyStopBeanCodec byteBeanCodec = new EarlyStopBeanCodec(
-					new DefaultField2Desc());
+			EarlyStopBeanCodec byteBeanCodec = new EarlyStopBeanCodec(new DefaultField2Desc());
 			codecProvider.addCodec(byteBeanCodec);
 
 			DefaultEncContextFactory encContextFactory = new DefaultEncContextFactory();

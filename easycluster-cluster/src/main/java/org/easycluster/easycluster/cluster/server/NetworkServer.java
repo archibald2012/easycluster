@@ -1,7 +1,6 @@
 package org.easycluster.easycluster.cluster.server;
 
 import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -9,6 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.easycluster.easycluster.cluster.ClusterDefaults;
 import org.easycluster.easycluster.cluster.Node;
 import org.easycluster.easycluster.cluster.common.ClassUtil;
+import org.easycluster.easycluster.cluster.common.SystemUtil;
 import org.easycluster.easycluster.cluster.exception.ClusterException;
 import org.easycluster.easycluster.cluster.exception.ClusterShutdownException;
 import org.easycluster.easycluster.cluster.exception.InvalidNodeException;
@@ -37,6 +37,7 @@ public class NetworkServer {
 
 	protected boolean markAvailableWhenConnected = true;
 	protected String version = null;
+	protected String ip = SystemUtil.getIpAddress();
 	protected int port = -1;
 	protected int[] partitionIds = new int[0];
 	protected String url = null;
@@ -76,9 +77,12 @@ public class NetworkServer {
 	 */
 	public void registerHandler(Class<?> requestMessage,
 			Class<?> responseMessage, MessageClosure<?, ?> handler) {
+		String responseType = (responseMessage == null) ? null
+				: responseMessage.getName();
 		LOGGER.info(
 				"registerHandler request=[{}], response=[{}], handler=[{}]",
-				new Object[] { requestMessage, responseMessage, handler });
+				new Object[] { requestMessage.getName(), responseType,
+						handler.getClass().getName() });
 
 		messageClosureRegistry.registerHandler(requestMessage, responseMessage,
 				handler);
@@ -143,7 +147,9 @@ public class NetworkServer {
 		clusterClient.start();
 		clusterClient.awaitConnectionUninterruptibly();
 
-		Node node = new Node(new InetSocketAddress(port), false);
+		Node node = new Node(ip, port, false);
+		node.setApplicationName(applicationName);
+		node.setServiceName(serviceName);
 		node.setVersion(version);
 		node.setUrl(url);
 		clusterClient.addNode(node);
@@ -170,7 +176,7 @@ public class NetworkServer {
 			public void handleClusterConnected(Set<Node> nodes) {
 				if (markAvailable) {
 					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug("Marking node with id " + port
+						LOGGER.debug("Marking node with id " + nodeId
 								+ " available");
 					}
 					try {
@@ -261,6 +267,11 @@ public class NetworkServer {
 						}
 						clusterClient.markNodeUnavailable(node.getId());
 
+						if (LOGGER.isDebugEnabled()) {
+							LOGGER.debug("Remove node {}", node.getId());
+						}
+						clusterClient.removeNode(node.getId());
+
 						clusterClient.shutdown();
 					} catch (ClusterShutdownException ex) {
 						// cluster already shut down, ignore
@@ -321,6 +332,10 @@ public class NetworkServer {
 
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public void setIp(String ip) {
+		this.ip = ip;
 	}
 
 }

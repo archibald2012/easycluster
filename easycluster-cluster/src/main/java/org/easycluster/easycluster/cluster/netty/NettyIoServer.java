@@ -41,7 +41,7 @@ public class NettyIoServer implements ClusterIoServer {
 		do {
 			try {
 				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Binding server socket to {}", address);
+					LOGGER.debug("Binding server socket to {}", port);
 				}
 				serverChannel = bootstrap.bind(address);
 				binded = true;

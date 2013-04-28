@@ -95,7 +95,7 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 					closure.execute(response);
 				}
 			} catch (InvalidMessageException ex) {
-				LOGGER.error(String.format("Received an invalid message: %s", message));
+				LOGGER.error(String.format("Received an invalid message: %s", message), ex);
 				closure.execute(ex);
 			} catch (Exception ex) {
 				LOGGER.error("Message handler threw an exception while processing message", ex);

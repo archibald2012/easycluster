@@ -29,7 +29,7 @@ public class NettyNetworkClientTestCase {
 	@Test
 	public void testBind() throws Exception {
 		List<String> packages = new ArrayList<String>();
-		packages.add("edu.hziee.common.cluster");
+		packages.add("org.easycluster.easycluster.cluster");
 		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 		NettyBeanDecoder decoder = new NettyBeanDecoder();
 		decoder.setTypeMetaInfo(typeMetaInfo);

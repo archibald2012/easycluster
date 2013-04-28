@@ -15,7 +15,7 @@ import org.apache.commons.lang.builder.ToStringStyle;
 
 @XmlRootElement(name = "node")
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Node", propOrder = { "id", "applicationName", "serviceName",
+@XmlType(name = "Node", propOrder = { "applicationName", "serviceName",
 		"hostName", "port", "version", "available", "partitions", "url" })
 public class Node implements Comparable<Node> {
 

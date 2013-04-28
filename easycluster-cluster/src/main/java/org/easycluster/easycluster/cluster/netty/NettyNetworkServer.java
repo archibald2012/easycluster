@@ -8,13 +8,13 @@ import org.easycluster.easycluster.cluster.NetworkDefaults;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.codec.NettyBeanDecoder;
 import org.easycluster.easycluster.cluster.netty.codec.NettyBeanEncoder;
+import org.easycluster.easycluster.cluster.netty.endpoint.IEndpointListener;
 import org.easycluster.easycluster.cluster.server.NetworkServer;
 import org.easycluster.easycluster.cluster.server.ThreadPoolMessageExecutor;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
@@ -34,6 +34,8 @@ public class NettyNetworkServer extends NetworkServer {
 	private int requestThreadKeepAliveTimeSecs = NetworkDefaults.REQUEST_THREAD_KEEP_ALIVE_TIME_SECS;
 	private int idleTime = NetworkDefaults.ALLIDLE_TIMEOUT_MILLIS;
 
+	private IEndpointListener endpointListener;
+
 	public NettyNetworkServer(String applicationName, String serviceName,
 			String zooKeeperConnectString) {
 		super(applicationName, serviceName, zooKeeperConnectString);
@@ -51,8 +53,9 @@ public class NettyNetworkServer extends NetworkServer {
 		ChannelGroup channelGroup = new DefaultChannelGroup(String.format(
 				"netty-server-group-%s", serviceName));
 
-		final SimpleChannelUpstreamHandler requestHandler = new ServerChannelHandler(
+		final ServerChannelHandler requestHandler = new ServerChannelHandler(
 				channelGroup, messageClosureRegistry, messageExecutor);
+		requestHandler.setEndpointListener(endpointListener);
 
 		ServerBootstrap bootstrap = new ServerBootstrap(
 				new NioServerSocketChannelFactory(workerExecutor,
@@ -143,6 +146,10 @@ public class NettyNetworkServer extends NetworkServer {
 
 	public void setMarkAvailableWhenConnected(boolean markAvailableWhenConnected) {
 		this.markAvailableWhenConnected = markAvailableWhenConnected;
+	}
+
+	public void setEndpointListener(IEndpointListener endpointListener) {
+		this.endpointListener = endpointListener;
 	}
 
 }
