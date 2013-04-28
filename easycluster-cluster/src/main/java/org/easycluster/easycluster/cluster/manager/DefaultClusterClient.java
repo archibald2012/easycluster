@@ -15,20 +15,20 @@ import org.easycluster.easycluster.cluster.manager.event.ClusterEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class DefaultClusterClient implements ClusterClient {
 
-	private static final Logger			LOGGER							= LoggerFactory.getLogger(DefaultClusterClient.class);
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(DefaultClusterClient.class);
 
-	private ClusterNotification			clusterNotification	= null;
-	private ClusterManager					clusterManager			= null;
-	private String									applicationName			= null;
-	private String									serviceName					= null;
-	private AtomicBoolean						shutdownSwitch			= new AtomicBoolean(false);
-	private AtomicBoolean						startedSwitch				= new AtomicBoolean(false);
-	private ClusterEventHandler	clusterEventHandler	= null;
+	private ClusterNotification clusterNotification = null;
+	private ClusterManager clusterManager = null;
+	private String applicationName = null;
+	private String serviceName = null;
+	private AtomicBoolean shutdownSwitch = new AtomicBoolean(false);
+	private AtomicBoolean startedSwitch = new AtomicBoolean(false);
+	private ClusterEventHandler clusterEventHandler = null;
 
-	private volatile CountDownLatch	connectedLatch			= new CountDownLatch(1);
+	private volatile CountDownLatch connectedLatch = new CountDownLatch(1);
 
 	public DefaultClusterClient(String applicationName, String serviceName) {
 		this.applicationName = applicationName;
@@ -106,7 +106,8 @@ public class DefaultClusterClient implements ClusterClient {
 	}
 
 	@Override
-	public Node getNodeWithId(int nodeId) throws ClusterDisconnectedException {
+	public Node getNodeWithId(String nodeId)
+			throws ClusterDisconnectedException {
 		Set<Node> nodes = getNodes();
 		Node node = null;
 		for (Node n : nodes) {
@@ -138,7 +139,7 @@ public class DefaultClusterClient implements ClusterClient {
 	}
 
 	@Override
-	public void removeNode(int nodeId) throws ClusterDisconnectedException {
+	public void removeNode(String nodeId) throws ClusterDisconnectedException {
 		if (!startedSwitch.get()) {
 			throw new ClusterNotStartedException();
 		}
@@ -153,7 +154,8 @@ public class DefaultClusterClient implements ClusterClient {
 	}
 
 	@Override
-	public void markNodeAvailable(int nodeId) throws ClusterDisconnectedException {
+	public void markNodeAvailable(String nodeId)
+			throws ClusterDisconnectedException {
 		if (!startedSwitch.get()) {
 			throw new ClusterNotStartedException();
 		}
@@ -168,7 +170,8 @@ public class DefaultClusterClient implements ClusterClient {
 	}
 
 	@Override
-	public void markNodeUnavailable(int nodeId) throws ClusterDisconnectedException {
+	public void markNodeUnavailable(String nodeId)
+			throws ClusterDisconnectedException {
 		if (!startedSwitch.get()) {
 			throw new ClusterNotStartedException();
 		}
@@ -241,7 +244,8 @@ public class DefaultClusterClient implements ClusterClient {
 	}
 
 	@Override
-	public boolean awaitConnection(long timeout, TimeUnit unit) throws InterruptedException {
+	public boolean awaitConnection(long timeout, TimeUnit unit)
+			throws InterruptedException {
 		if (!startedSwitch.get()) {
 			throw new ClusterNotStartedException();
 		}
@@ -309,7 +313,7 @@ public class DefaultClusterClient implements ClusterClient {
 	}
 
 	class ClusterClientMBean {
-		private ClusterClient	clusterClient;
+		private ClusterClient clusterClient;
 
 		public String[] getNodes() {
 			Set<Node> nodes = clusterClient.getNodes();

@@ -12,10 +12,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-
 public class RoundRobinLoadBalancerFactoryTestCase {
 
-	private LoadBalancerFactory	loadBalancerFactory	= new RoundRobinLoadBalancerFactory();
+	private LoadBalancerFactory loadBalancerFactory = new RoundRobinLoadBalancerFactory();
 
 	@Before
 	public void setUp() throws Exception {
@@ -28,18 +27,18 @@ public class RoundRobinLoadBalancerFactoryTestCase {
 	@Test
 	public void testNextNode() {
 		Set<Node> nodes = new HashSet<Node>();
-		nodes.add(new Node(1, "localhost", 1111, true));
-		nodes.add(new Node(2, "localhost", 1112, true));
-		nodes.add(new Node(3, "localhost", 1113, true));
-		nodes.add(new Node(4, "localhost", 1114, true));
-		nodes.add(new Node(5, "localhost", 1115, true));
-		nodes.add(new Node(6, "localhost", 1116, true));
-		nodes.add(new Node(7, "localhost", 1117, true));
-		nodes.add(new Node(8, "localhost", 1118, true));
-		nodes.add(new Node(9, "localhost", 1119, true));
-		nodes.add(new Node(10, "localhost", 1120, true));
-		nodes.add(new Node(11, "localhost", 1120, true));
-		nodes.add(new Node(11, "localhost", 1120, true));
+		nodes.add(new Node("localhost", 1111, true));
+		nodes.add(new Node("localhost", 1112, true));
+		nodes.add(new Node("localhost", 1113, true));
+		nodes.add(new Node("localhost", 1114, true));
+		nodes.add(new Node("localhost", 1115, true));
+		nodes.add(new Node("localhost", 1116, true));
+		nodes.add(new Node("localhost", 1117, true));
+		nodes.add(new Node("localhost", 1118, true));
+		nodes.add(new Node("localhost", 1119, true));
+		nodes.add(new Node("localhost", 1120, true));
+		nodes.add(new Node("localhost", 1120, true));
+		nodes.add(new Node("localhost", 1120, true));
 
 		for (Node node : nodes) {
 			System.out.println("node: " + node);
@@ -57,7 +56,8 @@ public class RoundRobinLoadBalancerFactoryTestCase {
 
 	@Test
 	public void testEmptyNodes() {
-		LoadBalancer lb = loadBalancerFactory.newLoadBalancer(new HashSet<Node>());
+		LoadBalancer lb = loadBalancerFactory
+				.newLoadBalancer(new HashSet<Node>());
 		Assert.assertNull(lb.nextNode());
 	}
 

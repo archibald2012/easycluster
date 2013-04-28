@@ -90,7 +90,7 @@ public class NetworkServer {
 	 * marks the <code>Node</code> available in the cluster. A <code>Node</code>
 	 * 's url must be specified in the format hostname:port.
 	 * 
-	 * @param nodeId
+	 * @param port
 	 *            the id of the <code>Node</code> this server is associated
 	 *            with.
 	 * 
@@ -100,8 +100,8 @@ public class NetworkServer {
 	 * @throws NetworkingException
 	 *             thrown if unable to bind
 	 */
-	public void bind(int nodeId) {
-		bind(nodeId, new int[0], true);
+	public void bind(int port) {
+		bind(port, new int[0], true);
 	}
 
 	/**
@@ -111,7 +111,7 @@ public class NetworkServer {
 	 * is true. A <code>Node</code>'s url must be specified in the format
 	 * hostname:port.
 	 * 
-	 * @param nodeId
+	 * @param port
 	 *            the id of the <code>Node</code> this server is associated
 	 *            with.
 	 * @param markAvailable
@@ -125,7 +125,7 @@ public class NetworkServer {
 	 * @throws NetworkingException
 	 *             thrown if unable to bind
 	 */
-	public void bind(final int nodeId, final int[] partitionIds,
+	public void bind(final int port, final int[] partitionIds,
 			final boolean markAvailable) {
 		if (shutdownSwitch.get()) {
 			throw new NetworkShutdownException("");
@@ -143,10 +143,12 @@ public class NetworkServer {
 		clusterClient.start();
 		clusterClient.awaitConnectionUninterruptibly();
 
-		Node node = new Node(nodeId, new InetSocketAddress(nodeId), false);
+		Node node = new Node(new InetSocketAddress(port), false);
 		node.setVersion(version);
 		node.setUrl(url);
 		clusterClient.addNode(node);
+
+		final String nodeId = node.getId();
 
 		node = clusterClient.getNodeWithId(nodeId);
 		if (node == null) {
@@ -154,7 +156,7 @@ public class NetworkServer {
 					+ " exists");
 		}
 
-		clusterIoServer.bind(nodeId);
+		clusterIoServer.bind(port);
 
 		this.node = node;
 
@@ -168,7 +170,7 @@ public class NetworkServer {
 			public void handleClusterConnected(Set<Node> nodes) {
 				if (markAvailable) {
 					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug("Marking node with id " + nodeId
+						LOGGER.debug("Marking node with id " + port
 								+ " available");
 					}
 					try {

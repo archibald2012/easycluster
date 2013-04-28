@@ -25,15 +25,14 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-
 public class NetworkClientTestCase {
 
-	private NetworkClient				networkClient;
-	private IMocksControl				mockControl;
-	private LoadBalancerFactory	loadBalancerFactory;
-	private MessageRegistry			messageRegistry;
-	private ClusterIoClient			clusterIoClient;
-	private ClusterClient				clusterClient;
+	private NetworkClient networkClient;
+	private IMocksControl mockControl;
+	private LoadBalancerFactory loadBalancerFactory;
+	private MessageRegistry messageRegistry;
+	private ClusterIoClient clusterIoClient;
+	private ClusterClient clusterClient;
 
 	@Before
 	public void setUp() throws Exception {
@@ -47,7 +46,8 @@ public class NetworkClientTestCase {
 		String applicationName = "app";
 		String serviceName = "test";
 		String zookeeperConnectString = "127.0.0.1:2181";
-		networkClient = new NetworkClient(applicationName, serviceName, zookeeperConnectString, loadBalancerFactory);
+		networkClient = new NetworkClient(applicationName, serviceName,
+				zookeeperConnectString, loadBalancerFactory);
 
 	}
 
@@ -67,7 +67,8 @@ public class NetworkClientTestCase {
 		expect(clusterClient.getNodes()).andReturn(nodeSet);
 
 		LoadBalancer loadBalancer = mockControl.createMock(LoadBalancer.class);
-		expect(loadBalancerFactory.newLoadBalancer(nodeSet)).andReturn(loadBalancer);
+		expect(loadBalancerFactory.newLoadBalancer(nodeSet)).andReturn(
+				loadBalancer);
 		expect(loadBalancer.nextNode()).andReturn(null);
 
 		expect(clusterClient.isConnected()).andReturn(true);
@@ -81,7 +82,8 @@ public class NetworkClientTestCase {
 		expectLastCall().times(1);
 		clusterClient.awaitConnectionUninterruptibly();
 		expectLastCall().times(1);
-		expect(clusterClient.addListener((ClusterListener) anyObject())).andReturn(1L);
+		expect(clusterClient.addListener((ClusterListener) anyObject()))
+				.andReturn(1L);
 
 		mockControl.replay();
 
@@ -97,7 +99,7 @@ public class NetworkClientTestCase {
 	public void testSendMessage() throws Exception {
 
 		Set<Node> nodeSet = new HashSet<Node>();
-		Node node = new Node(1, "127.0.0.1", 1111, new int[0], true);
+		Node node = new Node("127.0.0.1", 1111, new int[0], true);
 		nodeSet.add(node);
 
 		expect(messageRegistry.contains(anyObject())).andReturn(true);
@@ -106,7 +108,8 @@ public class NetworkClientTestCase {
 		expect(clusterClient.getNodes()).andReturn(nodeSet);
 
 		LoadBalancer loadBalancer = mockControl.createMock(LoadBalancer.class);
-		expect(loadBalancerFactory.newLoadBalancer(nodeSet)).andReturn(loadBalancer).times(2);
+		expect(loadBalancerFactory.newLoadBalancer(nodeSet)).andReturn(
+				loadBalancer).times(2);
 
 		expect(loadBalancer.nextNode()).andReturn(node);
 
@@ -115,7 +118,8 @@ public class NetworkClientTestCase {
 
 		clusterIoClient.nodesChanged(nodeSet);
 		expectLastCall().times(1);
-		clusterIoClient.sendMessage(anyObject(Node.class), anyObject(String.class), anyObject(Closure.class));
+		clusterIoClient.sendMessage(anyObject(Node.class),
+				anyObject(String.class), anyObject(Closure.class));
 		expectLastCall().times(1);
 		networkClient.setClusterIoClient(clusterIoClient);
 
@@ -123,7 +127,8 @@ public class NetworkClientTestCase {
 		expectLastCall().times(1);
 		clusterClient.awaitConnectionUninterruptibly();
 		expectLastCall().times(1);
-		expect(clusterClient.addListener((ClusterListener) anyObject())).andReturn(1L);
+		expect(clusterClient.addListener((ClusterListener) anyObject()))
+				.andReturn(1L);
 
 		mockControl.replay();
 

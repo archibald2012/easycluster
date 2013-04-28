@@ -36,7 +36,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 	private String membershipNode = null;
 	private String eventNode = null;
 
-	private Map<Integer, Node> currentNodes = new HashMap<Integer, Node>();
+	private Map<String, Node> currentNodes = new HashMap<String, Node>();
 	private ZooKeeper zooKeeper = null;
 	private ClusterWatcher watcher = null;
 	private volatile boolean connected = false;
@@ -81,7 +81,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 						LOGGER.debug("setData {}", nodeString);
 					}
 					zk.create(path, nodeString.getBytes(),
-							ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+							ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 				} catch (KeeperException.NodeExistsException ex) {
 					throw new InvalidNodeException("A node with id "
 							+ node.getId() + " already exists");
@@ -95,7 +95,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 	}
 
 	@Override
-	public void removeNode(final int nodeId) {
+	public void removeNode(final String nodeId) {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("RemoveNode {}", nodeId);
 		}
@@ -127,7 +127,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 	}
 
 	@Override
-	public void markNodeAvailable(final int nodeId) {
+	public void markNodeAvailable(final String nodeId) {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("MarkNodeAvailable {}", nodeId);
 		}
@@ -162,7 +162,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 	}
 
 	@Override
-	public void markNodeUnavailable(final int nodeId) {
+	public void markNodeUnavailable(final String nodeId) {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("MarkNodeUnavailable {}", nodeId);
 		}
@@ -203,7 +203,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 		});
 	}
 
-	private void makeNodeAvailable(int nodeId) {
+	private void makeNodeAvailable(String nodeId) {
 		Node old = currentNodes.get(nodeId);
 		if (!old.getAvailable()) {
 			old.setAvailable(true);
@@ -211,7 +211,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 		}
 	}
 
-	private void makeNodeUnavailable(int nodeId) {
+	private void makeNodeUnavailable(String nodeId) {
 		Node old = currentNodes.get(nodeId);
 		if (old.getAvailable()) {
 			old.setAvailable(false);
@@ -341,12 +341,11 @@ public class ZooKeeperClusterManager implements ClusterManager {
 		currentNodes.clear();
 
 		for (String member : members) {
-			int id = Integer.parseInt(member);
 			byte[] data = zk.getData(membershipNode + NODE_SEPARATOR + member,
 					false, null);
 			Node node = XmlUtil.unmarshal(new String(data), Node.class);
 			if (node != null) {
-				currentNodes.put(id, node);
+				currentNodes.put(member, node);
 			}
 		}
 	}

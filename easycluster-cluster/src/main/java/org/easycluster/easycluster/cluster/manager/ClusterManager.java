@@ -19,19 +19,19 @@ public interface ClusterManager {
 	 * 
 	 * @param nodeId
 	 */
-	void removeNode(int nodeId);
+	void removeNode(String nodeId);
 
 	/**
 	 * 
 	 * @param nodeId
 	 */
-	void markNodeAvailable(int nodeId);
+	void markNodeAvailable(String nodeId);
 
 	/**
 	 * 
 	 * @param nodeId
 	 */
-	void markNodeUnavailable(int nodeId);
+	void markNodeUnavailable(String nodeId);
 
 	/**
 	 * 

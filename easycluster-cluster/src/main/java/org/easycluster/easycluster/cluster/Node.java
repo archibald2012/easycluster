@@ -15,63 +15,58 @@ import org.apache.commons.lang.builder.ToStringStyle;
 
 @XmlRootElement(name = "node")
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Node", propOrder = { "id", "applicationName", "serviceName", "hostName", "port", "version",
-		"available", "partitions", "url" })
+@XmlType(name = "Node", propOrder = { "id", "applicationName", "serviceName",
+		"hostName", "port", "version", "available", "partitions", "url" })
 public class Node implements Comparable<Node> {
 
-	@XmlElement(name = "id", required = true)
-	// TODO
-	private int			id;
-
 	@XmlElement(name = "application", required = true)
-	private String	applicationName;
+	private String applicationName;
 
 	@XmlElement(name = "service", required = true)
-	private String	serviceName;
+	private String serviceName;
 
 	@XmlElement(name = "host", required = true)
-	private String	hostName;
+	private String hostName;
 
 	@XmlElement(name = "port", required = true)
-	private int			port				= -1;
+	private int port = -1;
 
 	@XmlElement(name = "version", required = true)
-	private String	version			= "1.0.0";
+	private String version = "1.0.0";
 
 	@XmlElement(name = "available", required = true)
-	private boolean	available		= false;
+	private boolean available = false;
 
 	@XmlElement(name = "partitions", required = false)
-	private int[]		partitions	= new int[0];
+	private int[] partitions = new int[0];
 
 	@XmlElement(name = "url", required = false)
-	private String	url;
+	private String url;
 
 	public Node() {
 	}
 
-	public Node(int id, InetSocketAddress address, boolean available) {
-		this(id, address, new int[0], available);
+	public Node(InetSocketAddress address, boolean available) {
+		this(address, new int[0], available);
 	}
 
-	public Node(int id, InetSocketAddress address, int[] partitions, boolean available) {
-		this(id, address.getHostName(), address.getPort(), partitions, available);
+	public Node(InetSocketAddress address, int[] partitions, boolean available) {
+		this(address.getHostName(), address.getPort(), partitions, available);
 	}
 
-	public Node(int id, String hostName, int port, boolean available) {
-		this(id, hostName, port, new int[0], available);
+	public Node(String hostName, int port, boolean available) {
+		this(hostName, port, new int[0], available);
 	}
 
-	public Node(int id, String hostName, int port, int[] partitions, boolean available) {
-		this.id = id;
+	public Node(String hostName, int port, int[] partitions, boolean available) {
 		this.hostName = hostName;
 		this.port = port;
 		this.partitions = partitions;
 		this.available = available;
 	}
 
-	public int getId() {
-		return id;
+	public String getId() {
+		return getHostName() + ":" + getPort();
 	}
 
 	public String getUrl() {
@@ -137,7 +132,8 @@ public class Node implements Comparable<Node> {
 	@Override
 	public int hashCode() {
 		HashCodeBuilder builder = new HashCodeBuilder();
-		builder.append(this.id);
+		builder.append(this.hostName);
+		builder.append(this.port);
 		return builder.toHashCode();
 	}
 
@@ -147,16 +143,23 @@ public class Node implements Comparable<Node> {
 			return false;
 		}
 		Node rhs = (Node) obj;
-		return new EqualsBuilder().append(id, rhs.id).isEquals();
+		return new EqualsBuilder().append(hostName, rhs.hostName)
+				.append(port, rhs.port).isEquals();
 	}
 
 	@Override
 	public int compareTo(Node o) {
-		return this.id - o.id;
+		int val = this.hostName.compareTo(o.hostName);
+		if (val == 0) {
+			return this.port > o.port ? 1 : -1;
+		} else {
+			return val;
+		}
 	}
 
 	@Override
 	public String toString() {
-		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+		return ToStringBuilder.reflectionToString(this,
+				ToStringStyle.SHORT_PREFIX_STYLE);
 	}
 }
