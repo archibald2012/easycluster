@@ -4,11 +4,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.easycluster.easycluster.cluster.common.AverageTimeTracker;
-import org.easycluster.easycluster.cluster.common.KeyTransformer;
 import org.easycluster.easycluster.cluster.common.MessageContext;
 import org.easycluster.easycluster.cluster.common.MessageRegistry;
 import org.easycluster.easycluster.cluster.common.RequestsPerSecondTracker;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
+import org.easycluster.easycluster.core.KeyTransformer;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;

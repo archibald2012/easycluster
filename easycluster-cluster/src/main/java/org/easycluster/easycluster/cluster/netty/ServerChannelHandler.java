@@ -1,6 +1,5 @@
 package org.easycluster.easycluster.cluster.netty;
 
-import org.easycluster.easycluster.cluster.common.KeyTransformer;
 import org.easycluster.easycluster.cluster.common.TransportUtil;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.cluster.netty.endpoint.DefaultEndpointFactory;
@@ -10,6 +9,7 @@ import org.easycluster.easycluster.cluster.server.MessageClosureRegistry;
 import org.easycluster.easycluster.cluster.server.MessageExecutor;
 import org.easycluster.easycluster.core.Closure;
 import org.easycluster.easycluster.core.Identifiable;
+import org.easycluster.easycluster.core.KeyTransformer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelLocal;
@@ -49,12 +49,12 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("channelOpen: " + channel);
 		}
-		channelGroup.add(channel);
-
 		Endpoint endpoint = endpointFactory.createEndpoint(e.getChannel());
 		if (null != endpoint) {
 			attachEndpointToSession(e.getChannel(), endpoint);
 		}
+		channelGroup.add(channel);
+
 	}
 
 	@Override
@@ -184,7 +184,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 					((Identifiable) message).setIdentification(requestId);
 				}
 
-				if(LOGGER.isDebugEnabled()){
+				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("send - [{}]", message);
 				}
 				endpoint.send(message);

@@ -2,9 +2,9 @@ package org.easycluster.easycluster.cluster.netty.endpoint;
 
 import java.net.InetSocketAddress;
 
-import org.easycluster.easycluster.cluster.common.IpPortPair;
 import org.easycluster.easycluster.cluster.common.MessageContext;
 import org.easycluster.easycluster.core.Closure;
+import org.easycluster.easycluster.core.IpPortPair;
 import org.jboss.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

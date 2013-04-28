@@ -1,4 +1,4 @@
-package org.easycluster.easycluster.cluster.common;
+package org.easycluster.easycluster.core;
 
 public class IpPortPair implements Comparable<IpPortPair> {
 

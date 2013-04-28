@@ -1,10 +1,8 @@
 /**
  * 
  */
-package org.easycluster.easycluster.cluster.common;
+package org.easycluster.easycluster.core;
 
-import org.easycluster.easycluster.core.Identifiable;
-import org.easycluster.easycluster.core.Transformer;
 
 public class KeyTransformer implements Transformer<Object, Object> {
 
