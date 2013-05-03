@@ -18,7 +18,7 @@ public interface NetworkDefaults {
 	/**
 	 * The default number of milliseconds to wait for retry opening a socket.
 	 */
-	int		ALLIDLE_TIMEOUT_MILLIS					= 30000;
+	int		ALLIDLE_TIMEOUT_MILLIS					= 90000;
 
 	/**
 	 * The default maximum number of connections to be opened per node.
