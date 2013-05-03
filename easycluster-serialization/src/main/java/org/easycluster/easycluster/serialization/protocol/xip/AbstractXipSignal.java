@@ -1,10 +1,9 @@
 package org.easycluster.easycluster.serialization.protocol.xip;
 
-
 public class AbstractXipSignal extends DefaultPropertiesSupport implements
 		XipSignal {
 
-	private long sequence;
+	private long sequence = System.currentTimeMillis();
 	private long client = 0;
 
 	@Override
@@ -29,7 +28,7 @@ public class AbstractXipSignal extends DefaultPropertiesSupport implements
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + (int)sequence;
+		result = prime * result + (int) sequence;
 		return result;
 	}
 

@@ -4,6 +4,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.easycluster.easycluster.cluster.common.ByteUtil;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
+import org.easycluster.easycluster.core.DES;
 import org.easycluster.easycluster.serialization.bytebean.codec.AnyCodec;
 import org.easycluster.easycluster.serialization.bytebean.codec.DefaultCodecProvider;
 import org.easycluster.easycluster.serialization.bytebean.codec.DefaultNumberCodecs;
@@ -44,6 +45,7 @@ public class NettyBeanDecoder extends OneToOneDecoder {
 
 	private int dumpBytes = 256;
 	private boolean isDebugEnabled = true;
+	private byte[] encryptKey;
 
 	@Override
 	protected Object decode(ChannelHandlerContext ctx, Channel channel,
@@ -70,16 +72,32 @@ public class NettyBeanDecoder extends OneToOneDecoder {
 
 		Class<?> type = typeMetaInfo.find(header.getMessageCode());
 		if (null == type) {
-			throw new InvalidMessageException("unknow message code:"
+			throw new InvalidMessageException("Unknow message code:"
 					+ header.getMessageCode());
+		}
+		if (header.getSequence() <= 0) {
+			throw new InvalidMessageException("Invalid message sequence:"
+					+ header.getSequence());
 		}
 
 		byte[] bodyBytes = ArrayUtils.subarray(bytes, XipHeader.HEADER_LENGTH,
 				bytes.length);
 
-		AbstractXipSignal signal = (AbstractXipSignal) getByteBeanCodec().decode(
-				getByteBeanCodec().getDecContextFactory().createDecContext(
-						bodyBytes, type, null, null)).getValue();
+		if (encryptKey != null) {
+			try {
+				bodyBytes = DES.decryptThreeDESECB(bodyBytes, encryptKey);
+			} catch (Exception e) {
+				String error = "Failed to decrypt the body due to error "
+						+ e.getMessage();
+				LOGGER.error(error, e);
+				throw new InvalidMessageException(error, e);
+			}
+		}
+
+		AbstractXipSignal signal = (AbstractXipSignal) getByteBeanCodec()
+				.decode(getByteBeanCodec().getDecContextFactory()
+						.createDecContext(bodyBytes, type, null, null))
+				.getValue();
 
 		if (null != signal) {
 			signal.setIdentification(header.getSequence());
@@ -110,7 +128,8 @@ public class NettyBeanDecoder extends OneToOneDecoder {
 					.addCodec(new LenByteArrayCodec())
 					.addCodec(new LenListCodec()).addCodec(new LenArrayCodec());
 
-			EarlyStopBeanCodec byteBeanCodec = new EarlyStopBeanCodec(new DefaultField2Desc());
+			EarlyStopBeanCodec byteBeanCodec = new EarlyStopBeanCodec(
+					new DefaultField2Desc());
 			codecProvider.addCodec(byteBeanCodec);
 
 			DefaultEncContextFactory encContextFactory = new DefaultEncContextFactory();
@@ -156,4 +175,11 @@ public class NettyBeanDecoder extends OneToOneDecoder {
 		this.isDebugEnabled = isDebugEnabled;
 	}
 
+	public void setEncryptKey(String encryptKey) {
+		this.encryptKey = encryptKey.getBytes();
+	}
+
+	public void setEncryptKey(byte[] encryptKey) {
+		this.encryptKey = encryptKey;
+	}
 }

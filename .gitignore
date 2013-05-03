@@ -9,3 +9,11 @@
 /easycluster-core/target
 /easycluster-core/.classpath
 /easycluster-core/target
+/easycluster-core/.settings
+/easycluster-cluster/easycluster-client.ucls
+/easycluster-cluster/easycluster-cluster.ucls
+/easycluster-cluster/easycluster-server.ucls
+/easycluster-cluster/.settings
+/easycluster-cluster/.classpath
+/easycluster-cluster/.project
+/.project

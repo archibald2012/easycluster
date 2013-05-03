@@ -4,6 +4,8 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.easycluster.easycluster.cluster.common.ByteUtil;
 import org.easycluster.easycluster.cluster.common.MessageContext;
+import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
+import org.easycluster.easycluster.core.DES;
 import org.easycluster.easycluster.serialization.bytebean.codec.AnyCodec;
 import org.easycluster.easycluster.serialization.bytebean.codec.DefaultCodecProvider;
 import org.easycluster.easycluster.serialization.bytebean.codec.DefaultNumberCodecs;
@@ -41,6 +43,7 @@ public class NettyBeanEncoder extends OneToOneEncoder {
 	private BeanFieldCodec byteBeanCodec = null;
 	private int dumpBytes = 256;
 	private boolean isDebugEnabled = true;
+	private byte[] encryptKey;
 
 	@Override
 	protected Object encode(ChannelHandlerContext ctx, Channel channel,
@@ -57,13 +60,27 @@ public class NettyBeanEncoder extends OneToOneEncoder {
 	protected byte[] encodeXip(AbstractXipSignal signal) throws Exception {
 		SignalCode attr = signal.getClass().getAnnotation(SignalCode.class);
 		if (null == attr) {
-			throw new RuntimeException(
+			throw new InvalidMessageException(
 					"invalid signal, no messageCode defined.");
+		}
+		if (signal.getIdentification() <= 0) {
+			throw new InvalidMessageException("invalid signal sequence:"
+					+ signal.getIdentification());
 		}
 
 		byte[] bodyBytes = getByteBeanCodec().encode(
 				getByteBeanCodec().getEncContextFactory().createEncContext(
 						signal, signal.getClass(), null));
+		if (encryptKey != null) {
+			try {
+				bodyBytes = DES.encryptThreeDESECB(bodyBytes, encryptKey);
+			} catch (Exception e) {
+				String error = "Failed to encrypt the body due to error "
+						+ e.getMessage();
+				LOGGER.error(error, e);
+				throw new InvalidMessageException(error, e);
+			}
+		}
 
 		XipHeader header = createHeader((byte) 1, signal.getIdentification(),
 				attr.messageCode(), bodyBytes.length);
@@ -157,5 +174,13 @@ public class NettyBeanEncoder extends OneToOneEncoder {
 
 	public void setDebugEnabled(boolean isDebugEnabled) {
 		this.isDebugEnabled = isDebugEnabled;
+	}
+
+	public void setEncryptKey(String encryptKey) {
+		this.encryptKey = encryptKey.getBytes();
+	}
+
+	public void setEncryptKey(byte[] encryptKey) {
+		this.encryptKey = encryptKey;
 	}
 }

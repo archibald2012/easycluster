@@ -63,9 +63,7 @@ public class NettyNetworkServer extends NetworkServer {
 
 		bootstrap.setOption("reuseAddress", true);
 		bootstrap.setOption("tcpNoDelay", true);
-		bootstrap.setOption("child.tcpNoDelay", true);
-		bootstrap.setOption("child.reuseAddress", true);
-		bootstrap.setOption("child.keepAlive", true);
+		bootstrap.setOption("keepAlive", true);
 
 		bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
 
