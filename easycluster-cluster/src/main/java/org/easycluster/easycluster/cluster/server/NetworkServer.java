@@ -24,41 +24,35 @@ import org.slf4j.LoggerFactory;
 
 public class NetworkServer {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(NetworkServer.class);
+	private static final Logger			LOGGER						= LoggerFactory.getLogger(NetworkServer.class);
 
-	protected String applicationName = null;
-	protected String serviceName = null;
-	protected ClusterClient clusterClient = null;
-	protected MessageClosureRegistry messageClosureRegistry = new MessageClosureRegistry();
+	protected String					applicationName				= null;
+	protected String					serviceName					= null;
+	protected ClusterClient				clusterClient				= null;
+	protected MessageClosureRegistry	messageClosureRegistry		= new MessageClosureRegistry();
 
-	protected ClusterIoServer clusterIoServer = null;
-	protected MessageExecutor messageExecutor = null;
+	protected ClusterIoServer			clusterIoServer				= null;
+	protected MessageExecutor			messageExecutor				= null;
 
-	protected boolean markAvailableWhenConnected = true;
-	protected String version = null;
-	protected String ip = SystemUtil.getIpAddress();
-	protected int port = -1;
-	protected int[] partitionIds = new int[0];
-	protected String url = null;
+	protected boolean					markAvailableWhenConnected	= true;
+	protected String					version						= null;
+	protected String					ip							= SystemUtil.getIpAddress();
+	protected int						port						= -1;
+	protected int[]						partitionIds				= new int[0];
+	protected String					url							= null;
 
-	private AtomicBoolean shutdownSwitch = new AtomicBoolean(false);
-	private volatile Node node = null;
-	private volatile Long listenerKey = null;
+	private AtomicBoolean				shutdownSwitch				= new AtomicBoolean(false);
+	private volatile Node				node						= null;
+	private volatile Long				listenerKey					= null;
 
-	public NetworkServer(String applicationName, String serviceName,
-			String zooKeeperConnectString) {
-		this(applicationName, serviceName, zooKeeperConnectString,
-				ClusterDefaults.ZOOKEEPER_SESSION_TIMEOUT_MILLIS);
+	public NetworkServer(String applicationName, String serviceName, String zooKeeperConnectString) {
+		this(applicationName, serviceName, zooKeeperConnectString, ClusterDefaults.ZOOKEEPER_SESSION_TIMEOUT_MILLIS);
 	}
 
-	public NetworkServer(String applicationName, String serviceName,
-			String zooKeeperConnectString, int zooKeeperSessionTimeoutMillis) {
+	public NetworkServer(String applicationName, String serviceName, String zooKeeperConnectString, int zooKeeperSessionTimeoutMillis) {
 		this.applicationName = applicationName;
 		this.serviceName = serviceName;
-		this.clusterClient = new ZooKeeperClusterClient(applicationName,
-				serviceName, zooKeeperConnectString,
-				zooKeeperSessionTimeoutMillis);
+		this.clusterClient = new ZooKeeperClusterClient(applicationName, serviceName, zooKeeperConnectString, zooKeeperSessionTimeoutMillis);
 	}
 
 	/**
@@ -75,17 +69,12 @@ public class NetworkServer {
 	 *            the function to call when an incoming message of type
 	 *            <code>requestMessage</code> is received
 	 */
-	public void registerHandler(Class<?> requestMessage,
-			Class<?> responseMessage, MessageClosure<?, ?> handler) {
-		String responseType = (responseMessage == null) ? null
-				: responseMessage.getName();
-		LOGGER.info(
-				"registerHandler request=[{}], response=[{}], handler=[{}]",
-				new Object[] { requestMessage.getName(), responseType,
-						handler.getClass().getName() });
+	public void registerHandler(Class<?> requestMessage, Class<?> responseMessage, MessageClosure<?, ?> handler) {
+		String responseType = (responseMessage == null) ? null : responseMessage.getName();
+		LOGGER.info("registerHandler request=[{}], response=[{}], handler=[{}]", new Object[] { requestMessage.getName(), responseType,
+				handler.getClass().getName() });
 
-		messageClosureRegistry.registerHandler(requestMessage, responseMessage,
-				handler);
+		messageClosureRegistry.registerHandler(requestMessage, responseMessage, handler);
 	}
 
 	/**
@@ -129,14 +118,12 @@ public class NetworkServer {
 	 * @throws NetworkingException
 	 *             thrown if unable to bind
 	 */
-	public void bind(final int port, final int[] partitionIds,
-			final boolean markAvailable) {
+	public void bind(final int port, final int[] partitionIds, final boolean markAvailable) {
 		if (shutdownSwitch.get()) {
 			throw new NetworkShutdownException("");
 		}
 		if (node != null) {
-			throw new NetworkingException(
-					"Attempt to bind an already bound NetworkServer");
+			throw new NetworkingException("Attempt to bind an already bound NetworkServer");
 		}
 
 		LOGGER.info("Starting NetworkServer...");
@@ -147,19 +134,19 @@ public class NetworkServer {
 		clusterClient.start();
 		clusterClient.awaitConnectionUninterruptibly();
 
-		Node node = new Node(ip, port, false);
+		Node node = new Node(ip, port, partitionIds, false);
 		node.setApplicationName(applicationName);
 		node.setServiceName(serviceName);
 		node.setVersion(version);
 		node.setUrl(url);
+
 		clusterClient.addNode(node);
 
 		final String nodeId = node.getId();
 
 		node = clusterClient.getNodeWithId(nodeId);
 		if (node == null) {
-			throw new InvalidNodeException("No node with id " + nodeId
-					+ " exists");
+			throw new InvalidNodeException("No node with id " + nodeId + " exists");
 		}
 
 		clusterIoServer.bind(port);
@@ -176,8 +163,7 @@ public class NetworkServer {
 			public void handleClusterConnected(Set<Node> nodes) {
 				if (markAvailable) {
 					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug("Marking node with id " + nodeId
-								+ " available");
+						LOGGER.debug("Marking node with id " + nodeId + " available");
 					}
 					try {
 						clusterClient.markNodeAvailable(nodeId);
@@ -300,8 +286,7 @@ public class NetworkServer {
 
 					Class<?> requestType = params[0];
 					Class<?> responseType = method.getReturnType();
-					responseType = (Void.class.isAssignableFrom(responseType)) ? null
-							: responseType;
+					responseType = (Void.class.isAssignableFrom(responseType)) ? null : responseType;
 
 					registerHandler(requestType, responseType, handler);
 				}
@@ -313,8 +298,7 @@ public class NetworkServer {
 		this.clusterIoServer = clusterIoServer;
 	}
 
-	public void setMessageClosureRegistry(
-			MessageClosureRegistry messageClosureRegistry) {
+	public void setMessageClosureRegistry(MessageClosureRegistry messageClosureRegistry) {
 		this.messageClosureRegistry = messageClosureRegistry;
 	}
 

@@ -1,5 +1,5 @@
 
-package org.easycluster.easycluster.cluster.common;
+package org.easycluster.easycluster.core;
 
 import java.util.List;
 

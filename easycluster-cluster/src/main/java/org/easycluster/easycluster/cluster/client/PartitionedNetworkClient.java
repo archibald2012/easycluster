@@ -54,7 +54,7 @@ public class PartitionedNetworkClient<PartitionedId> extends BaseNetworkClient {
 
 		checkIfConnected();
 		if (loadBalancer == null) {
-			throw new ClusterDisconnectedException("");
+			throw new ClusterDisconnectedException();
 		}
 
 		if (id == null) {

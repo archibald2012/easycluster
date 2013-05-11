@@ -25,20 +25,17 @@ import org.slf4j.LoggerFactory;
 
 public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(ServerChannelHandler.class);
+	private static final Logger			LOGGER					= LoggerFactory.getLogger(ServerChannelHandler.class);
 
-	private ChannelGroup channelGroup = null;
-	private MessageClosureRegistry messageHandlerRegistry = null;
-	private MessageExecutor messageExecutor = null;
-	private KeyTransformer keyTransformer = new KeyTransformer();
-	private EndpointFactory endpointFactory = new DefaultEndpointFactory();
+	private ChannelGroup				channelGroup			= null;
+	private MessageClosureRegistry		messageHandlerRegistry	= null;
+	private MessageExecutor				messageExecutor			= null;
+	private KeyTransformer				keyTransformer			= new KeyTransformer();
+	private EndpointFactory				endpointFactory			= new DefaultEndpointFactory();
 
-	public final ChannelLocal<Endpoint> endpoints = new ChannelLocal<Endpoint>();
+	public final ChannelLocal<Endpoint>	endpoints				= new ChannelLocal<Endpoint>();
 
-	public ServerChannelHandler(ChannelGroup channelGroup,
-			MessageClosureRegistry messageHandlerRegistry,
-			MessageExecutor messageExecutor) {
+	public ServerChannelHandler(ChannelGroup channelGroup, MessageClosureRegistry messageHandlerRegistry, MessageExecutor messageExecutor) {
 		this.channelGroup = channelGroup;
 		this.messageHandlerRegistry = messageHandlerRegistry;
 		this.messageExecutor = messageExecutor;
@@ -59,18 +56,15 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	}
 
 	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
-			throws Exception {
-		LOGGER.error("exceptionCaught:", e.getCause());
+	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
+		LOGGER.error("channel: [" + e.getChannel().getRemoteAddress() + "], exceptionCaught: [{}]", e.getCause());
 		ctx.getChannel().close();
 	}
 
 	@Override
-	public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
-			throws Exception {
+	public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("channelClosed: [" + e.getChannel().getRemoteAddress()
-					+ "]");
+			LOGGER.debug("channelClosed: [" + e.getChannel().getRemoteAddress() + "]");
 		}
 		Endpoint endpoint = removeEndpointOfSession(e.getChannel());
 		if (null != endpoint) {
@@ -79,16 +73,10 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	}
 
 	@Override
-	public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e)
-			throws Exception {
+	public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e) throws Exception {
 		if (LOGGER.isInfoEnabled()) {
-			LOGGER.info("channelIdle: "
-					+ e.getState().name()
-					+ " for "
-					+ (System.currentTimeMillis() - e
-							.getLastActivityTimeMillis())
-					+ " milliseconds, close channel["
-					+ e.getChannel().getRemoteAddress() + "]");
+			LOGGER.info("channelIdle: " + e.getState().name() + " for " + (System.currentTimeMillis() - e.getLastActivityTimeMillis())
+					+ " milliseconds, close channel[" + e.getChannel().getRemoteAddress() + "]");
 		}
 		e.getChannel().close();
 	}
@@ -116,13 +104,10 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 		if (null != endpoint) {
 			TransportUtil.attachSender(request, endpoint);
 
-			ResponseHandler responseHandler = new ResponseHandler(endpoint,
-					request);
+			ResponseHandler responseHandler = new ResponseHandler(endpoint, request);
 
 			if (!messageHandlerRegistry.messageRegistered(request.getClass())) {
-				String error = String.format(
-						"No such message of type %s registered", request
-								.getClass().getName());
+				String error = String.format("No such message of type %s registered", request.getClass().getName());
 				LOGGER.warn(error);
 				responseHandler.execute(new InvalidMessageException(error));
 			} else {
@@ -148,9 +133,9 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	}
 
 	class ResponseHandler implements Closure {
-		private Endpoint endpoint;
-		private Object request;
-		private long requestId;
+		private Endpoint	endpoint;
+		private Object		request;
+		private long		requestId;
 
 		public ResponseHandler(Endpoint endpoint, Object request) {
 			this.endpoint = endpoint;
@@ -169,8 +154,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 		}
 
 		private Object buildErrorResponse(Exception ex) {
-			Class<?> responseType = messageHandlerRegistry
-					.getResponseFor(request);
+			Class<?> responseType = messageHandlerRegistry.getResponseFor(request);
 			if (responseType == null) {
 				return null;
 			}
@@ -180,9 +164,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 				response = responseType.newInstance();
 				// TODO set exception message
 			} catch (Exception e) {
-				LOGGER.warn(
-						"Build default response with error " + e.getMessage(),
-						e);
+				LOGGER.warn("Build default response with error " + e.getMessage(), e);
 			}
 			return response;
 		}

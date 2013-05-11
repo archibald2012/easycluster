@@ -17,17 +17,16 @@ import org.jboss.netty.handler.codec.oneone.OneToOneDecoder;
 import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 import org.jboss.netty.handler.logging.LoggingHandler;
 
-
 public class NettyPartitionedNetworkClient<PartitionedId> extends PartitionedNetworkClient<PartitionedId> {
 
-	private OneToOneDecoder	decoder														= null;
-	private OneToOneEncoder	encoder														= null;
+	private OneToOneDecoder	decoder								= null;
+	private OneToOneEncoder	encoder								= null;
 
-	private int							connectTimeoutMillis							= NetworkDefaults.CONNECT_TIMEOUT_MILLIS;
-	private int							writeTimeoutMillis								= NetworkDefaults.WRITE_TIMEOUT_MILLIS;
-	private int							maxConnectionsPerNode							= NetworkDefaults.MAX_CONNECTIONS_PER_NODE;
-	private int							staleRequestTimeoutMins						= NetworkDefaults.STALE_REQUEST_TIMEOUT_MINS;
-	private int							staleRequestCleanupFrequenceMins	= NetworkDefaults.STALE_REQUEST_CLEANUP_FREQUENCY_MINS;
+	private int				connectTimeoutMillis				= NetworkDefaults.CONNECT_TIMEOUT_MILLIS;
+	private int				writeTimeoutMillis					= NetworkDefaults.WRITE_TIMEOUT_MILLIS;
+	private int				maxConnectionsPerNode				= NetworkDefaults.MAX_CONNECTIONS_PER_NODE;
+	private int				staleRequestTimeoutMins				= NetworkDefaults.STALE_REQUEST_TIMEOUT_MINS;
+	private int				staleRequestCleanupFrequenceMins	= NetworkDefaults.STALE_REQUEST_CLEANUP_FREQUENCY_MINS;
 
 	public NettyPartitionedNetworkClient(String applicationName, String serviceName, String zooKeeperConnectString,
 			PartitionedLoadBalancerFactory<PartitionedId> loadBalancerFactory) {
@@ -36,12 +35,10 @@ public class NettyPartitionedNetworkClient<PartitionedId> extends PartitionedNet
 
 	public void start() {
 
-		ExecutorService executor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("client-pool-%s",
-				getServiceName())));
+		ExecutorService executor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("client-pool-%s", getServiceName())));
 		ClientBootstrap bootstrap = new ClientBootstrap(new NioClientSocketChannelFactory(executor, executor));
 
-		final SimpleChannelHandler handler = new ClientChannelHandler(messageRegistry, getStaleRequestTimeoutMins(),
-				getStaleRequestCleanupFrequenceMins());
+		final SimpleChannelHandler handler = new ClientChannelHandler(messageRegistry, getStaleRequestTimeoutMins(), getStaleRequestCleanupFrequenceMins());
 
 		bootstrap.setOption("connectTimeoutMillis", getConnectTimeoutMillis());
 		bootstrap.setOption("tcpNoDelay", true);
@@ -65,8 +62,7 @@ public class NettyPartitionedNetworkClient<PartitionedId> extends PartitionedNet
 
 		});
 
-		clusterIoClient = new NettyIoClient(new ChannelPoolFactory(bootstrap, getMaxConnectionsPerNode(),
-				getWriteTimeoutMillis()));
+		clusterIoClient = new NettyIoClient(new ChannelPoolFactory(bootstrap, getMaxConnectionsPerNode(), getWriteTimeoutMillis()));
 
 		super.start();
 	}

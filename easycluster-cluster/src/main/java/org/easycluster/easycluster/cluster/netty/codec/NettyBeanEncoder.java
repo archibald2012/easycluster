@@ -2,9 +2,9 @@ package org.easycluster.easycluster.cluster.netty.codec;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
-import org.easycluster.easycluster.cluster.common.ByteUtil;
 import org.easycluster.easycluster.cluster.common.MessageContext;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
+import org.easycluster.easycluster.core.ByteUtil;
 import org.easycluster.easycluster.core.DES;
 import org.easycluster.easycluster.serialization.bytebean.codec.AnyCodec;
 import org.easycluster.easycluster.serialization.bytebean.codec.DefaultCodecProvider;

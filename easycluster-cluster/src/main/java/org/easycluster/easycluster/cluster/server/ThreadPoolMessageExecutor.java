@@ -12,7 +12,6 @@ import org.easycluster.easycluster.core.Closure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class ThreadPoolMessageExecutor implements MessageExecutor {
 
 	private static final Logger		LOGGER					= LoggerFactory.getLogger(ThreadPoolMessageExecutor.class);
@@ -24,13 +23,12 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 	private AverageTimeTracker		processingTime			= new AverageTimeTracker(100);
 	private AtomicLong				requestCount			= new AtomicLong(0);
 
-	public ThreadPoolMessageExecutor(MessageClosureRegistry messageHandlerRegistry, int corePoolSize, int maxPoolSize,
-			int keepAliveTime) {
+	public ThreadPoolMessageExecutor(MessageClosureRegistry messageHandlerRegistry, int corePoolSize, int maxPoolSize, int keepAliveTime) {
 
 		this.messageHandlerRegistry = messageHandlerRegistry;
 
-		this.threadPool = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime, TimeUnit.SECONDS,
-				new LinkedBlockingQueue<Runnable>(), new NamedPoolThreadFactory("threadpool-message-executor")) {
+		this.threadPool = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
+				new NamedPoolThreadFactory("threadpool-message-executor")) {
 
 			@Override
 			public void beforeExecute(Thread t, Runnable r) {
@@ -87,8 +85,7 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 				Object response = handler.execute(message);
 				if (!messageHandlerRegistry.validResponseFor(message, response)) {
 					String name = (response == null) ? "<null>" : response.getClass().getName();
-					String errorMsg = String.format("Message handler returned an invalid response message of type %s",
-							name);
+					String errorMsg = String.format("Message handler returned an invalid response message of type %s", name);
 					LOGGER.error(errorMsg);
 					closure.execute(new InvalidMessageException(errorMsg));
 				} else {

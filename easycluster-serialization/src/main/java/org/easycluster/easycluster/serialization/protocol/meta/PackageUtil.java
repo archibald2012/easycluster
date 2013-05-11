@@ -40,7 +40,7 @@ public class PackageUtil {
 		}
 		Enumeration<URL> dirs = cl.getResources(packageDirName);
 		if (logger.isDebugEnabled()) {
-			logger.debug("PackageUtils: getResources: " + dirs
+			logger.debug("PackageUtil: getResources: " + dirs
 					+ ", hasMoreElements:" + dirs.hasMoreElements());
 		}
 		while (dirs.hasMoreElements()) {
@@ -50,7 +50,7 @@ public class PackageUtil {
 			// continue;
 			// }
 			if (logger.isDebugEnabled()) {
-				logger.debug("PackageUtils: url: " + url);
+				logger.debug("PackageUtil: url: " + url);
 			}
 
 			if ("file".equals(protocol)) {
@@ -75,11 +75,11 @@ public class PackageUtil {
 						}
 
 						if (logger.isDebugEnabled()) {
-							logger.debug("PackageUtils: Package name is "
+							logger.debug("PackageUtil: Package name is "
 									+ packageName);
 						}
 
-						// Utils.log("PackageUtils", 4, "Package name is " +
+						// Utils.log("PackageUtil", 4, "Package name is " +
 						// packageName);
 						if ((idx != -1) || recursive) {
 							// it's not inside a deeper dir
@@ -89,7 +89,7 @@ public class PackageUtil {
 										name.length() - 6);
 
 								if (logger.isDebugEnabled()) {
-									logger.debug("PackageUtils: Found class "
+									logger.debug("PackageUtil: Found class "
 											+ className
 											+ ", seeing it if it's included or excluded");
 								}
@@ -123,7 +123,7 @@ public class PackageUtil {
 		});
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("PackageUtils: Looking for test classes in the directory: "
+			logger.debug("PackageUtil: Looking for test classes in the directory: "
 					+ dir);
 		}
 		for (File file : dirfiles) {
@@ -136,7 +136,7 @@ public class PackageUtil {
 						file.getName().length() - 6);
 
 				if (logger.isDebugEnabled()) {
-					logger.debug("PackageUtils: Found class " + className
+					logger.debug("PackageUtil: Found class " + className
 							+ ", seeing it if it's included or excluded");
 				}
 				includeOrExcludeClass(packageName, className, included,
@@ -150,12 +150,12 @@ public class PackageUtil {
 			List<String> classes) {
 		if (isIncluded(className, included, excluded)) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("PackageUtils: ... Including class " + className);
+				logger.debug("PackageUtil: ... Including class " + className);
 			}
 			classes.add(packageName + '.' + className);
 		} else {
 			if (logger.isDebugEnabled()) {
-				logger.debug("PackageUtils: ... Excluding class " + className);
+				logger.debug("PackageUtil: ... Excluding class " + className);
 			}
 		}
 	}
