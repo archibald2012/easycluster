@@ -14,7 +14,6 @@ import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.data.Stat;
 import org.easycluster.easycluster.cluster.Node;
 import org.easycluster.easycluster.cluster.common.XmlUtil;
 import org.easycluster.easycluster.cluster.exception.InvalidNodeException;
@@ -25,29 +24,33 @@ import org.slf4j.LoggerFactory;
 
 public class ZooKeeperClusterManager implements ClusterManager {
 
-	private static final String NODE_SEPARATOR = "/";
+	private static final String	NODE_SEPARATOR		= "/";
 
-	protected Logger LOGGER = LoggerFactory.getLogger(getClass());
+	protected Logger			LOGGER				= LoggerFactory.getLogger(getClass());
 
-	private ClusterNotification clusterNotification = null;
-	private String connectString = "";
-	private int sessionTimeout = 0;
-	private String serviceNode = null;
-	private String membershipNode = null;
-	private String eventNode = null;
+	private ClusterNotification	clusterNotification	= null;
+	private String				connectString		= "";
+	private int					sessionTimeout		= 0;
+	private String				rootNode			= "/clusters";
+	private String				applicationNode		= null;
+	private String				serviceNode			= null;
+	private String				membershipNode		= null;
+	private String				eventNode			= null;
+	private String				availabilityNode	= null;
 
-	private Map<String, Node> currentNodes = new HashMap<String, Node>();
-	private ZooKeeper zooKeeper = null;
-	private ClusterWatcher watcher = null;
-	private volatile boolean connected = false;
+	private Map<String, Node>	currentNodes		= new HashMap<String, Node>();
+	private ZooKeeper			zooKeeper			= null;
+	private ClusterWatcher		watcher				= null;
+	private volatile boolean	connected			= false;
 
-	public ZooKeeperClusterManager(String serviceName,
-			String zooKeeperConnectString, int zooKeeperSessionTimeoutMillis) {
+	public ZooKeeperClusterManager(String applicationName, String serviceName, String zooKeeperConnectString, int zooKeeperSessionTimeoutMillis) {
 		this.connectString = zooKeeperConnectString;
 		this.sessionTimeout = zooKeeperSessionTimeoutMillis;
-		this.serviceNode = NODE_SEPARATOR + serviceName;
+		this.applicationNode = rootNode + NODE_SEPARATOR + applicationName;
+		this.serviceNode = applicationNode + NODE_SEPARATOR + serviceName;
 		this.membershipNode = serviceNode + NODE_SEPARATOR + "members";
 		this.eventNode = serviceNode + NODE_SEPARATOR + "event";
+		this.availabilityNode = serviceNode + NODE_SEPARATOR + "available";
 
 		this.clusterNotification = new ClusterNotification(serviceName);
 	}
@@ -71,20 +74,17 @@ public class ZooKeeperClusterManager implements ClusterManager {
 
 		doWithZooKeeper(event, zooKeeper, new ZooKeeperStatement() {
 
-			public void doInZooKeeper(ZooKeeper zk) throws KeeperException,
-					InterruptedException {
+			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
 				String path = membershipNode + NODE_SEPARATOR + node.getId();
 
 				try {
 					String nodeString = XmlUtil.marshal(node);
 					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug("setData {}", nodeString);
+						LOGGER.debug("setData - path=[{}], data=[{}]", path, nodeString);
 					}
-					zk.create(path, nodeString.getBytes(),
-							ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+					zk.create(path, nodeString.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 				} catch (KeeperException.NodeExistsException ex) {
-					throw new InvalidNodeException("A node with id "
-							+ node.getId() + " already exists");
+					throw new InvalidNodeException("A node with id " + node.getId() + " already exists");
 				}
 
 				currentNodes.put(node.getId(), node);
@@ -108,8 +108,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 
 		doWithZooKeeper(event, zooKeeper, new ZooKeeperStatement() {
 
-			public void doInZooKeeper(ZooKeeper zk) throws KeeperException,
-					InterruptedException {
+			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
 				String path = membershipNode + NODE_SEPARATOR + nodeId;
 
 				if (zk.exists(path, false) != null) {
@@ -140,19 +139,19 @@ public class ZooKeeperClusterManager implements ClusterManager {
 
 		doWithZooKeeper(event, zooKeeper, new ZooKeeperStatement() {
 
-			public void doInZooKeeper(ZooKeeper zk) throws KeeperException,
-					InterruptedException {
-				String path = membershipNode + NODE_SEPARATOR + nodeId;
+			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
+				String path = availabilityNode + NODE_SEPARATOR + nodeId;
 
-				Stat stat = new Stat();
-				byte[] data = zk.getData(path, false, stat);
-				Node node = XmlUtil.unmarshal(new String(data), Node.class);
-				node.setAvailable(true);
-				String nodeString = XmlUtil.marshal(node);
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("setData {}", nodeString);
+				try {
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("{} doesn't exist, creating", path);
+					}
+					zk.create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+				} catch (KeeperException.NodeExistsException ignore) {
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("Path [{}] already exists.", path);
+					}
 				}
-				zk.setData(path, nodeString.getBytes(), stat.getVersion());
 
 				makeNodeAvailable(nodeId);
 				clusterNotification.handleNodesChanged(currentNodes.values());
@@ -175,23 +174,12 @@ public class ZooKeeperClusterManager implements ClusterManager {
 
 		doWithZooKeeper(event, zooKeeper, new ZooKeeperStatement() {
 
-			public void doInZooKeeper(ZooKeeper zk) throws KeeperException,
-					InterruptedException {
-				String path = membershipNode + NODE_SEPARATOR + nodeId;
+			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
+				String path = availabilityNode + NODE_SEPARATOR + nodeId;
 
 				if (zk.exists(path, false) != null) {
 					try {
-						Stat stat = new Stat();
-						byte[] data = zk.getData(path, false, stat);
-						Node node = XmlUtil.unmarshal(new String(data),
-								Node.class);
-						node.setAvailable(false);
-						String nodeString = XmlUtil.marshal(node);
-						if (LOGGER.isDebugEnabled()) {
-							LOGGER.debug("setData {}", nodeString);
-						}
-						zk.setData(path, nodeString.getBytes(),
-								stat.getVersion() + 1);
+						zk.delete(path, -1);
 					} catch (KeeperException.NoNodeException ex) {
 						// do nothing
 					}
@@ -201,6 +189,101 @@ public class ZooKeeperClusterManager implements ClusterManager {
 				clusterNotification.handleNodesChanged(currentNodes.values());
 			}
 		});
+	}
+
+	private void handleMembershipChanged() {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("handleMembershipChanged");
+		}
+
+		String event = "Membership changed";
+		if (!connected) {
+			LOGGER.error("{} when not connected", event);
+			return;
+		}
+
+		doWithZooKeeper(event, zooKeeper, new ZooKeeperStatement() {
+
+			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
+				lookupCurrentNodes(zk);
+				clusterNotification.handleNodesChanged(currentNodes.values());
+			}
+		});
+
+	}
+
+	private void handleAvailabilityChanged() {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("handleAvailabilityChanged");
+		}
+
+		String event = "Availability changed";
+		if (!connected) {
+			LOGGER.error("{} when not connected", event);
+			return;
+		}
+
+		doWithZooKeeper(event, zooKeeper, new ZooKeeperStatement() {
+
+			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
+				List<String> availableSet = zk.getChildren(availabilityNode, true);
+
+				if (availableSet.isEmpty()) {
+					for (String member : availableSet) {
+						makeNodeUnavailable(member);
+					}
+				} else {
+					for (String member : currentNodes.keySet()) {
+						if (availableSet.contains(member)) {
+							makeNodeAvailable(member);
+						} else {
+							makeNodeUnavailable(member);
+						}
+					}
+				}
+				clusterNotification.handleNodesChanged(currentNodes.values());
+			}
+		});
+	}
+
+	private void handleClusterEvent() {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("handleClusterEvent");
+		}
+
+		String event = "Received cluster event";
+		if (!connected) {
+			LOGGER.error("{} when not connected", event);
+			return;
+		}
+
+		doWithZooKeeper(event, zooKeeper, new ZooKeeperStatement() {
+
+			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
+				byte[] data = zk.getData(eventNode, false, null);
+				if (data != null && data.length > 0) {
+					clusterNotification.handleClusterEvent(new String(data));
+				}
+			}
+		});
+
+	}
+
+	private void lookupCurrentNodes(ZooKeeper zk) throws KeeperException, InterruptedException {
+
+		List<String> members = zk.getChildren(membershipNode, true);
+		List<String> availableSet = zk.getChildren(availabilityNode, true);
+
+		currentNodes.clear();
+
+		for (String member : members) {
+			byte[] data = zk.getData(membershipNode + NODE_SEPARATOR + member, false, null);
+			Node node = XmlUtil.unmarshal(new String(data), Node.class);
+			if (node != null) {
+				node.setAvailable(availableSet.contains(node.getId()));
+				currentNodes.put(member, node);
+			}
+		}
 	}
 
 	private void makeNodeAvailable(String nodeId) {
@@ -249,8 +332,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 		}
 
 		doWithZooKeeper(event, zooKeeper, new ZooKeeperStatement() {
-			public void doInZooKeeper(ZooKeeper zk) throws KeeperException,
-					InterruptedException {
+			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
 				verifyZooKeeperStructure(zk);
 				lookupCurrentNodes(zk);
 				connected = true;
@@ -287,69 +369,6 @@ public class ZooKeeperClusterManager implements ClusterManager {
 		startZooKeeper();
 	}
 
-	private void handleMembershipChanged() {
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("handleMembershipChanged");
-		}
-
-		String event = "Membership changed";
-		if (!connected) {
-			LOGGER.error("{} when not connected", event);
-			return;
-		}
-
-		doWithZooKeeper(event, zooKeeper, new ZooKeeperStatement() {
-
-			public void doInZooKeeper(ZooKeeper zk) throws KeeperException,
-					InterruptedException {
-				lookupCurrentNodes(zk);
-				clusterNotification.handleNodesChanged(currentNodes.values());
-			}
-		});
-
-	}
-
-	private void handleClusterEvent() {
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("handleClusterEvent");
-		}
-
-		String event = "Received cluster event";
-		if (!connected) {
-			LOGGER.error("{} when not connected", event);
-			return;
-		}
-
-		doWithZooKeeper(event, zooKeeper, new ZooKeeperStatement() {
-
-			public void doInZooKeeper(ZooKeeper zk) throws KeeperException,
-					InterruptedException {
-				byte[] data = zk.getData(eventNode, false, null);
-				if (data != null && data.length > 0) {
-					clusterNotification.handleClusterEvent(new String(data));
-				}
-			}
-		});
-
-	}
-
-	private void lookupCurrentNodes(ZooKeeper zk) throws KeeperException,
-			InterruptedException {
-
-		List<String> members = zk.getChildren(membershipNode, true);
-
-		currentNodes.clear();
-
-		for (String member : members) {
-			byte[] data = zk.getData(membershipNode + NODE_SEPARATOR + member,
-					false, null);
-			Node node = XmlUtil.unmarshal(new String(data), Node.class);
-			if (node != null) {
-				currentNodes.put(member, node);
-			}
-		}
-	}
-
 	private void startZooKeeper() {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Connecting to ZooKeeper...");
@@ -369,14 +388,12 @@ public class ZooKeeperClusterManager implements ClusterManager {
 		}
 	}
 
-	private void verifyZooKeeperStructure(ZooKeeper zk) throws KeeperException,
-			InterruptedException {
+	private void verifyZooKeeperStructure(ZooKeeper zk) throws KeeperException, InterruptedException {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Verifying ZooKeeper structure...");
 		}
 
-		for (String path : new String[] { serviceNode, membershipNode,
-				eventNode }) {
+		for (String path : new String[] { rootNode, applicationNode, serviceNode, membershipNode, availabilityNode, eventNode }) {
 			try {
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Ensuring {} exists", path);
@@ -385,8 +402,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("{} doesn't exist, creating", path);
 					}
-					zk.create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE,
-							CreateMode.PERSISTENT);
+					zk.create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 				}
 			} catch (NodeExistsException ex) {
 				// do nothing
@@ -394,12 +410,9 @@ public class ZooKeeperClusterManager implements ClusterManager {
 		}
 	}
 
-	private void doWithZooKeeper(String event, ZooKeeper zk,
-			ZooKeeperStatement action) {
+	private void doWithZooKeeper(String event, ZooKeeper zk, ZooKeeperStatement action) {
 		if (zooKeeper == null) {
-			LOGGER.error(
-					"{} when ZooKeeper is null, this should never happen. ",
-					event);
+			LOGGER.error("{} when ZooKeeper is null, this should never happen. ", event);
 			return;
 		}
 
@@ -418,9 +431,9 @@ public class ZooKeeperClusterManager implements ClusterManager {
 	}
 
 	class ClusterWatcher implements Watcher {
-		private volatile boolean shutdownSwitch = false;
+		private volatile boolean		shutdownSwitch	= false;
 
-		private ZooKeeperClusterManager zooKeeperManager;
+		private ZooKeeperClusterManager	zooKeeperManager;
 
 		public ClusterWatcher(ZooKeeperClusterManager zooKeeperManager) {
 			this.zooKeeperManager = zooKeeperManager;
@@ -442,10 +455,10 @@ public class ZooKeeperClusterManager implements ClusterManager {
 			} else if (event.getType() == EventType.NodeChildrenChanged) {
 				if (event.getPath().equals(membershipNode)) {
 					zooKeeperManager.handleMembershipChanged();
+				} else if (event.getPath().equals(availabilityNode)) {
+					zooKeeperManager.handleAvailabilityChanged();
 				} else {
-					LOGGER.error(
-							"Received a notification for a path that shouldn't be monitored: {}",
-							event.getPath());
+					LOGGER.error("Received a notification for a path that shouldn't be monitored: {}", event.getPath());
 				}
 			} else if (event.getType() == EventType.NodeDataChanged) {
 				if (event.getPath().equals(eventNode)) {

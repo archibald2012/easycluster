@@ -57,7 +57,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-		LOGGER.error("channel: [" + e.getChannel().getRemoteAddress() + "], exceptionCaught: [{}]", e.getCause());
+		LOGGER.error("channel: [" + e.getChannel().getRemoteAddress() + "], exceptionCaught:", e.getCause());
 		ctx.getChannel().close();
 	}
 

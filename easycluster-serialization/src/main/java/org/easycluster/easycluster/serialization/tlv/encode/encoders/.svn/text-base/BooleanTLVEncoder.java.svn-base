@@ -1,0 +1,19 @@
+package stc.skymobi.bean.tlv.encode.encoders;
+
+import stc.skymobi.bean.tlv.encode.TLVEncodeContext;
+import stc.skymobi.bean.tlv.encode.TLVEncoder;
+
+import java.util.Arrays;
+import java.util.List;
+
+public class BooleanTLVEncoder implements TLVEncoder {
+
+    public List<byte[]> encode(Object src, TLVEncodeContext ctx) {
+		if ( src instanceof Boolean ) {
+			return Arrays.asList( new byte[]{(byte)( (Boolean)src ? 1 : 0 ) } );
+		}
+		else {
+			throw new RuntimeException("BooleanTLVEncoder: wrong source type. [" + src.getClass() + "]");
+		}
+    }
+}

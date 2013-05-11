@@ -1,0 +1,24 @@
+/**
+ * 
+ */
+package stc.skymobi.bean.tlv.encode;
+
+import java.lang.reflect.Field;
+
+import stc.skymobi.bean.tlv.meta.TLVFieldMetainfo;
+import stc.skymobi.bean.util.meta.Int2TypeMetainfo;
+import stc.skymobi.util.NumberCodec;
+
+
+/**
+ * @author hp
+ *
+ */
+public interface TLVEncodeContext {
+	public	Class<?>			getValueType();
+	public	Field				getValueField();
+	public 	Int2TypeMetainfo	getTypeMetainfo();
+	public	TLVFieldMetainfo	getFieldMetainfo();
+    public  NumberCodec			getNumberCodec();
+    public 	TLVEncoderRepository	getEncoderRepository();
+}

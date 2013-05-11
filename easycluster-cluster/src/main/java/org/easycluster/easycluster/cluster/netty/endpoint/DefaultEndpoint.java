@@ -2,6 +2,8 @@ package org.easycluster.easycluster.cluster.netty.endpoint;
 
 import java.net.InetSocketAddress;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 import org.easycluster.easycluster.cluster.common.MessageContext;
 import org.easycluster.easycluster.core.IpPortPair;
 import org.jboss.netty.channel.Channel;
@@ -10,11 +12,10 @@ import org.slf4j.LoggerFactory;
 
 public class DefaultEndpoint implements Endpoint {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(DefaultEndpoint.class);
+	private static final Logger	LOGGER				= LoggerFactory.getLogger(DefaultEndpoint.class);
 
-	private Channel channel = null;
-	private IEndpointListener endpointListener = null;
+	private Channel				channel				= null;
+	private IEndpointListener	endpointListener	= null;
 
 	public DefaultEndpoint(Channel channel) {
 		this.channel = channel;
@@ -57,6 +58,11 @@ public class DefaultEndpoint implements Endpoint {
 	@Override
 	public boolean isConnected() {
 		return channel != null && channel.isConnected();
+	}
+
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 	}
 
 }

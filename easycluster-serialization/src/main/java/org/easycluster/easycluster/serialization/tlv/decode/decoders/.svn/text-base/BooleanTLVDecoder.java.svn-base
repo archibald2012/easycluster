@@ -1,0 +1,12 @@
+
+package stc.skymobi.bean.tlv.decode.decoders;
+
+import stc.skymobi.bean.tlv.decode.TLVDecodeContext;
+import stc.skymobi.bean.tlv.decode.TLVDecoder;
+
+public class BooleanTLVDecoder implements TLVDecoder {
+	
+    public Object decode(int tlvLength, byte[] tlvValue, TLVDecodeContext ctx) {
+        return new Boolean(0 != tlvValue[0]);
+    }
+}

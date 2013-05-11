@@ -37,19 +37,17 @@ import org.slf4j.LoggerFactory;
 
 public class NettyBeanDecoder extends OneToOneDecoder {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(NettyBeanDecoder.class);
+	private static final Logger		LOGGER			= LoggerFactory.getLogger(NettyBeanDecoder.class);
 
-	private BeanFieldCodec byteBeanCodec = null;
-	private MsgCode2TypeMetainfo typeMetaInfo = null;
+	private BeanFieldCodec			byteBeanCodec	= null;
+	private MsgCode2TypeMetainfo	typeMetaInfo	= null;
 
-	private int dumpBytes = 256;
-	private boolean isDebugEnabled = true;
-	private byte[] encryptKey;
+	private int						dumpBytes		= 256;
+	private boolean					isDebugEnabled	= true;
+	private byte[]					encryptKey;
 
 	@Override
-	protected Object decode(ChannelHandlerContext ctx, Channel channel,
-			Object message) throws Exception {
+	protected Object decode(ChannelHandlerContext ctx, Channel channel, Object message) throws Exception {
 		if (message instanceof ChannelBuffer) {
 			ChannelBuffer content = (ChannelBuffer) message;
 			if (!content.readable()) {
@@ -66,38 +64,36 @@ public class NettyBeanDecoder extends OneToOneDecoder {
 			LOGGER.debug(ByteUtil.bytesAsHexString(bytes, dumpBytes));
 		}
 
-		XipHeader header = (XipHeader) getByteBeanCodec().decode(
-				getByteBeanCodec().getDecContextFactory().createDecContext(
-						bytes, XipHeader.class, null, null)).getValue();
+		XipHeader header = (XipHeader) getByteBeanCodec()
+				.decode(getByteBeanCodec().getDecContextFactory().createDecContext(bytes, XipHeader.class, null, null)).getValue();
 
 		Class<?> type = typeMetaInfo.find(header.getMessageCode());
 		if (null == type) {
-			throw new InvalidMessageException("Unknow message code:"
-					+ header.getMessageCode());
+			throw new InvalidMessageException("Unknow message code:" + header.getMessageCode());
 		}
 		if (header.getSequence() <= 0) {
-			throw new InvalidMessageException("Invalid message sequence:"
-					+ header.getSequence());
+			throw new InvalidMessageException("Invalid message sequence:" + header.getSequence());
 		}
 
-		byte[] bodyBytes = ArrayUtils.subarray(bytes, XipHeader.HEADER_LENGTH,
-				bytes.length);
+		byte[] bodyBytes = ArrayUtils.subarray(bytes, XipHeader.HEADER_LENGTH, bytes.length);
+
+		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+			LOGGER.debug("body raw bytes -->");
+			LOGGER.debug(ByteUtil.bytesAsHexString(bodyBytes, dumpBytes));
+		}
 
 		if (encryptKey != null) {
 			try {
 				bodyBytes = DES.decryptThreeDESECB(bodyBytes, encryptKey);
 			} catch (Exception e) {
-				String error = "Failed to decrypt the body due to error "
-						+ e.getMessage();
+				String error = "Failed to decrypt the body due to error " + e.getMessage();
 				LOGGER.error(error, e);
 				throw new InvalidMessageException(error, e);
 			}
 		}
 
-		AbstractXipSignal signal = (AbstractXipSignal) getByteBeanCodec()
-				.decode(getByteBeanCodec().getDecContextFactory()
-						.createDecContext(bodyBytes, type, null, null))
-				.getValue();
+		AbstractXipSignal signal = (AbstractXipSignal) getByteBeanCodec().decode(
+				getByteBeanCodec().getDecContextFactory().createDecContext(bodyBytes, type, null, null)).getValue();
 
 		if (null != signal) {
 			signal.setIdentification(header.getSequence());
@@ -105,8 +101,7 @@ public class NettyBeanDecoder extends OneToOneDecoder {
 		}
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("decoded signal:{}",
-					ToStringBuilder.reflectionToString(signal));
+			LOGGER.debug("decoded signal:{}", ToStringBuilder.reflectionToString(signal));
 		}
 
 		return signal;
@@ -120,28 +115,21 @@ public class NettyBeanDecoder extends OneToOneDecoder {
 		if (byteBeanCodec == null) {
 			DefaultCodecProvider codecProvider = new DefaultCodecProvider();
 
-			codecProvider.addCodec(new AnyCodec()).addCodec(new ByteCodec())
-					.addCodec(new ShortCodec()).addCodec(new IntCodec())
-					.addCodec(new LongCodec()).addCodec(new BooleanCodec())
-					.addCodec(new FloatCodec()).addCodec(new DoubleCodec())
-					.addCodec(new LenStringCodec())
-					.addCodec(new LenByteArrayCodec())
-					.addCodec(new LenListCodec()).addCodec(new LenArrayCodec());
+			codecProvider.addCodec(new AnyCodec()).addCodec(new ByteCodec()).addCodec(new ShortCodec()).addCodec(new IntCodec()).addCodec(new LongCodec())
+					.addCodec(new BooleanCodec()).addCodec(new FloatCodec()).addCodec(new DoubleCodec()).addCodec(new LenStringCodec())
+					.addCodec(new LenByteArrayCodec()).addCodec(new LenListCodec()).addCodec(new LenArrayCodec());
 
-			EarlyStopBeanCodec byteBeanCodec = new EarlyStopBeanCodec(
-					new DefaultField2Desc());
+			EarlyStopBeanCodec byteBeanCodec = new EarlyStopBeanCodec(new DefaultField2Desc());
 			codecProvider.addCodec(byteBeanCodec);
 
 			DefaultEncContextFactory encContextFactory = new DefaultEncContextFactory();
 			DefaultDecContextFactory decContextFactory = new DefaultDecContextFactory();
 
 			encContextFactory.setCodecProvider(codecProvider);
-			encContextFactory.setNumberCodec(DefaultNumberCodecs
-					.getBigEndianNumberCodec());
+			encContextFactory.setNumberCodec(DefaultNumberCodecs.getBigEndianNumberCodec());
 
 			decContextFactory.setCodecProvider(codecProvider);
-			decContextFactory.setNumberCodec(DefaultNumberCodecs
-					.getBigEndianNumberCodec());
+			decContextFactory.setNumberCodec(DefaultNumberCodecs.getBigEndianNumberCodec());
 
 			byteBeanCodec.setDecContextFactory(decContextFactory);
 			byteBeanCodec.setEncContextFactory(encContextFactory);

@@ -18,30 +18,28 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * Channel pool management.
  * 
- *
+ * 
  */
 public class ChannelPool {
 
-	private static final Logger						LOGGER				= LoggerFactory.getLogger(ChannelPool.class);
+	private static final Logger				LOGGER			= LoggerFactory.getLogger(ChannelPool.class);
 
-	private InetSocketAddress							address;
-	private int														maxConnections;
-	private int														writeTimeoutMillis;
-	private ClientBootstrap								bootstrap;
-	private ChannelGroup									channelGroup;
+	private InetSocketAddress				address;
+	private int								maxConnections;
+	private int								writeTimeoutMillis;
+	private ClientBootstrap					bootstrap;
+	private ChannelGroup					channelGroup;
 
-	private BlockingQueue<Channel>				pool					= null;
+	private BlockingQueue<Channel>			pool			= null;
 	private BlockingQueue<MessageContext>	pendingWrites	= null;
-	private AtomicInteger									poolSize			= new AtomicInteger(0);
-	private AtomicBoolean									closed				= new AtomicBoolean(false);
-	private AtomicInteger									requestsSent	= new AtomicInteger(0);
+	private AtomicInteger					poolSize		= new AtomicInteger(0);
+	private AtomicBoolean					closed			= new AtomicBoolean(false);
+	private AtomicInteger					requestsSent	= new AtomicInteger(0);
 
-	public ChannelPool(InetSocketAddress address, int maxConnections, int writeTimeoutMillis, ClientBootstrap bootstrap,
-			ChannelGroup channelGroup) {
+	public ChannelPool(InetSocketAddress address, int maxConnections, int writeTimeoutMillis, ClientBootstrap bootstrap, ChannelGroup channelGroup) {
 		this.address = address;
 		this.maxConnections = maxConnections;
 		this.writeTimeoutMillis = writeTimeoutMillis;

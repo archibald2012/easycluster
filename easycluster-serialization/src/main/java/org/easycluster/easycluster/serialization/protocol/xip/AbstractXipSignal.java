@@ -3,7 +3,7 @@ package org.easycluster.easycluster.serialization.protocol.xip;
 public class AbstractXipSignal extends DefaultPropertiesSupport implements
 		XipSignal {
 
-	private long sequence = System.currentTimeMillis();
+	private long sequence = System.nanoTime();
 	private long client = 0;
 
 	@Override

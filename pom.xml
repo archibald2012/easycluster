@@ -235,12 +235,12 @@
 		<repository>
 			<id>staging</id>
 			<name>dev-nexus-staging</name>
-			<url>http://ddz.51zhile.mobi:8082/nexus/content/repositories/releases</url>
+			<url>http://www.51zhile.mobi:8082/nexus/content/repositories/releases</url>
 		</repository>
 		<snapshotRepository>
 			<id>dev</id>
 			<name>dev-nexus-snapshots</name>
-			<url>http://ddz.51zhile.mobi:8082/nexus/content/repositories/snapshots/</url>
+			<url>http://www.51zhile.mobi:8082/nexus/content/repositories/snapshots/</url>
 		</snapshotRepository>
 	</distributionManagement>
 

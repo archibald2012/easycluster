@@ -1,0 +1,7 @@
+package stc.skymobi.bean.tlv.encode;
+
+public interface TLVEncoderOfBean extends TLVEncoder {
+
+	public TLVEncodeContextFactory getEncodeContextFactory();
+
+}

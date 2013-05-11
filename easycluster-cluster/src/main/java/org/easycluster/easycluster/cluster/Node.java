@@ -15,33 +15,31 @@ import org.apache.commons.lang.builder.ToStringStyle;
 
 @XmlRootElement(name = "node")
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Node", propOrder = { "applicationName", "serviceName",
-		"hostName", "port", "version", "available", "partitions", "url" })
+@XmlType(name = "Node", propOrder = { "applicationName", "serviceName", "hostName", "port", "version", "partitions", "url" })
 public class Node implements Comparable<Node> {
 
 	@XmlElement(name = "application", required = true)
-	private String applicationName;
+	private String				applicationName;
 
 	@XmlElement(name = "service", required = true)
-	private String serviceName;
+	private String				serviceName;
 
 	@XmlElement(name = "host", required = true)
-	private String hostName;
+	private String				hostName;
 
 	@XmlElement(name = "port", required = true)
-	private int port = -1;
+	private int					port		= -1;
 
 	@XmlElement(name = "version", required = true)
-	private String version = "1.0.0";
-
-	@XmlElement(name = "available", required = true)
-	private boolean available = false;
+	private String				version		= "1.0.0";
 
 	@XmlElement(name = "partitions", required = false)
-	private int[] partitions = new int[0];
+	private int[]				partitions	= new int[0];
 
 	@XmlElement(name = "url", required = false)
-	private String url;
+	private String				url;
+
+	private transient boolean	available	= false;
 
 	public Node() {
 	}
@@ -143,8 +141,7 @@ public class Node implements Comparable<Node> {
 			return false;
 		}
 		Node rhs = (Node) obj;
-		return new EqualsBuilder().append(hostName, rhs.hostName)
-				.append(port, rhs.port).isEquals();
+		return new EqualsBuilder().append(hostName, rhs.hostName).append(port, rhs.port).isEquals();
 	}
 
 	@Override
@@ -159,7 +156,6 @@ public class Node implements Comparable<Node> {
 
 	@Override
 	public String toString() {
-		return ToStringBuilder.reflectionToString(this,
-				ToStringStyle.SHORT_PREFIX_STYLE);
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 	}
 }

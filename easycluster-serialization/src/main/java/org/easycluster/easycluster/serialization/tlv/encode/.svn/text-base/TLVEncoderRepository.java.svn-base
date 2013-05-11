@@ -1,0 +1,13 @@
+/**
+ * 
+ */
+package stc.skymobi.bean.tlv.encode;
+
+
+/**
+ * @author hp
+ *
+ */
+public interface TLVEncoderRepository {
+    public 	TLVEncoder	getEncoderOf(Class<?> cls);
+}
