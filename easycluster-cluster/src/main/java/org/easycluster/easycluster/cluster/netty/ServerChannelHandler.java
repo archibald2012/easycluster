@@ -1,6 +1,5 @@
 package org.easycluster.easycluster.cluster.netty;
 
-import org.easycluster.easycluster.cluster.common.TransportUtil;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.cluster.netty.endpoint.DefaultEndpointFactory;
 import org.easycluster.easycluster.cluster.netty.endpoint.Endpoint;
@@ -11,6 +10,7 @@ import org.easycluster.easycluster.cluster.server.MessageExecutor;
 import org.easycluster.easycluster.core.Closure;
 import org.easycluster.easycluster.core.Identifiable;
 import org.easycluster.easycluster.core.KeyTransformer;
+import org.easycluster.easycluster.core.TransportUtil;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelLocal;
@@ -58,7 +58,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
 		LOGGER.error("channel: [" + e.getChannel().getRemoteAddress() + "], exceptionCaught:", e.getCause());
-		ctx.getChannel().close();
+		//ctx.getChannel().close();
 	}
 
 	@Override

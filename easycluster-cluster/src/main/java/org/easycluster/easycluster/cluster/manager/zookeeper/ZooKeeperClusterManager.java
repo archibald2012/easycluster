@@ -14,9 +14,9 @@ import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
 import org.easycluster.easycluster.cluster.Node;
 import org.easycluster.easycluster.cluster.common.XmlUtil;
-import org.easycluster.easycluster.cluster.exception.InvalidNodeException;
 import org.easycluster.easycluster.cluster.manager.ClusterManager;
 import org.easycluster.easycluster.cluster.manager.ClusterNotification;
 import org.slf4j.Logger;
@@ -77,14 +77,23 @@ public class ZooKeeperClusterManager implements ClusterManager {
 			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
 				String path = membershipNode + NODE_SEPARATOR + node.getId();
 
+				String nodeString = XmlUtil.marshal(node);
+
 				try {
-					String nodeString = XmlUtil.marshal(node);
 					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug("setData - path=[{}], data=[{}]", path, nodeString);
+						LOGGER.debug("creating node - path=[{}], data=[{}]", path, nodeString);
 					}
 					zk.create(path, nodeString.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 				} catch (KeeperException.NodeExistsException ex) {
-					throw new InvalidNodeException("A node with id " + node.getId() + " already exists");
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("A node with id " + node.getId() + " already exists");
+					}
+					Stat stat = new Stat();
+					zk.getData(path, false, stat);
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("setData - path=[{}], data=[{}], version=[{}]", new Object[] { path, nodeString, stat.getVersion() });
+					}
+					zk.setData(path, nodeString.getBytes(), stat.getVersion());
 				}
 
 				currentNodes.put(node.getId(), node);
@@ -140,17 +149,14 @@ public class ZooKeeperClusterManager implements ClusterManager {
 		doWithZooKeeper(event, zooKeeper, new ZooKeeperStatement() {
 
 			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
-				String path = availabilityNode + NODE_SEPARATOR + nodeId;
+				String path = availabilityNode + NODE_SEPARATOR + nodeId + "-";
 
-				try {
-					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug("{} doesn't exist, creating", path);
-					}
-					zk.create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
-				} catch (KeeperException.NodeExistsException ignore) {
-					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug("Path [{}] already exists.", path);
-					}
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("creating node {}", path);
+				}
+				String node = zk.create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Path [{}] created.", node);
 				}
 
 				makeNodeAvailable(nodeId);
@@ -175,13 +181,19 @@ public class ZooKeeperClusterManager implements ClusterManager {
 		doWithZooKeeper(event, zooKeeper, new ZooKeeperStatement() {
 
 			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
-				String path = availabilityNode + NODE_SEPARATOR + nodeId;
 
-				if (zk.exists(path, false) != null) {
-					try {
-						zk.delete(path, -1);
-					} catch (KeeperException.NoNodeException ex) {
-						// do nothing
+				List<String> availableSet = zk.getChildren(availabilityNode, false);
+
+				for (String availableNode : availableSet) {
+					if (availableNode.startsWith(nodeId)) {
+						String path = availabilityNode + NODE_SEPARATOR + availableNode;
+						if (zk.exists(path, false) != null) {
+							try {
+								zk.delete(path, -1);
+							} catch (KeeperException.NoNodeException ex) {
+								// do nothing
+							}
+						}
 					}
 				}
 
@@ -229,15 +241,23 @@ public class ZooKeeperClusterManager implements ClusterManager {
 				List<String> availableSet = zk.getChildren(availabilityNode, true);
 
 				if (availableSet.isEmpty()) {
-					for (String member : availableSet) {
-						makeNodeUnavailable(member);
+					for (String nodeId : currentNodes.keySet()) {
+						makeNodeUnavailable(nodeId);
 					}
 				} else {
-					for (String member : currentNodes.keySet()) {
-						if (availableSet.contains(member)) {
-							makeNodeAvailable(member);
+					for (String nodeId : currentNodes.keySet()) {
+						boolean available = false;
+						for (String availableNode : availableSet) {
+							if (availableNode.startsWith(nodeId)) {
+								available = true;
+								break;
+							}
+						}
+
+						if (available) {
+							makeNodeAvailable(nodeId);
 						} else {
-							makeNodeUnavailable(member);
+							makeNodeUnavailable(nodeId);
 						}
 					}
 				}
@@ -276,12 +296,20 @@ public class ZooKeeperClusterManager implements ClusterManager {
 
 		currentNodes.clear();
 
-		for (String member : members) {
-			byte[] data = zk.getData(membershipNode + NODE_SEPARATOR + member, false, null);
+		for (String nodeId : members) {
+			byte[] data = zk.getData(membershipNode + NODE_SEPARATOR + nodeId, false, null);
 			Node node = XmlUtil.unmarshal(new String(data), Node.class);
 			if (node != null) {
-				node.setAvailable(availableSet.contains(node.getId()));
-				currentNodes.put(member, node);
+				boolean available = false;
+				for (String availableNode : availableSet) {
+					if (availableNode.startsWith(node.getId())) {
+						available = true;
+						break;
+					}
+				}
+
+				node.setAvailable(available);
+				currentNodes.put(nodeId, node);
 			}
 		}
 	}

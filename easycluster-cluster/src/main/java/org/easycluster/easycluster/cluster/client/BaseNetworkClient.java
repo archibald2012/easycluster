@@ -28,30 +28,26 @@ import org.slf4j.LoggerFactory;
 
 public class BaseNetworkClient {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(BaseNetworkClient.class);
+	private static final Logger		LOGGER					= LoggerFactory.getLogger(BaseNetworkClient.class);
 
-	protected String applicationName = null;
-	protected String serviceName = null;
-	private String zooKeeperConnectString = null;
-	private int zooKeeperSessionTimeoutMillis;
-	protected MessageRegistry messageRegistry = new MessageRegistry();
-	protected AtomicBoolean startedSwitch = new AtomicBoolean(false);
-	protected AtomicBoolean shutdownSwitch = new AtomicBoolean(false);
-	protected ClusterClient clusterClient = null;
-	protected ClusterIoClient clusterIoClient = null;
-	private Long listenerKey = null;
-	protected volatile Set<Node> currentNodes = new HashSet<Node>();
-	protected volatile boolean connected = false;
+	protected String				applicationName			= null;
+	protected String				serviceName				= null;
+	private String					zooKeeperConnectString	= null;
+	private int						zooKeeperSessionTimeoutMillis;
+	protected MessageRegistry		messageRegistry			= new MessageRegistry();
+	protected AtomicBoolean			startedSwitch			= new AtomicBoolean(false);
+	protected AtomicBoolean			shutdownSwitch			= new AtomicBoolean(false);
+	protected ClusterClient			clusterClient			= null;
+	protected ClusterIoClient		clusterIoClient			= null;
+	private Long					listenerKey				= null;
+	protected volatile Set<Node>	currentNodes			= new HashSet<Node>();
+	protected volatile boolean		connected				= false;
 
-	public BaseNetworkClient(String applicationName, String serviceName,
-			String zooKeeperConnectString) {
-		this(applicationName, serviceName, zooKeeperConnectString,
-				ClusterDefaults.ZOOKEEPER_SESSION_TIMEOUT_MILLIS);
+	public BaseNetworkClient(String applicationName, String serviceName, String zooKeeperConnectString) {
+		this(applicationName, serviceName, zooKeeperConnectString, ClusterDefaults.ZOOKEEPER_SESSION_TIMEOUT_MILLIS);
 	}
 
-	public BaseNetworkClient(String applicationName, String serviceName,
-			String zooKeeperConnectString, int zooKeeperSessionTimeoutMillis) {
+	public BaseNetworkClient(String applicationName, String serviceName, String zooKeeperConnectString, int zooKeeperSessionTimeoutMillis) {
 		this.applicationName = applicationName;
 		this.serviceName = serviceName;
 		this.zooKeeperConnectString = zooKeeperConnectString;
@@ -62,9 +58,7 @@ public class BaseNetworkClient {
 		if (startedSwitch.compareAndSet(false, true)) {
 
 			if (clusterClient == null) {
-				clusterClient = new ZooKeeperClusterClient(applicationName,
-						serviceName, zooKeeperConnectString,
-						zooKeeperSessionTimeoutMillis);
+				clusterClient = new ZooKeeperClusterClient(applicationName, serviceName, zooKeeperConnectString, zooKeeperSessionTimeoutMillis);
 			}
 
 			if (LOGGER.isDebugEnabled()) {
@@ -120,8 +114,7 @@ public class BaseNetworkClient {
 	 *            the expected response message or null if this is a one way
 	 *            message
 	 */
-	public void registerRequest(Class<?> requestMessage,
-			Class<?> responseMessage) {
+	public void registerRequest(Class<?> requestMessage, Class<?> responseMessage) {
 		messageRegistry.registerMessage(requestMessage, responseMessage);
 	}
 
@@ -141,8 +134,7 @@ public class BaseNetworkClient {
 	 *             thrown if the cluster is not connected when the method is
 	 *             called
 	 */
-	public Future<Object> sendMessageToNode(Object message, Node node)
-			throws InvalidNodeException, ClusterDisconnectedException {
+	public Future<Object> sendMessageToNode(Object message, Node node) throws InvalidNodeException, ClusterDisconnectedException {
 		if (message == null) {
 			throw new IllegalArgumentException("message is null");
 		}
@@ -159,8 +151,7 @@ public class BaseNetworkClient {
 		}
 
 		if (candidate.size() == 0) {
-			throw new InvalidNodeException(String.format(
-					"Unable to send message, %s is not available", node));
+			throw new InvalidNodeException(String.format("Unable to send message, %s is not available", node));
 		}
 
 		final ResponseFuture future = new ResponseFuture();
@@ -187,15 +178,13 @@ public class BaseNetworkClient {
 	 *             thrown if the cluster is not connected when the method is
 	 *             called
 	 */
-	public ResponseIterator broadcastMessage(Object message)
-			throws ClusterDisconnectedException {
+	public ResponseIterator broadcastMessage(Object message) throws ClusterDisconnectedException {
 		if (message == null) {
 			throw new IllegalArgumentException("message is null");
 		}
 		verifyMessageRegistered(message);
 
-		final DefaultResponseIterator it = new DefaultResponseIterator(
-				currentNodes.size());
+		final DefaultResponseIterator it = new DefaultResponseIterator(currentNodes.size());
 
 		for (Node node : currentNodes) {
 			doSendMessage(node, message, new Closure() {
@@ -256,16 +245,12 @@ public class BaseNetworkClient {
 
 	protected boolean verifyMessageRegistered(Object message) {
 		if (!messageRegistry.contains(message)) {
-			throw new InvalidMessageException(
-					String.format(
-							"The message provided [%s] is not a registered request message",
-							message));
+			throw new InvalidMessageException(String.format("The message provided [%s] is not a registered request message", message));
 		}
 		return true;
 	}
 
-	protected void doSendMessage(Node node, Object message,
-			Closure responseHandler) {
+	protected void doSendMessage(Node node, Object message, Closure responseHandler) {
 		clusterIoClient.sendMessage(node, message, responseHandler);
 	}
 

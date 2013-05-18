@@ -50,6 +50,13 @@ public class DefaultEndpoint implements Endpoint {
 		InetSocketAddress addr = (InetSocketAddress) channel.getRemoteAddress();
 		return new IpPortPair(addr.getHostName(), addr.getPort());
 	}
+	
+	@Override
+	public void close() {
+		if (this.channel != null) {
+			this.channel.close();
+		}
+	}
 
 	public void setEndpointListener(IEndpointListener endpointListener) {
 		this.endpointListener = endpointListener;

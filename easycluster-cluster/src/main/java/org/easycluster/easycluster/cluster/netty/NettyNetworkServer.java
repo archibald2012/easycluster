@@ -26,40 +26,32 @@ import org.jboss.netty.util.HashedWheelTimer;
 
 public class NettyNetworkServer extends NetworkServer {
 
-	private OneToOneDecoder decoder = new NettyBeanDecoder();
-	private OneToOneEncoder encoder = new NettyBeanEncoder();
+	private OneToOneDecoder		decoder							= new NettyBeanDecoder();
+	private OneToOneEncoder		encoder							= new NettyBeanEncoder();
 
-	private int requestThreadCorePoolSize = NetworkDefaults.REQUEST_THREAD_CORE_POOL_SIZE;
-	private int requestThreadMaxPoolSize = NetworkDefaults.REQUEST_THREAD_MAX_POOL_SIZE;
-	private int requestThreadKeepAliveTimeSecs = NetworkDefaults.REQUEST_THREAD_KEEP_ALIVE_TIME_SECS;
-	private int idleTime = NetworkDefaults.ALLIDLE_TIMEOUT_MILLIS;
+	private int					requestThreadCorePoolSize		= NetworkDefaults.REQUEST_THREAD_CORE_POOL_SIZE;
+	private int					requestThreadMaxPoolSize		= NetworkDefaults.REQUEST_THREAD_MAX_POOL_SIZE;
+	private int					requestThreadKeepAliveTimeSecs	= NetworkDefaults.REQUEST_THREAD_KEEP_ALIVE_TIME_SECS;
+	private int					idleTime						= NetworkDefaults.ALLIDLE_TIMEOUT_MILLIS;
 
-	private IEndpointListener endpointListener;
+	private IEndpointListener	endpointListener;
 
-	public NettyNetworkServer(String applicationName, String serviceName,
-			String zooKeeperConnectString) {
+	public NettyNetworkServer(String applicationName, String serviceName, String zooKeeperConnectString) {
 		super(applicationName, serviceName, zooKeeperConnectString);
 	}
 
 	public void start() {
 
-		messageExecutor = new ThreadPoolMessageExecutor(messageClosureRegistry,
-				getRequestThreadCorePoolSize(), getRequestThreadMaxPoolSize(),
+		messageExecutor = new ThreadPoolMessageExecutor(messageClosureRegistry, getRequestThreadCorePoolSize(), getRequestThreadMaxPoolSize(),
 				getRequestThreadKeepAliveTimeSecs());
 
-		ExecutorService workerExecutor = Executors
-				.newCachedThreadPool(new NamedPoolThreadFactory(String.format(
-						"netty-server-pool-%s", serviceName)));
-		ChannelGroup channelGroup = new DefaultChannelGroup(String.format(
-				"netty-server-group-%s", serviceName));
+		ExecutorService workerExecutor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("netty-server-pool-%s", serviceName)));
+		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("netty-server-group-%s", serviceName));
 
-		final ServerChannelHandler requestHandler = new ServerChannelHandler(
-				channelGroup, messageClosureRegistry, messageExecutor);
+		final ServerChannelHandler requestHandler = new ServerChannelHandler(channelGroup, messageClosureRegistry, messageExecutor);
 		requestHandler.setEndpointListener(endpointListener);
 
-		ServerBootstrap bootstrap = new ServerBootstrap(
-				new NioServerSocketChannelFactory(workerExecutor,
-						workerExecutor));
+		ServerBootstrap bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(workerExecutor, workerExecutor));
 
 		bootstrap.setOption("reuseAddress", true);
 		bootstrap.setOption("tcpNoDelay", true);
@@ -67,7 +59,7 @@ public class NettyNetworkServer extends NetworkServer {
 
 		bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
 
-			private LoggingHandler loggingHandler = new LoggingHandler();
+			private LoggingHandler	loggingHandler	= new LoggingHandler();
 
 			@Override
 			public ChannelPipeline getPipeline() throws Exception {
@@ -78,9 +70,7 @@ public class NettyNetworkServer extends NetworkServer {
 				p.addLast("encoder", encoder);
 				p.addLast("decoder", decoder);
 
-				p.addLast("idleHandler", new IdleStateHandler(
-						new HashedWheelTimer(), 0, 0, getIdleTime(),
-						TimeUnit.SECONDS));
+				p.addLast("idleHandler", new IdleStateHandler(new HashedWheelTimer(), 0, 0, getIdleTime(), TimeUnit.SECONDS));
 
 				p.addLast("requestHandler", requestHandler);
 
@@ -121,8 +111,7 @@ public class NettyNetworkServer extends NetworkServer {
 		return requestThreadKeepAliveTimeSecs;
 	}
 
-	public void setRequestThreadKeepAliveTimeSecs(
-			int requestThreadKeepAliveTimeSecs) {
+	public void setRequestThreadKeepAliveTimeSecs(int requestThreadKeepAliveTimeSecs) {
 		this.requestThreadKeepAliveTimeSecs = requestThreadKeepAliveTimeSecs;
 	}
 
@@ -136,10 +125,6 @@ public class NettyNetworkServer extends NetworkServer {
 
 	public void setPort(int port) {
 		this.port = port;
-	}
-
-	public void setPartitionIds(int[] partitionIds) {
-		this.partitionIds = partitionIds;
 	}
 
 	public void setMarkAvailableWhenConnected(boolean markAvailableWhenConnected) {

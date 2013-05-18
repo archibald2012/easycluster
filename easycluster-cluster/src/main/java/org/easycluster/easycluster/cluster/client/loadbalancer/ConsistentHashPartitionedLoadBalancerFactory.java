@@ -9,9 +9,7 @@ import java.util.Set;
 
 import org.easycluster.easycluster.cluster.Node;
 
-
-public abstract class ConsistentHashPartitionedLoadBalancerFactory<PartitionedId> implements
-		PartitionedLoadBalancerFactory<PartitionedId> {
+public abstract class ConsistentHashPartitionedLoadBalancerFactory<PartitionedId> implements PartitionedLoadBalancerFactory<PartitionedId> {
 
 	private int	numPartitions;
 
@@ -31,7 +29,7 @@ public abstract class ConsistentHashPartitionedLoadBalancerFactory<PartitionedId
 
 	private class ConsistentHashLoadBalancer implements PartitionedLoadBalancer<PartitionedId> {
 		private final Map<Integer, List<Node>>	nodeMap	= new HashMap<Integer, List<Node>>();
-		private final Random										random	= new Random();
+		private final Random					random	= new Random();
 
 		private ConsistentHashLoadBalancer(Set<Node> nodes) {
 			for (Node node : nodes) {

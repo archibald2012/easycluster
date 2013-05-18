@@ -19,14 +19,12 @@ import org.slf4j.LoggerFactory;
 
 public class PartitionedNetworkClient<PartitionedId> extends BaseNetworkClient {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(PartitionedNetworkClient.class);
+	private static final Logger								LOGGER				= LoggerFactory.getLogger(PartitionedNetworkClient.class);
 
-	private PartitionedLoadBalancerFactory<PartitionedId> loadBalancerFactory = null;
-	private volatile PartitionedLoadBalancer<PartitionedId> loadBalancer;
+	private PartitionedLoadBalancerFactory<PartitionedId>	loadBalancerFactory	= null;
+	private volatile PartitionedLoadBalancer<PartitionedId>	loadBalancer;
 
-	public PartitionedNetworkClient(String applicationName, String serviceName,
-			String zooKeeperConnectString,
+	public PartitionedNetworkClient(String applicationName, String serviceName, String zooKeeperConnectString,
 			PartitionedLoadBalancerFactory<PartitionedId> loadBalancerFactory) {
 		super(applicationName, serviceName, zooKeeperConnectString);
 		this.loadBalancerFactory = loadBalancerFactory;
@@ -48,9 +46,7 @@ public class PartitionedNetworkClient<PartitionedId> extends BaseNetworkClient {
 	 * @return a future which will become available when a response to the
 	 *         message is received
 	 */
-	public Future<Object> sendMessage(PartitionedId id, Object message)
-			throws InvalidClusterException, NoNodesAvailableException,
-			ClusterDisconnectedException {
+	public Future<Object> sendMessage(PartitionedId id, Object message) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
 
 		checkIfConnected();
 		if (loadBalancer == null) {
@@ -67,9 +63,7 @@ public class PartitionedNetworkClient<PartitionedId> extends BaseNetworkClient {
 
 		Node node = loadBalancer.nextNode(id);
 		if (node == null) {
-			throw new NoNodesAvailableException(String.format(
-					"Unable to satisfy request, no node available for id %s",
-					message));
+			throw new NoNodesAvailableException(String.format("Unable to satisfy request, no node available for id [%s], message: [%s]", id, message));
 		}
 
 		final ResponseFuture future = new ResponseFuture();
@@ -101,8 +95,7 @@ public class PartitionedNetworkClient<PartitionedId> extends BaseNetworkClient {
 	 * @return a <code>ResponseIterator</code>. One response will be returned by
 	 *         each <code>Node</code> the message was sent to.
 	 */
-	public ResponseIterator sendMessage(Set<PartitionedId> ids, Object message)
-			throws InvalidClusterException, NoNodesAvailableException,
+	public ResponseIterator sendMessage(Set<PartitionedId> ids, Object message) throws InvalidClusterException, NoNodesAvailableException,
 			ClusterDisconnectedException {
 		checkIfConnected();
 		if (loadBalancer == null) {
@@ -118,8 +111,7 @@ public class PartitionedNetworkClient<PartitionedId> extends BaseNetworkClient {
 
 		Set<Node> nodes = calculateNodesFromIds(ids);
 
-		final DefaultResponseIterator it = new DefaultResponseIterator(
-				currentNodes.size());
+		final DefaultResponseIterator it = new DefaultResponseIterator(currentNodes.size());
 
 		for (Node node : nodes) {
 			doSendMessage(node, message, new Closure() {
@@ -152,10 +144,7 @@ public class PartitionedNetworkClient<PartitionedId> extends BaseNetworkClient {
 		for (PartitionedId id : ids) {
 			Node node = loadBalancer.nextNode(id);
 			if (node == null) {
-				throw new NoNodesAvailableException(
-						String.format(
-								"Unable to satisfy request, no node available for id %s",
-								id));
+				throw new NoNodesAvailableException(String.format("Unable to satisfy request, no node available for id %s", id));
 			}
 			ret.add(node);
 		}

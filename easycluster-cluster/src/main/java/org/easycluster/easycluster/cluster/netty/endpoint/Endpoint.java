@@ -12,4 +12,6 @@ public interface Endpoint extends Sender {
 	boolean isConnected();
 
 	IpPortPair getRemoteAddress();
+	
+	void close();
 }

@@ -8,10 +8,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
 
 @XmlRootElement(name = "node")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -34,7 +33,7 @@ public class Node implements Comparable<Node> {
 	private String				version		= "1.0.0";
 
 	@XmlElement(name = "partitions", required = false)
-	private int[]				partitions	= new int[0];
+	private Integer[]			partitions	= new Integer[0];
 
 	@XmlElement(name = "url", required = false)
 	private String				url;
@@ -44,23 +43,22 @@ public class Node implements Comparable<Node> {
 	public Node() {
 	}
 
-	public Node(InetSocketAddress address, boolean available) {
-		this(address, new int[0], available);
+	public Node(InetSocketAddress address) {
+		this(address, new Integer[0]);
 	}
 
-	public Node(InetSocketAddress address, int[] partitions, boolean available) {
-		this(address.getHostName(), address.getPort(), partitions, available);
+	public Node(InetSocketAddress address, Integer[] partitions) {
+		this(address.getHostName(), address.getPort(), partitions);
 	}
 
-	public Node(String hostName, int port, boolean available) {
-		this(hostName, port, new int[0], available);
+	public Node(String hostName, int port) {
+		this(hostName, port, new Integer[0]);
 	}
 
-	public Node(String hostName, int port, int[] partitions, boolean available) {
+	public Node(String hostName, int port, Integer[] partitions) {
 		this.hostName = hostName;
 		this.port = port;
 		this.partitions = partitions;
-		this.available = available;
 	}
 
 	public String getId() {
@@ -71,7 +69,7 @@ public class Node implements Comparable<Node> {
 		return url;
 	}
 
-	public int[] getPartitions() {
+	public Integer[] getPartitions() {
 		return partitions;
 	}
 
@@ -156,6 +154,16 @@ public class Node implements Comparable<Node> {
 
 	@Override
 	public String toString() {
-		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+		StringBuilder sb = new StringBuilder("Node[");
+		sb.append("applicationName=[").append(applicationName).append("],");
+		sb.append("serviceName=[").append(serviceName).append("],");
+		sb.append("hostName=[").append(hostName).append("],");
+		sb.append("port=[").append(port).append("],");
+		sb.append("version=[").append(version).append("],");
+		sb.append("partitions=[").append(ArrayUtils.toString(partitions)).append("],");
+		sb.append("url=[").append(url).append("],");
+		sb.append("available=[").append(available).append("]");
+		sb.append("]");
+		return sb.toString();
 	}
 }

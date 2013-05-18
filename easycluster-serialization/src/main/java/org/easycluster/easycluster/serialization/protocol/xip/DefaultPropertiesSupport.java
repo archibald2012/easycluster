@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.easycluster.easycluster.core.Propertyable;
 
 /**
  * TODO

@@ -33,17 +33,17 @@ public class ConsistentHashPartitionedLoadBalancerFactoryTestCase {
 	@Test
 	public void testNextNode() {
 		Set<Node> nodes = new HashSet<Node>();
-		nodes.add(new Node("localhost", 1111, new int[] { 0, 1 }, true));
-		nodes.add(new Node("localhost", 1112, new int[] { 1, 2 }, true));
-		nodes.add(new Node("localhost", 1113, new int[] { 2, 3 }, true));
-		nodes.add(new Node("localhost", 1114, new int[] { 3, 4 }, true));
-		nodes.add(new Node("localhost", 1115, new int[] { 4, 0 }, true));
+		nodes.add(new Node("localhost", 1111, new Integer[] { 0, 1 }));
+		nodes.add(new Node("localhost", 1112, new Integer[] { 1, 2 }));
+		nodes.add(new Node("localhost", 1113, new Integer[] { 2, 3 }));
+		nodes.add(new Node("localhost", 1114, new Integer[] { 3, 4 }));
+		nodes.add(new Node("localhost", 1115, new Integer[] { 4, 0 }));
 		PartitionedLoadBalancer<EId> lb = loadBalancerFactory
 				.newLoadBalancer(nodes);
 
 		Set<Node> expected = new HashSet<Node>();
-		expected.add(new Node("localhost", 1111, new int[] { 0, 1 }, true));
-		expected.add(new Node("localhost", 1115, new int[] { 4, 0 }, true));
+		expected.add(new Node("localhost", 1111, new Integer[] { 0, 1 }));
+		expected.add(new Node("localhost", 1115, new Integer[] { 4, 0 }));
 
 		for (int i = 0; i < 100; i++) {
 			Node node = lb.nextNode(new EId(1210));

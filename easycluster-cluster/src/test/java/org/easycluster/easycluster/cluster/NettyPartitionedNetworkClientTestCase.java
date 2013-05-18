@@ -37,7 +37,7 @@ public class NettyPartitionedNetworkClientTestCase {
 		NettyNetworkServer nettyNetworkServer = new NettyNetworkServer("app", "test", "127.0.0.1:2181");
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		nettyNetworkServer.setPort(1000);
-		nettyNetworkServer.setPartitionIds(new int[] { 1 });
+		nettyNetworkServer.setPartitionIds(new Integer[] { 1 });
 		nettyNetworkServer.setDecoder(decoder);
 		nettyNetworkServer.start();
 

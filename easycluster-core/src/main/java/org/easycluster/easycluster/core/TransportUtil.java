@@ -1,16 +1,8 @@
 /**
  * 
  */
-package org.easycluster.easycluster.cluster.common;
+package org.easycluster.easycluster.core;
 
-import org.easycluster.easycluster.core.Sender;
-import org.easycluster.easycluster.serialization.protocol.xip.Propertyable;
-
-
-/**
- * @author ubuntu-admin
- * 
- */
 public class TransportUtil {
 	private static final String TRANSPORT_SENDER = "TRANSPORT_SENDER";
 

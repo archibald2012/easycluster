@@ -7,7 +7,7 @@ public class NodeTestCase {
 
 	@Test
 	public void test() {
-		Node node = new Node("localhost", 1111, new int[] { 0, 1 }, true);
+		Node node = new Node("localhost", 1111, new Integer[] { 0, 1 });
 
 		String output = XmlUtil.marshal(node);
 		System.out.println(output);

@@ -99,7 +99,7 @@ public class NetworkClientTestCase {
 	public void testSendMessage() throws Exception {
 
 		Set<Node> nodeSet = new HashSet<Node>();
-		Node node = new Node("127.0.0.1", 1111, new int[0], true);
+		Node node = new Node("127.0.0.1", 1111, new Integer[0]);
 		nodeSet.add(node);
 
 		expect(messageRegistry.contains(anyObject())).andReturn(true);

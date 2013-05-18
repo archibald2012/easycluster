@@ -66,13 +66,16 @@ public class NettyBeanEncoder extends OneToOneEncoder {
 		byte[] bodyBytes = getByteBeanCodec().encode(getByteBeanCodec().getEncContextFactory().createEncContext(signal, signal.getClass(), null));
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("body raw bytes -->");
-			LOGGER.debug(ByteUtil.bytesAsHexString(bodyBytes, dumpBytes));
+			LOGGER.debug("body raw bytes --> {}", ByteUtil.bytesAsHexString(bodyBytes, dumpBytes));
 		}
 
-		if (encryptKey != null) {
+		if (encryptKey != null && bodyBytes.length > 0) {
 			try {
 				bodyBytes = DES.encryptThreeDESECB(bodyBytes, encryptKey);
+
+				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+					LOGGER.debug("After encryption, body raw bytes --> {}", ByteUtil.bytesAsHexString(bodyBytes, dumpBytes));
+				}
 			} catch (Exception e) {
 				String error = "Failed to encrypt the body due to error " + e.getMessage();
 				LOGGER.error(error, e);
@@ -89,9 +92,8 @@ public class NettyBeanEncoder extends OneToOneEncoder {
 				bodyBytes);
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("encode XipSignal", ToStringBuilder.reflectionToString(signal));
-			LOGGER.debug("and XipSignal raw bytes -->");
-			LOGGER.debug(ByteUtil.bytesAsHexString(bytes, dumpBytes));
+			LOGGER.debug("encode XipSignal {}, and XipSignal raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
+					ByteUtil.bytesAsHexString(bytes, dumpBytes));
 		}
 
 		return bytes;

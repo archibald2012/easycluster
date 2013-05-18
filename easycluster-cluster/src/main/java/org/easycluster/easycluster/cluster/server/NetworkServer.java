@@ -38,7 +38,7 @@ public class NetworkServer {
 	protected String					version						= null;
 	protected String					ip							= SystemUtil.getIpAddress();
 	protected int						port						= -1;
-	protected int[]						partitionIds				= new int[0];
+	protected Integer[]					partitionIds				= new Integer[0];
 	protected String					url							= null;
 
 	private AtomicBoolean				shutdownSwitch				= new AtomicBoolean(false);
@@ -94,7 +94,7 @@ public class NetworkServer {
 	 *             thrown if unable to bind
 	 */
 	public void bind(int port) {
-		bind(port, new int[0], true);
+		bind(port, new Integer[0], true);
 	}
 
 	/**
@@ -118,7 +118,7 @@ public class NetworkServer {
 	 * @throws NetworkingException
 	 *             thrown if unable to bind
 	 */
-	public void bind(final int port, final int[] partitionIds, final boolean markAvailable) {
+	public void bind(final int port, final Integer[] partitionIds, final boolean markAvailable) {
 		if (shutdownSwitch.get()) {
 			throw new NetworkShutdownException("");
 		}
@@ -134,7 +134,7 @@ public class NetworkServer {
 		clusterClient.start();
 		clusterClient.awaitConnectionUninterruptibly();
 
-		Node node = new Node(ip, port, partitionIds, false);
+		Node node = new Node(ip, port, partitionIds);
 		node.setApplicationName(applicationName);
 		node.setServiceName(serviceName);
 		node.setVersion(version);
@@ -322,4 +322,7 @@ public class NetworkServer {
 		this.ip = ip;
 	}
 
+	public void setPartitionIds(Integer[] partitionIds) {
+		this.partitionIds = partitionIds;
+	}
 }

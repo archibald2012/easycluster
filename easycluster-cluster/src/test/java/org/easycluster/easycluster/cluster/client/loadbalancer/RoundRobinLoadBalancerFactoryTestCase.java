@@ -27,18 +27,18 @@ public class RoundRobinLoadBalancerFactoryTestCase {
 	@Test
 	public void testNextNode() {
 		Set<Node> nodes = new HashSet<Node>();
-		nodes.add(new Node("localhost", 1111, true));
-		nodes.add(new Node("localhost", 1112, true));
-		nodes.add(new Node("localhost", 1113, true));
-		nodes.add(new Node("localhost", 1114, true));
-		nodes.add(new Node("localhost", 1115, true));
-		nodes.add(new Node("localhost", 1116, true));
-		nodes.add(new Node("localhost", 1117, true));
-		nodes.add(new Node("localhost", 1118, true));
-		nodes.add(new Node("localhost", 1119, true));
-		nodes.add(new Node("localhost", 1120, true));
-		nodes.add(new Node("localhost", 1120, true));
-		nodes.add(new Node("localhost", 1120, true));
+		nodes.add(new Node("localhost", 1111));
+		nodes.add(new Node("localhost", 1112));
+		nodes.add(new Node("localhost", 1113));
+		nodes.add(new Node("localhost", 1114));
+		nodes.add(new Node("localhost", 1115));
+		nodes.add(new Node("localhost", 1116));
+		nodes.add(new Node("localhost", 1117));
+		nodes.add(new Node("localhost", 1118));
+		nodes.add(new Node("localhost", 1119));
+		nodes.add(new Node("localhost", 1120));
+		nodes.add(new Node("localhost", 1120));
+		nodes.add(new Node("localhost", 1120));
 
 		for (Node node : nodes) {
 			System.out.println("node: " + node);
