@@ -8,9 +8,9 @@ import java.util.Set;
 import org.easycluster.easycluster.cluster.Node;
 import org.easycluster.easycluster.cluster.exception.InvalidNodeException;
 
-public class RoundRobinPartitionedLoadBalancerFactory implements PartitionedLoadBalancerFactory<Integer> {
+public abstract class RoundRobinPartitionedLoadBalancerFactory<PartitionedId> implements PartitionedLoadBalancerFactory<PartitionedId> {
 
-	public PartitionedLoadBalancer<Integer> newLoadBalancer(Set<Node> nodes) {
+	public PartitionedLoadBalancer<PartitionedId> newLoadBalancer(Set<Node> nodes) {
 		for (Node node : nodes) {
 			if (node.getPartitions() == null || node.getPartitions().length == 0) {
 				throw new InvalidNodeException("No partitioned id(s) found. node=[" + node + "]");
@@ -19,7 +19,13 @@ public class RoundRobinPartitionedLoadBalancerFactory implements PartitionedLoad
 		return new RoundRobinPartitionedLoadBalancer(nodes);
 	}
 
-	private class RoundRobinPartitionedLoadBalancer implements PartitionedLoadBalancer<Integer> {
+	public int partitionForId(PartitionedId id) {
+		return Math.abs(hashPartitionedId(id));
+	}
+
+	abstract protected int hashPartitionedId(PartitionedId id);
+
+	private class RoundRobinPartitionedLoadBalancer implements PartitionedLoadBalancer<PartitionedId> {
 		private final Map<Integer, RoundRobinLoadBalancer>	loadBalancerMap	= new HashMap<Integer, RoundRobinLoadBalancer>();
 
 		private RoundRobinPartitionedLoadBalancer(Set<Node> nodes) {
@@ -40,8 +46,8 @@ public class RoundRobinPartitionedLoadBalancerFactory implements PartitionedLoad
 
 		}
 
-		public Node nextNode(Integer partitionedId) {
-			RoundRobinLoadBalancer loadBalancer = loadBalancerMap.get(partitionedId);
+		public Node nextNode(PartitionedId partitionedId) {
+			RoundRobinLoadBalancer loadBalancer = loadBalancerMap.get(partitionForId(partitionedId));
 			return loadBalancer == null ? null : loadBalancer.nextNode();
 		}
 	}
