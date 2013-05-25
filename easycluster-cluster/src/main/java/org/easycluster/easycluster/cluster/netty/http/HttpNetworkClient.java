@@ -63,8 +63,8 @@ public class HttpNetworkClient extends NetworkClient {
 				p.addLast("codec", new HttpClientCodec());
 				p.addLast("aggregator", new HttpChunkAggregator(maxContentLength));
 
-				p.addLast("decoder", decoder);
-				p.addLast("encoder", encoder);
+				p.addLast("httpResponseDecoder", decoder);
+				p.addLast("httpRequestEncoder", encoder);
 				p.addLast("handler", handler);
 
 				return p;

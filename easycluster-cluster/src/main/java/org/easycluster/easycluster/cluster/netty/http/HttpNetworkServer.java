@@ -74,8 +74,8 @@ public class HttpNetworkServer extends NetworkServer {
 				p.addLast("codec", new HttpServerCodec());
 				p.addLast("aggregator", new HttpChunkAggregator(maxContentLength));
 
-				p.addLast("encoder", encoder);
-				p.addLast("decoder", decoder);
+				p.addLast("httpResponseEncoder", encoder);
+				p.addLast("httpRequestDecoder", decoder);
 
 				p.addLast("idleHandler", new IdleStateHandler(new HashedWheelTimer(), 0, 0, getIdleTime(), TimeUnit.SECONDS));
 

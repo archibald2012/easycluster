@@ -1,6 +1,5 @@
 package org.easycluster.easycluster.cluster.netty.websocket;
 
-import java.net.URI;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -9,7 +8,6 @@ import org.easycluster.easycluster.cluster.client.NetworkClient;
 import org.easycluster.easycluster.cluster.client.loadbalancer.LoadBalancerFactory;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.ChannelPoolFactory;
-import org.easycluster.easycluster.cluster.netty.ClientChannelHandler;
 import org.easycluster.easycluster.cluster.netty.NettyIoClient;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.ChannelPipeline;
@@ -18,8 +16,8 @@ import org.jboss.netty.channel.DefaultChannelPipeline;
 import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
-import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
+import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 import org.jboss.netty.handler.codec.oneone.OneToOneDecoder;
 import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 import org.jboss.netty.handler.logging.LoggingHandler;
@@ -46,7 +44,7 @@ public class WebSocketNetworkClient extends NetworkClient {
 		ExecutorService executor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("client-pool-%s", getServiceName())));
 		ClientBootstrap bootstrap = new ClientBootstrap(new NioClientSocketChannelFactory(executor, executor));
 
-		final SimpleChannelHandler handler = new ClientChannelHandler(messageRegistry, getStaleRequestTimeoutMins(), getStaleRequestCleanupFrequenceMins());
+		final SimpleChannelHandler handler = new WebSocketClientHandler(messageRegistry, getStaleRequestTimeoutMins(), getStaleRequestCleanupFrequenceMins());
 
 		bootstrap.setOption("connectTimeoutMillis", getConnectTimeoutMillis());
 		bootstrap.setOption("tcpNoDelay", true);
@@ -61,12 +59,12 @@ public class WebSocketNetworkClient extends NetworkClient {
 				ChannelPipeline p = new DefaultChannelPipeline();
 
 				p.addFirst("logging", loggingHandler);
-				p.addLast("httpRequestDecoder", new HttpRequestDecoder());
+				p.addLast("aggregator", new HttpChunkAggregator(maxContentLength));
+				p.addLast("httpResponseDecoder", new HttpResponseDecoder());
 				p.addLast("httpRequestEncoder", new HttpRequestEncoder());
+				
 				p.addLast("decoder", decoder);
 				p.addLast("encoder", encoder);
-				p.addLast("aggregator", new HttpChunkAggregator(maxContentLength));
-				p.addLast("ws-handler", new WebSocketClientHandshakerHandler(new URI("127.0.0.1:2000")));
 				p.addLast("handler", handler);
 
 				return p;

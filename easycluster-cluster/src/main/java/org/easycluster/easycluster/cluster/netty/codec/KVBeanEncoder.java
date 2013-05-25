@@ -7,10 +7,11 @@ import org.easycluster.easycluster.core.ByteUtil;
 import org.easycluster.easycluster.core.Transformer;
 import org.easycluster.easycluster.serialization.kv.codec.DefaultKVCodec;
 import org.easycluster.easycluster.serialization.kv.codec.KVCodec;
+import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class KVBeanEncoder implements Transformer<Object, byte[]> {
+public class KVBeanEncoder implements Transformer<XipSignal, byte[]> {
 
 	private static final Logger	LOGGER			= LoggerFactory.getLogger(KVBeanEncoder.class);
 
@@ -21,7 +22,7 @@ public class KVBeanEncoder implements Transformer<Object, byte[]> {
 	private boolean				isDebugEnabled	= true;
 
 	@Override
-	public byte[] transform(Object object) {
+	public byte[] transform(XipSignal object) {
 
 		String string = kvCodec.encode(kvCodec.getEncContextFactory().createEncContext(object, object.getClass()));
 

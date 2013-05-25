@@ -92,18 +92,16 @@ public class WebSocketNetworkServer extends NetworkServer {
 				ChannelPipeline p = Channels.pipeline();
 
 				p.addFirst("logging", loggingHandler);
-
 				p.addLast("httpRequestDecoder", new HttpRequestDecoder());
-				p.addLast("ws-handler", new WebSocketServerHandshakerHandler());
-				p.addLast("aggregator", new HttpChunkAggregator(maxContentLength));
 				p.addLast("httpResponseEncoder", new HttpResponseEncoder());
+				p.addLast("aggregator", new HttpChunkAggregator(maxContentLength));
+				p.addLast("idleHandler", new IdleStateHandler(new HashedWheelTimer(), 0, 0, getIdleTime(), TimeUnit.SECONDS));
 
 				p.addLast("decoder", decoder);
 				p.addLast("encoder", encoder);
 
-				p.addLast("idleHandler", new IdleStateHandler(new HashedWheelTimer(), 0, 0, getIdleTime(), TimeUnit.SECONDS));
-
-				p.addLast("requestHandler", requestHandler);
+				p.addLast("ws-handler", new WebSocketServerHandshakerHandler());
+				p.addLast("handler", requestHandler);
 
 				return p;
 			}

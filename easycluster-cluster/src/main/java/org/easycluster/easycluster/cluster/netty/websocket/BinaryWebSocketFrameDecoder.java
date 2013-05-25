@@ -7,20 +7,28 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import org.jboss.netty.handler.codec.oneone.OneToOneDecoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BinaryWebSocketFrameDecoder extends OneToOneDecoder {
 
+	private static final Logger	LOGGER			= LoggerFactory.getLogger(BinaryWebSocketFrameDecoder.class);
+	
 	private ByteBeanDecoder	byteBeanDecoder = new ByteBeanDecoder();
 
 	@Override
 	protected Object decode(ChannelHandlerContext ctx, Channel channel, Object msg) throws Exception {
 		if (msg instanceof BinaryWebSocketFrame) {
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("receive websocket frame: [{}]", msg);
+			}
+			
 			ChannelBuffer content = ((BinaryWebSocketFrame) msg).getBinaryData();
 			if (null != content) {
 				return byteBeanDecoder.transform(content, channel);
 			}
 		}
-		return null;
+		return msg;
 	}
 
 	public void setByteBeanDecoder(ByteBeanDecoder byteBeanDecoder) {
