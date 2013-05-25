@@ -1,4 +1,4 @@
-package org.easycluster.easycluster.cluster.netty.response;
+package org.easycluster.easycluster.cluster.netty.http;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.handler.codec.http.HttpResponse;

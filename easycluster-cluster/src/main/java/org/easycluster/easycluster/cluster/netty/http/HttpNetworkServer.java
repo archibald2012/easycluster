@@ -8,8 +8,6 @@ import org.easycluster.easycluster.cluster.NetworkDefaults;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.NettyIoServer;
 import org.easycluster.easycluster.cluster.netty.ServerChannelHandler;
-import org.easycluster.easycluster.cluster.netty.codec.NettyBeanDecoder;
-import org.easycluster.easycluster.cluster.netty.codec.NettyBeanEncoder;
 import org.easycluster.easycluster.cluster.netty.endpoint.IEndpointListener;
 import org.easycluster.easycluster.cluster.server.NetworkServer;
 import org.easycluster.easycluster.cluster.server.ThreadPoolMessageExecutor;
@@ -29,8 +27,8 @@ import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 
 public class HttpNetworkServer extends NetworkServer {
-	private OneToOneDecoder		decoder							= new NettyBeanDecoder();
-	private OneToOneEncoder		encoder							= new NettyBeanEncoder();
+	private OneToOneDecoder		decoder							= new HttpRequestDecoder();
+	private OneToOneEncoder		encoder							= new HttpResponseEncoder();
 
 	private int					requestThreadCorePoolSize		= NetworkDefaults.REQUEST_THREAD_CORE_POOL_SIZE;
 	private int					requestThreadMaxPoolSize		= NetworkDefaults.REQUEST_THREAD_MAX_POOL_SIZE;

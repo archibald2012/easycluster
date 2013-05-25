@@ -10,8 +10,6 @@ import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.ChannelPoolFactory;
 import org.easycluster.easycluster.cluster.netty.ClientChannelHandler;
 import org.easycluster.easycluster.cluster.netty.NettyIoClient;
-import org.easycluster.easycluster.cluster.netty.codec.NettyBeanDecoder;
-import org.easycluster.easycluster.cluster.netty.codec.NettyBeanEncoder;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -26,8 +24,8 @@ import org.jboss.netty.handler.logging.LoggingHandler;
 
 public class HttpNetworkClient extends NetworkClient {
 
-	private OneToOneDecoder	decoder								= new NettyBeanDecoder();
-	private OneToOneEncoder	encoder								= new NettyBeanEncoder();
+	private OneToOneDecoder	decoder								= new HttpResponseDecoder();
+	private OneToOneEncoder	encoder								= new HttpRequestEncoder();
 
 	private int				connectTimeoutMillis				= NetworkDefaults.CONNECT_TIMEOUT_MILLIS;
 	private int				writeTimeoutMillis					= NetworkDefaults.WRITE_TIMEOUT_MILLIS;

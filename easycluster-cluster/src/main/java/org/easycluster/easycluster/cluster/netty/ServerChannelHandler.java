@@ -58,7 +58,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
 		LOGGER.error("channel: [" + e.getChannel().getRemoteAddress() + "], exceptionCaught:", e.getCause());
-		//ctx.getChannel().close();
+		// ctx.getChannel().close();
 	}
 
 	@Override
@@ -175,10 +175,9 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 				if (message instanceof Identifiable) {
 					((Identifiable) message).setIdentification(requestId);
 				}
+				Object original = TransportUtil.getRequestOf(request);
+				TransportUtil.attachRequest(message, original);
 
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("send - [{}]", message);
-				}
 				endpoint.send(message);
 			}
 		}

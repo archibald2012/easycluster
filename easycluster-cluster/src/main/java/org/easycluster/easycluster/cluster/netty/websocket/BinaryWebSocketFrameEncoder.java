@@ -14,7 +14,7 @@ import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 
 public class BinaryWebSocketFrameEncoder extends OneToOneEncoder {
 
-	private ByteBeanEncoder	byteBeanEncoder = new ByteBeanEncoder();
+	private ByteBeanEncoder	byteBeanEncoder	= new ByteBeanEncoder();
 
 	@Override
 	protected Object encode(ChannelHandlerContext ctx, Channel channel, Object msg) throws Exception {
@@ -35,4 +35,15 @@ public class BinaryWebSocketFrameEncoder extends OneToOneEncoder {
 		this.byteBeanEncoder = byteBeanEncoder;
 	}
 
+	public void setDumpBytes(int dumpBytes) {
+		byteBeanEncoder.setDumpBytes(dumpBytes);
+	}
+
+	public void setDebugEnabled(boolean isDebugEnabled) {
+		byteBeanEncoder.setDebugEnabled(isDebugEnabled);
+	}
+
+	public void setEncryptKey(String encryptKey) {
+		byteBeanEncoder.setEncryptKey(encryptKey);
+	}
 }
