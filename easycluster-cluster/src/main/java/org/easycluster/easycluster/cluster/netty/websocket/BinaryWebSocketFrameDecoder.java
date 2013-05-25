@@ -1,5 +1,6 @@
-package org.easycluster.easycluster.cluster.netty.codec;
+package org.easycluster.easycluster.cluster.netty.websocket;
 
+import org.easycluster.easycluster.cluster.netty.codec.ByteBeanDecoder;
 import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;

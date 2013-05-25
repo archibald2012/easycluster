@@ -12,13 +12,12 @@ import org.easycluster.easycluster.core.Closure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class NettyIoClient implements ClusterIoClient {
 
-	private static final Logger										LOGGER							= LoggerFactory.getLogger(NettyIoClient.class);
+	private static final Logger						LOGGER				= LoggerFactory.getLogger(NettyIoClient.class);
 
-	private ChannelPoolFactory										channelPoolFactory	= null;
-	private ConcurrentHashMap<Node, ChannelPool>	channelPools				= new ConcurrentHashMap<Node, ChannelPool>();
+	private ChannelPoolFactory						channelPoolFactory	= null;
+	private ConcurrentHashMap<Node, ChannelPool>	channelPools		= new ConcurrentHashMap<Node, ChannelPool>();
 
 	public NettyIoClient(ChannelPoolFactory channelPoolFactory) {
 		this.channelPoolFactory = channelPoolFactory;

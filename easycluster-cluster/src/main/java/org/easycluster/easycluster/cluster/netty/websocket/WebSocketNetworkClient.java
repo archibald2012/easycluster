@@ -11,8 +11,6 @@ import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.ChannelPoolFactory;
 import org.easycluster.easycluster.cluster.netty.ClientChannelHandler;
 import org.easycluster.easycluster.cluster.netty.NettyIoClient;
-import org.easycluster.easycluster.cluster.netty.codec.BinaryWebSocketFrameDecoder;
-import org.easycluster.easycluster.cluster.netty.codec.BinaryWebSocketFrameEncoder;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;

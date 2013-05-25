@@ -1,4 +1,4 @@
-package org.easycluster.easycluster.cluster.netty.websocket;
+package org.easycluster.easycluster.cluster.netty.http;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -8,6 +8,8 @@ import org.easycluster.easycluster.cluster.NetworkDefaults;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.NettyIoServer;
 import org.easycluster.easycluster.cluster.netty.ServerChannelHandler;
+import org.easycluster.easycluster.cluster.netty.codec.NettyBeanDecoder;
+import org.easycluster.easycluster.cluster.netty.codec.NettyBeanEncoder;
 import org.easycluster.easycluster.cluster.netty.endpoint.IEndpointListener;
 import org.easycluster.easycluster.cluster.server.NetworkServer;
 import org.easycluster.easycluster.cluster.server.ThreadPoolMessageExecutor;
@@ -19,60 +21,38 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
-import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
-import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
+import org.jboss.netty.handler.codec.http.HttpServerCodec;
 import org.jboss.netty.handler.codec.oneone.OneToOneDecoder;
 import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 import org.jboss.netty.handler.logging.LoggingHandler;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 
-/**
- * A HTTP server which serves Web Socket requests.
- * <ul>
- * <li>Hixie-76/HyBi-00 Safari 5+, Chrome 4-13 and Firefox 4 supports this
- * standard.
- * <li>HyBi-10 Chrome 14-15, Firefox 7 and IE 10 Developer Preview supports this
- * standard.
- * </ul>
- * This server illustrates support for the different web socket specification
- * versions and will work with:
- * 
- * <ul>
- * <li>Safari 5+ (draft-ietf-hybi-thewebsocketprotocol-00)
- * <li>Chrome 6-13 (draft-ietf-hybi-thewebsocketprotocol-00)
- * <li>Chrome 14+ (draft-ietf-hybi-thewebsocketprotocol-10)
- * <li>Chrome 16+ (RFC 6455 aka draft-ietf-hybi-thewebsocketprotocol-17)
- * <li>Firefox 7+ (draft-ietf-hybi-thewebsocketprotocol-10)
- * </ul>
- * 
- * @author wangqi
- * @version $Id: WebSocketAcceptor.java 59 2012-02-24 08:40:46Z archie $
- */
-public class WebSocketNetworkServer extends NetworkServer {
-
-	private OneToOneDecoder		decoder							= new BinaryWebSocketFrameDecoder();
-	private OneToOneEncoder		encoder							= new BinaryWebSocketFrameEncoder();
+public class HttpNetworkServer extends NetworkServer {
+	private OneToOneDecoder		decoder							= new NettyBeanDecoder();
+	private OneToOneEncoder		encoder							= new NettyBeanEncoder();
 
 	private int					requestThreadCorePoolSize		= NetworkDefaults.REQUEST_THREAD_CORE_POOL_SIZE;
 	private int					requestThreadMaxPoolSize		= NetworkDefaults.REQUEST_THREAD_MAX_POOL_SIZE;
 	private int					requestThreadKeepAliveTimeSecs	= NetworkDefaults.REQUEST_THREAD_KEEP_ALIVE_TIME_SECS;
 	private int					idleTime						= NetworkDefaults.ALLIDLE_TIMEOUT_MILLIS;
+
 	// 100M
 	private int					maxContentLength				= 100 * 1024 * 1024;
 
 	private IEndpointListener	endpointListener;
 
-	public WebSocketNetworkServer(String applicationName, String serviceName, String zooKeeperConnectString) {
+	public HttpNetworkServer(String applicationName, String serviceName, String zooKeeperConnectString) {
 		super(applicationName, serviceName, zooKeeperConnectString);
 	}
 
 	public void start() {
+
 		messageExecutor = new ThreadPoolMessageExecutor(messageClosureRegistry, getRequestThreadCorePoolSize(), getRequestThreadMaxPoolSize(),
 				getRequestThreadKeepAliveTimeSecs());
 
-		ExecutorService workerExecutor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("websocket-server-pool-%s", serviceName)));
-		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("websocket-server-group-%s", serviceName));
+		ExecutorService workerExecutor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("netty-server-pool-%s", serviceName)));
+		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("netty-server-group-%s", serviceName));
 
 		final ServerChannelHandler requestHandler = new ServerChannelHandler(channelGroup, messageClosureRegistry, messageExecutor);
 		requestHandler.setEndpointListener(endpointListener);
@@ -92,18 +72,16 @@ public class WebSocketNetworkServer extends NetworkServer {
 				ChannelPipeline p = Channels.pipeline();
 
 				p.addFirst("logging", loggingHandler);
-
-				p.addLast("httpRequestDecoder", new HttpRequestDecoder());
-				p.addLast("ws-handler", new WebSocketServerHandshakerHandler());
+				// HttpServerCodec是非线程安全的,不能所有Channel使用同一个
+				p.addLast("codec", new HttpServerCodec());
 				p.addLast("aggregator", new HttpChunkAggregator(maxContentLength));
-				p.addLast("httpResponseEncoder", new HttpResponseEncoder());
 
-				p.addLast("decoder", decoder);
 				p.addLast("encoder", encoder);
+				p.addLast("decoder", decoder);
 
 				p.addLast("idleHandler", new IdleStateHandler(new HashedWheelTimer(), 0, 0, getIdleTime(), TimeUnit.SECONDS));
 
-				p.addLast("requestHandler", requestHandler);
+				p.addLast("handler", requestHandler);
 
 				return p;
 			}
@@ -120,10 +98,6 @@ public class WebSocketNetworkServer extends NetworkServer {
 
 	public void setEncoder(OneToOneEncoder encoder) {
 		this.encoder = encoder;
-	}
-
-	public void setMaxContentLength(int maxContentLength) {
-		this.maxContentLength = maxContentLength;
 	}
 
 	public int getRequestThreadCorePoolSize() {
@@ -169,4 +143,9 @@ public class WebSocketNetworkServer extends NetworkServer {
 	public void setEndpointListener(IEndpointListener endpointListener) {
 		this.endpointListener = endpointListener;
 	}
+
+	public void setMaxContentLength(int maxContentLength) {
+		this.maxContentLength = maxContentLength;
+	}
+
 }
