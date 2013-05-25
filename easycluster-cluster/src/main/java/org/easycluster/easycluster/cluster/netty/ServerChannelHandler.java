@@ -116,6 +116,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 
 		} else {
 			LOGGER.warn("missing endpoint, ignore incoming msg:", request);
+			//error reactor
 		}
 
 	}
