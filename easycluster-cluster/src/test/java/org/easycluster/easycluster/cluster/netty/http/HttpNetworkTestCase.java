@@ -26,7 +26,45 @@ public class HttpNetworkTestCase {
 	}
 
 	@Test
-	public void testBind() throws Exception {
+	public void testSend() throws Exception {
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.cluster");
+		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		HttpNetworkServer server = new HttpNetworkServer("app", "test", "127.0.0.1:2181");
+		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
+		server.setPort(5000);
+		server.setPartitionIds(new Integer[] { 0, 1 });
+		HttpRequestDecoder httpRequestDecoder = new HttpRequestDecoder();
+		httpRequestDecoder.setTypeMetaInfo(typeMetaInfo);
+		server.setDecoder(httpRequestDecoder);
+		server.setEncoder(new HttpResponseEncoder());
+		server.start();
+
+		HttpNetworkClient client = new HttpNetworkClient("app", "test", "127.0.0.1:2181", new RoundRobinLoadBalancerFactory());
+		HttpResponseDecoder responseDecoder = new HttpResponseDecoder();
+		responseDecoder.setTypeMetaInfo(typeMetaInfo);
+		client.setDecoder(responseDecoder);
+		client.setEncoder(new HttpRequestEncoder());
+		client.registerRequest(SampleRequest.class, SampleResponse.class);
+		client.start();
+
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
+
+		request.setByteArrayField(new byte[] { 127 });
+
+		Future<Object> future = client.sendMessage(request);
+
+		System.out.println("Result: " + future.get(20000, TimeUnit.SECONDS));
+	}
+	
+	@Test
+	public void testSend_JSON() throws Exception {
 		List<String> packages = new ArrayList<String>();
 		packages.add("org.easycluster.easycluster.cluster");
 		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);

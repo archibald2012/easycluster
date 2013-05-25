@@ -21,7 +21,7 @@ public class TransportUtil {
 		return null;
 	}
 
-	private static final String	REQUEST_OBJECT	= "REQUEST_OBJ";
+	private static final String	REQUEST_OBJECT	= "ORIGIN_REQUEST";
 
 	public static Object attachRequest(Object propertyable, Object request) {
 		if (propertyable instanceof Propertyable) {

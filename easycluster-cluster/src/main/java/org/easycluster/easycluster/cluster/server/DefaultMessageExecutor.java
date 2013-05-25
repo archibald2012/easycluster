@@ -1,8 +1,5 @@
 package org.easycluster.easycluster.cluster.server;
 
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.easycluster.easycluster.cluster.common.AverageTimeTracker;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.core.Closure;
 import org.slf4j.Logger;
@@ -10,17 +7,12 @@ import org.slf4j.LoggerFactory;
 
 public class DefaultMessageExecutor implements MessageExecutor {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(DefaultMessageExecutor.class);
+	private static final Logger		LOGGER					= LoggerFactory.getLogger(DefaultMessageExecutor.class);
 
-	private MessageClosureRegistry messageHandlerRegistry = null;
-
-	private AverageTimeTracker processingTime = new AverageTimeTracker(100);
-	private AtomicLong requestCount = new AtomicLong(0);
+	private MessageClosureRegistry	messageHandlerRegistry	= null;
 
 	public DefaultMessageExecutor(MessageClosureRegistry messageHandlerRegistry) {
 		this.messageHandlerRegistry = messageHandlerRegistry;
-		// TODO register jmx
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -31,28 +23,21 @@ public class DefaultMessageExecutor implements MessageExecutor {
 		}
 
 		try {
-			MessageClosure handler = messageHandlerRegistry
-					.getHandlerFor(message);
+			MessageClosure handler = messageHandlerRegistry.getHandlerFor(message);
 			Object response = handler.execute(message);
 			if (!messageHandlerRegistry.validResponseFor(message, response)) {
-				String name = (response == null) ? "<null>" : response
-						.getClass().getName();
-				String errorMsg = String
-						.format("Message handler returned an invalid response message of type %s",
-								name);
+				String name = (response == null) ? "<null>" : response.getClass().getName();
+				String errorMsg = String.format("Message handler returned an invalid response message of type %s", name);
 				LOGGER.error(errorMsg);
 				closure.execute(new InvalidMessageException(errorMsg));
 			} else {
 				closure.execute(response);
 			}
 		} catch (InvalidMessageException ex) {
-			LOGGER.error(String.format("Received an invalid message: %s",
-					message));
+			LOGGER.error(String.format("Received an invalid message: %s", message));
 			closure.execute(ex);
 		} catch (Exception ex) {
-			LOGGER.error(
-					"Message handler threw an exception while processing message",
-					ex);
+			LOGGER.error("Message handler threw an exception while processing message", ex);
 			closure.execute(ex);
 		}
 	}
@@ -62,17 +47,6 @@ public class DefaultMessageExecutor implements MessageExecutor {
 		// unregister jmx
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("MessageExecutor shut down");
-		}
-	}
-
-	class RequestProcessorMBean {
-
-		public long getAverageProcessingTime() {
-			return processingTime.average();
-		}
-
-		public long getRequestCount() {
-			return requestCount.get();
 		}
 	}
 

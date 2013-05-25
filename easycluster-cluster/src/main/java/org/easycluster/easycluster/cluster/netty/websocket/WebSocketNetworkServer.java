@@ -10,7 +10,7 @@ import org.easycluster.easycluster.cluster.netty.NettyIoServer;
 import org.easycluster.easycluster.cluster.netty.ServerChannelHandler;
 import org.easycluster.easycluster.cluster.netty.endpoint.IEndpointListener;
 import org.easycluster.easycluster.cluster.server.NetworkServer;
-import org.easycluster.easycluster.cluster.server.ThreadPoolMessageExecutor;
+import org.easycluster.easycluster.cluster.server.PartitionedThreadPoolMessageExecutor;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -68,9 +68,9 @@ public class WebSocketNetworkServer extends NetworkServer {
 	}
 
 	public void start() {
-		messageExecutor = new ThreadPoolMessageExecutor(messageClosureRegistry, getRequestThreadCorePoolSize(), getRequestThreadMaxPoolSize(),
-				getRequestThreadKeepAliveTimeSecs());
-
+		messageExecutor = new PartitionedThreadPoolMessageExecutor(messageClosureRegistry, 1, 1, getRequestThreadKeepAliveTimeSecs(),
+				getRequestThreadCorePoolSize());
+		
 		ExecutorService workerExecutor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("websocket-server-pool-%s", serviceName)));
 		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("websocket-server-group-%s", serviceName));
 

@@ -23,12 +23,12 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 	private AverageTimeTracker		processingTime			= new AverageTimeTracker(100);
 	private AtomicLong				requestCount			= new AtomicLong(0);
 
-	public ThreadPoolMessageExecutor(MessageClosureRegistry messageHandlerRegistry, int corePoolSize, int maxPoolSize, int keepAliveTime) {
+	public ThreadPoolMessageExecutor(String name, int corePoolSize, int maxPoolSize, int keepAliveTime, MessageClosureRegistry messageHandlerRegistry) {
 
 		this.messageHandlerRegistry = messageHandlerRegistry;
 
 		this.threadPool = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
-				new NamedPoolThreadFactory("threadpool-message-executor")) {
+				new NamedPoolThreadFactory(name)) {
 
 			@Override
 			public void beforeExecute(Thread t, Runnable r) {
