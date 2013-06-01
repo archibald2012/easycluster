@@ -8,25 +8,25 @@ import org.easycluster.easycluster.cluster.client.PartitionedNetworkClient;
 import org.easycluster.easycluster.cluster.client.loadbalancer.PartitionedLoadBalancerFactory;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.jboss.netty.bootstrap.ClientBootstrap;
+import org.jboss.netty.channel.ChannelDownstreamHandler;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
+import org.jboss.netty.channel.ChannelUpstreamHandler;
 import org.jboss.netty.channel.DefaultChannelPipeline;
 import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
-import org.jboss.netty.handler.codec.oneone.OneToOneDecoder;
-import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 import org.jboss.netty.handler.logging.LoggingHandler;
 
 public class NettyPartitionedNetworkClient<PartitionedId> extends PartitionedNetworkClient<PartitionedId> {
 
-	private OneToOneDecoder	decoder								= null;
-	private OneToOneEncoder	encoder								= null;
+	private ChannelUpstreamHandler		decoder								= null;
+	private ChannelDownstreamHandler	encoder								= null;
 
-	private int				connectTimeoutMillis				= NetworkDefaults.CONNECT_TIMEOUT_MILLIS;
-	private int				writeTimeoutMillis					= NetworkDefaults.WRITE_TIMEOUT_MILLIS;
-	private int				maxConnectionsPerNode				= NetworkDefaults.MAX_CONNECTIONS_PER_NODE;
-	private int				staleRequestTimeoutMins				= NetworkDefaults.STALE_REQUEST_TIMEOUT_MINS;
-	private int				staleRequestCleanupFrequenceMins	= NetworkDefaults.STALE_REQUEST_CLEANUP_FREQUENCY_MINS;
+	private int							connectTimeoutMillis				= NetworkDefaults.CONNECT_TIMEOUT_MILLIS;
+	private int							writeTimeoutMillis					= NetworkDefaults.WRITE_TIMEOUT_MILLIS;
+	private int							maxConnectionsPerNode				= NetworkDefaults.MAX_CONNECTIONS_PER_NODE;
+	private int							staleRequestTimeoutMins				= NetworkDefaults.STALE_REQUEST_TIMEOUT_MINS;
+	private int							staleRequestCleanupFrequenceMins	= NetworkDefaults.STALE_REQUEST_CLEANUP_FREQUENCY_MINS;
 
 	public NettyPartitionedNetworkClient(String applicationName, String serviceName, String zooKeeperConnectString,
 			PartitionedLoadBalancerFactory<PartitionedId> loadBalancerFactory) {
@@ -67,11 +67,11 @@ public class NettyPartitionedNetworkClient<PartitionedId> extends PartitionedNet
 		super.start();
 	}
 
-	public void setDecoder(OneToOneDecoder decoder) {
+	public void setDecoder(ChannelUpstreamHandler decoder) {
 		this.decoder = decoder;
 	}
 
-	public void setEncoder(OneToOneEncoder encoder) {
+	public void setEncoder(ChannelDownstreamHandler encoder) {
 		this.encoder = encoder;
 	}
 

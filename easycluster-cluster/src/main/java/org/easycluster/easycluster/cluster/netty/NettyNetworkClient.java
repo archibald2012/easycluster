@@ -7,28 +7,26 @@ import org.easycluster.easycluster.cluster.NetworkDefaults;
 import org.easycluster.easycluster.cluster.client.NetworkClient;
 import org.easycluster.easycluster.cluster.client.loadbalancer.LoadBalancerFactory;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
-import org.easycluster.easycluster.cluster.netty.codec.NettyBeanDecoder;
-import org.easycluster.easycluster.cluster.netty.codec.NettyBeanEncoder;
 import org.jboss.netty.bootstrap.ClientBootstrap;
+import org.jboss.netty.channel.ChannelDownstreamHandler;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
+import org.jboss.netty.channel.ChannelUpstreamHandler;
 import org.jboss.netty.channel.DefaultChannelPipeline;
 import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
-import org.jboss.netty.handler.codec.oneone.OneToOneDecoder;
-import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 import org.jboss.netty.handler.logging.LoggingHandler;
 
 public class NettyNetworkClient extends NetworkClient {
 
-	private OneToOneDecoder	decoder								= new NettyBeanDecoder();
-	private OneToOneEncoder	encoder								= new NettyBeanEncoder();
+	private ChannelUpstreamHandler		decoder								= null;
+	private ChannelDownstreamHandler	encoder								= null;
 
-	private int				connectTimeoutMillis				= NetworkDefaults.CONNECT_TIMEOUT_MILLIS;
-	private int				writeTimeoutMillis					= NetworkDefaults.WRITE_TIMEOUT_MILLIS;
-	private int				maxConnectionsPerNode				= NetworkDefaults.MAX_CONNECTIONS_PER_NODE;
-	private int				staleRequestTimeoutMins				= NetworkDefaults.STALE_REQUEST_TIMEOUT_MINS;
-	private int				staleRequestCleanupFrequenceMins	= NetworkDefaults.STALE_REQUEST_CLEANUP_FREQUENCY_MINS;
+	private int							connectTimeoutMillis				= NetworkDefaults.CONNECT_TIMEOUT_MILLIS;
+	private int							writeTimeoutMillis					= NetworkDefaults.WRITE_TIMEOUT_MILLIS;
+	private int							maxConnectionsPerNode				= NetworkDefaults.MAX_CONNECTIONS_PER_NODE;
+	private int							staleRequestTimeoutMins				= NetworkDefaults.STALE_REQUEST_TIMEOUT_MINS;
+	private int							staleRequestCleanupFrequenceMins	= NetworkDefaults.STALE_REQUEST_CLEANUP_FREQUENCY_MINS;
 
 	public NettyNetworkClient(String applicationName, String serviceName, String zooKeeperConnectString, LoadBalancerFactory loadBalancerFactory) {
 		super(applicationName, serviceName, zooKeeperConnectString, loadBalancerFactory);
@@ -68,11 +66,11 @@ public class NettyNetworkClient extends NetworkClient {
 		super.start();
 	}
 
-	public void setDecoder(OneToOneDecoder decoder) {
+	public void setDecoder(ChannelUpstreamHandler decoder) {
 		this.decoder = decoder;
 	}
 
-	public void setEncoder(OneToOneEncoder encoder) {
+	public void setEncoder(ChannelDownstreamHandler encoder) {
 		this.encoder = encoder;
 	}
 

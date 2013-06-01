@@ -14,17 +14,16 @@ import org.jboss.netty.channel.socket.DefaultServerSocketChannelConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class NettyIoServer implements ClusterIoServer {
 
-	private static final Logger	LOGGER				= LoggerFactory.getLogger(NettyIoServer.class);
+	private static final Logger	LOGGER			= LoggerFactory.getLogger(NettyIoServer.class);
 
-	private int									maxRetryCount	= NetworkDefaults.MAX_RETRY_COUNT;
-	private long								retryTimeOut	= NetworkDefaults.RETRY_TIMEOUT_MILLIS;
+	private int					maxRetryCount	= NetworkDefaults.MAX_RETRY_COUNT;
+	private long				retryTimeOut	= NetworkDefaults.RETRY_TIMEOUT_MILLIS;
 
-	private ServerBootstrap			bootstrap			= null;
-	private ChannelGroup				channelGroup	= null;
-	private Channel							serverChannel	= null;
+	private ServerBootstrap		bootstrap		= null;
+	private ChannelGroup		channelGroup	= null;
+	private Channel				serverChannel	= null;
 
 	public NettyIoServer(ServerBootstrap bootstrap, ChannelGroup channelGroup) {
 		this.bootstrap = bootstrap;

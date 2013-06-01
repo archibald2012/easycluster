@@ -35,7 +35,10 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 				RequestRunner rr = (RequestRunner) r;
 				rr.startedAt = System.currentTimeMillis();
 				waitTime.addTime(rr.startedAt - rr.queuedAt);
-				requestCount.incrementAndGet();
+				long requests = requestCount.incrementAndGet();
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("requestCount: {}", requests);
+				}
 			}
 
 			@Override

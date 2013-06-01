@@ -1,10 +1,13 @@
-package org.easycluster.easycluster.cluster;
+package org.easycluster.easycluster.cluster.netty;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.easycluster.easycluster.cluster.SampleMessageClosure;
+import org.easycluster.easycluster.cluster.SampleRequest;
+import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.cluster.client.loadbalancer.IntegerConsistentHashPartitionedLoadBalancerFactory;
 import org.easycluster.easycluster.cluster.netty.NettyNetworkServer;
 import org.easycluster.easycluster.cluster.netty.NettyPartitionedNetworkClient;
@@ -14,7 +17,6 @@ import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetai
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 
 public class NettyPartitionedNetworkClientTestCase {
 
@@ -31,7 +33,7 @@ public class NettyPartitionedNetworkClientTestCase {
 		List<String> packages = new ArrayList<String>();
 		packages.add("edu.hziee.common.cluster");
 		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
-		NettyBeanDecoder decoder = new NettyBeanDecoder();
+		NettyBeanDecoder decoder = new NettyBeanDecoder(Integer.MAX_VALUE, 1, 4, 0, 28);
 		decoder.setTypeMetaInfo(typeMetaInfo);
 
 		NettyNetworkServer nettyNetworkServer = new NettyNetworkServer("app", "test", "127.0.0.1:2181");
@@ -41,9 +43,11 @@ public class NettyPartitionedNetworkClientTestCase {
 		nettyNetworkServer.setDecoder(decoder);
 		nettyNetworkServer.start();
 
-		NettyPartitionedNetworkClient<Integer> nettyNetworkClient = new NettyPartitionedNetworkClient<Integer>("app",
-				"test", "127.0.0.1:2181", new IntegerConsistentHashPartitionedLoadBalancerFactory(1));
-		nettyNetworkClient.setDecoder(decoder);
+		NettyPartitionedNetworkClient<Integer> nettyNetworkClient = new NettyPartitionedNetworkClient<Integer>("app", "test", "127.0.0.1:2181",
+				new IntegerConsistentHashPartitionedLoadBalancerFactory(1));
+		NettyBeanDecoder decoder2 = new NettyBeanDecoder(Integer.MAX_VALUE, 1, 4, 0, 28);
+		decoder2.setTypeMetaInfo(typeMetaInfo);
+		nettyNetworkClient.setDecoder(decoder2);
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 

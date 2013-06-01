@@ -85,7 +85,7 @@ public class ClientChannelHandler extends SimpleChannelHandler {
 		Object requestId = keyTransformer.transform(message);
 		MessageContext requestContext = requestMap.get(requestId);
 		if (requestContext == null) {
-			LOGGER.warn("Received a response message [%s] without a corresponding request", message);
+			LOGGER.warn("Received a response message [{}] without a corresponding request", message);
 		} else {
 			requestMap.remove(requestId);
 

@@ -4,18 +4,24 @@ import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetai
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.handler.codec.oneone.OneToOneDecoder;
+import org.jboss.netty.handler.codec.frame.LengthFieldBasedFrameDecoder;
 
-public class NettyBeanDecoder extends OneToOneDecoder {
+public class NettyBeanDecoder extends LengthFieldBasedFrameDecoder {
 
 	private ByteBeanDecoder	byteBeanDecoder	= new ByteBeanDecoder();
 
+	public NettyBeanDecoder(int maxFrameLength, int lengthFieldOffset, int lengthFieldLength, int lengthAdjustment, int initialBytesToStrip) {
+		super(maxFrameLength, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip);
+	}
+
+	public NettyBeanDecoder() {
+		// maxLength 1M
+		super(1024 * 1024, 0, 4, 0, 0);
+	}
+
 	@Override
-	protected Object decode(ChannelHandlerContext ctx, Channel channel, Object message) throws Exception {
-		if (message instanceof ChannelBuffer) {
-			return byteBeanDecoder.transform((ChannelBuffer) message, channel);
-		}
-		return message;
+	protected Object decode(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
+		return byteBeanDecoder.transform(buffer, channel);
 	}
 
 	public void setByteBeanDecoder(ByteBeanDecoder byteBeanDecoder) {
@@ -37,5 +43,5 @@ public class NettyBeanDecoder extends OneToOneDecoder {
 	public void setEncryptKey(String encryptKey) {
 		byteBeanDecoder.setEncryptKey(encryptKey);
 	}
-	
+
 }

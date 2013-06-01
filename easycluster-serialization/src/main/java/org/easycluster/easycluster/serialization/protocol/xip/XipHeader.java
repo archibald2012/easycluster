@@ -4,7 +4,6 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.easycluster.easycluster.serialization.bytebean.annotation.ByteField;
 
-
 /**
  * TODO
  * 
@@ -19,26 +18,26 @@ public class XipHeader {
 	public static final int	XIP_RESPONSE	= 2;
 	public static final int	XIP_NOTIFY		= 3;
 
-	@ByteField(index = 0, bytes = 1)
-	private int							basicVer			= 1;
+	@ByteField(index = 0)
+	private int				length			= 0;
 
-	@ByteField(index = 1)
-	private int							length				= 0;
+	@ByteField(index = 1, bytes = 1)
+	private int				basicVer		= 1;
 
 	@ByteField(index = 2)
-	private long						sequence;
+	private long			sequence;
 
 	@ByteField(index = 3)
-	private long						clientId;
+	private long			clientId;
 
 	@ByteField(index = 4, bytes = 1)
-	private int							type					= 1;
+	private int				type			= 1;
 
 	@ByteField(index = 5, bytes = 2)
-	private int							reserved			= 0;
+	private int				reserved		= 0;
 
 	@ByteField(index = 6)
-	private int							messageCode;
+	private int				messageCode;
 
 	public int getBasicVer() {
 		return basicVer;

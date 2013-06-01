@@ -130,16 +130,20 @@ public class ChannelPool {
 		pool.offer(channel);
 	}
 
-	private void writeRequestToChannel(final MessageContext request, Channel channel) {
+	private void writeRequestToChannel(final MessageContext request, final Channel channel) {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Writing to {}: {}", channel, request);
 		}
 
-		requestsSent.incrementAndGet();
-
+		int requestSent = requestsSent.incrementAndGet();
+		if(LOGGER.isDebugEnabled()){
+			LOGGER.debug("requestSent: " + requestSent);
+		}
+		
 		channel.write(request).addListener(new ChannelFutureListener() {
 			public void operationComplete(ChannelFuture writeFuture) {
 				if (!writeFuture.isSuccess()) {
+					LOGGER.error("Writing to {} failed: {}", channel, writeFuture.getCause());
 					request.getClosure().execute(writeFuture.getCause());
 				}
 			}
