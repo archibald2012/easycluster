@@ -57,23 +57,20 @@ public class JsonBeanEncoder implements Transformer<XipSignal, byte[]> {
 			throw new InvalidMessageException("invalid signal sequence:" + signal.getIdentification());
 		}
 
+		String jsonString = JSON.toJSONString(signal);
+		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+			LOGGER.debug("encode signal {}, and body string --> {}", ToStringBuilder.reflectionToString(signal), jsonString);
+		}
+
 		byte[] bodyBytes = null;
 		try {
-			bodyBytes = JSON.toJSONString(signal).getBytes(ENCODING);
+			bodyBytes = jsonString.getBytes(ENCODING);
 		} catch (UnsupportedEncodingException ignore) {
 		}
 
-		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("body raw bytes --> {}", ByteUtil.bytesAsHexString(bodyBytes, dumpBytes));
-		}
-
-		if (bodyBytes.length > 0 && encryptKey != null && bodyBytes.length > 0) {
+		if (bodyBytes.length > 0 && encryptKey != null) {
 			try {
 				bodyBytes = DES.encryptThreeDESECB(bodyBytes, encryptKey);
-
-				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-					LOGGER.debug("After encryption, body raw bytes --> {}", ByteUtil.bytesAsHexString(bodyBytes, dumpBytes));
-				}
 			} catch (Exception e) {
 				String error = "Failed to encrypt the body due to error " + e.getMessage();
 				LOGGER.error(error, e);
@@ -90,7 +87,7 @@ public class JsonBeanEncoder implements Transformer<XipSignal, byte[]> {
 				getBeanFieldCodec().encode(getBeanFieldCodec().getEncContextFactory().createEncContext(header, XipHeader.class, null)), bodyBytes);
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("encode XipSignal {}, and XipSignal raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
+			LOGGER.debug("encode signal {}, and signal raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
 					ByteUtil.bytesAsHexString(bytes, dumpBytes));
 		}
 

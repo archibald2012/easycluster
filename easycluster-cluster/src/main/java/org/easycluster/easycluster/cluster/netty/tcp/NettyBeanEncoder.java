@@ -1,6 +1,7 @@
-package org.easycluster.easycluster.cluster.netty.codec;
+package org.easycluster.easycluster.cluster.netty.tcp;
 
 import org.easycluster.easycluster.cluster.common.MessageContext;
+import org.easycluster.easycluster.cluster.netty.codec.ByteBeanEncoder;
 import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;

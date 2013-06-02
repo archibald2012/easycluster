@@ -1,5 +1,6 @@
-package org.easycluster.easycluster.cluster.netty.codec;
+package org.easycluster.easycluster.cluster.netty.tcp;
 
+import org.easycluster.easycluster.cluster.netty.codec.ByteBeanDecoder;
 import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
@@ -21,7 +22,7 @@ public class NettyBeanDecoder extends LengthFieldBasedFrameDecoder {
 
 	@Override
 	protected Object decode(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
-		return byteBeanDecoder.transform(buffer, channel);
+		return byteBeanDecoder.transform(buffer);
 	}
 
 	public void setByteBeanDecoder(ByteBeanDecoder byteBeanDecoder) {

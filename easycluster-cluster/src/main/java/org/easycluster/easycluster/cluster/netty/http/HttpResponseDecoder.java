@@ -20,6 +20,10 @@ public class HttpResponseDecoder extends OneToOneDecoder {
 	@Override
 	protected Object decode(ChannelHandlerContext ctx, Channel channel, Object msg) throws Exception {
 
+//		if (LOGGER.isDebugEnabled()) {
+//			LOGGER.debug("decode: [{}]", msg);
+//		}
+		
 		if (msg instanceof HttpResponse) {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("receive http response: [{}]", msg);
@@ -32,7 +36,7 @@ public class HttpResponseDecoder extends OneToOneDecoder {
 
 			ChannelBuffer content = response.getContent();
 			if (null != content) {
-				return byteBeanDecoder.transform(content, channel);
+				return byteBeanDecoder.transform(content);
 			}
 		}
 		return msg;

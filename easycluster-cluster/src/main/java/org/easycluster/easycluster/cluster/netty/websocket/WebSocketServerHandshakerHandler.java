@@ -1,7 +1,5 @@
 package org.easycluster.easycluster.cluster.netty.websocket;
 
-import org.easycluster.easycluster.cluster.netty.http.DefaultHttpResponseSender;
-import org.easycluster.easycluster.cluster.netty.http.HttpResponseSender;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;

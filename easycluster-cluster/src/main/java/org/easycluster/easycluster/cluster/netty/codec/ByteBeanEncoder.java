@@ -57,13 +57,9 @@ public class ByteBeanEncoder implements Transformer<XipSignal, byte[]> {
 			LOGGER.debug("body raw bytes --> {}", ByteUtil.bytesAsHexString(bodyBytes, dumpBytes));
 		}
 
-		if (bodyBytes.length > 0 && encryptKey != null && bodyBytes.length > 0) {
+		if (bodyBytes.length > 0 && encryptKey != null) {
 			try {
 				bodyBytes = DES.encryptThreeDESECB(bodyBytes, encryptKey);
-
-				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-					LOGGER.debug("After encryption, body raw bytes --> {}", ByteUtil.bytesAsHexString(bodyBytes, dumpBytes));
-				}
 			} catch (Exception e) {
 				String error = "Failed to encrypt the body due to error " + e.getMessage();
 				LOGGER.error(error, e);
@@ -72,15 +68,15 @@ public class ByteBeanEncoder implements Transformer<XipSignal, byte[]> {
 		}
 
 		XipHeader header = createHeader((byte) 1, signal.getIdentification(), attr.messageCode(), bodyBytes.length);
-		header.setClientId(((AbstractXipSignal) signal).getClient());
 
+		header.setClientId(((AbstractXipSignal) signal).getClient());
 		header.setTypeForClass(signal.getClass());
 
 		byte[] bytes = ArrayUtils.addAll(
 				getBeanFieldCodec().encode(getBeanFieldCodec().getEncContextFactory().createEncContext(header, XipHeader.class, null)), bodyBytes);
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("encode XipSignal {}, and XipSignal raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
+			LOGGER.debug("encode signal {}, and signal raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
 					ByteUtil.bytesAsHexString(bytes, dumpBytes));
 		}
 

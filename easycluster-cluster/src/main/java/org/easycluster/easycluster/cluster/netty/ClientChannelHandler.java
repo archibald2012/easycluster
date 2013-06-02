@@ -44,6 +44,7 @@ public class ClientChannelHandler extends SimpleChannelHandler {
 					for (Object key : requestMap.keySet()) {
 						MessageContext request = requestMap.get(key);
 						if ((System.currentTimeMillis() - request.getTimestamp()) > staleRequestTimeoutMillis) {
+							LOGGER.warn("Remove timeout message context. key=[{}], timeoutMillis=[{}]", key, staleRequestTimeoutMillis);
 							requestMap.remove(key);
 						}
 					}
@@ -72,7 +73,7 @@ public class ClientChannelHandler extends SimpleChannelHandler {
 				requestMap.put(requestId, requestContext);
 			}
 		}
-		
+
 		super.writeRequested(ctx, e);
 	}
 

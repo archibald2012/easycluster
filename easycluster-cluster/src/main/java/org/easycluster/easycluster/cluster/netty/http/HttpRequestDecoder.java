@@ -26,12 +26,12 @@ public class HttpRequestDecoder extends OneToOneDecoder {
 
 			ChannelBuffer content = ((HttpRequest) msg).getContent();
 			if (null != content) {
-				Object signal = byteBeanDecoder.transform(content, channel);
+				Object signal = byteBeanDecoder.transform(content);
 				TransportUtil.attachRequest(signal, msg);
 				return signal;
 			}
 		}
-		return null;
+		return msg;
 	}
 
 	public void setByteBeanDecoder(ByteBeanDecoder byteBeanDecoder) {

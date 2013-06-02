@@ -33,7 +33,7 @@ public interface NetworkDefaults {
 	/**
 	 * The default write timeout in milliseconds.
 	 */
-	int		WRITE_TIMEOUT_MILLIS					= 150;
+	int		WRITE_TIMEOUT_MILLIS					= 1000;
 
 	/**
 	 * The default frequency to clean up stale requests in minutes.

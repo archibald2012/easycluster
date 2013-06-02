@@ -12,8 +12,10 @@ import org.easycluster.easycluster.cluster.netty.endpoint.IEndpointListener;
 import org.easycluster.easycluster.cluster.server.NetworkServer;
 import org.easycluster.easycluster.cluster.server.PartitionedThreadPoolMessageExecutor;
 import org.jboss.netty.bootstrap.ServerBootstrap;
+import org.jboss.netty.channel.ChannelDownstreamHandler;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
+import org.jboss.netty.channel.ChannelUpstreamHandler;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
@@ -27,18 +29,18 @@ import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 
 public class HttpNetworkServer extends NetworkServer {
-	private OneToOneDecoder		decoder							= new HttpRequestDecoder();
-	private OneToOneEncoder		encoder							= new HttpResponseEncoder();
+	private ChannelUpstreamHandler		decoder							= new HttpRequestDecoder();
+	private ChannelDownstreamHandler	encoder							= new HttpResponseEncoder();
 
-	private int					requestThreadCorePoolSize		= NetworkDefaults.REQUEST_THREAD_CORE_POOL_SIZE;
-	private int					requestThreadMaxPoolSize		= NetworkDefaults.REQUEST_THREAD_MAX_POOL_SIZE;
-	private int					requestThreadKeepAliveTimeSecs	= NetworkDefaults.REQUEST_THREAD_KEEP_ALIVE_TIME_SECS;
-	private int					idleTime						= NetworkDefaults.ALLIDLE_TIMEOUT_MILLIS;
+	private int							requestThreadCorePoolSize		= NetworkDefaults.REQUEST_THREAD_CORE_POOL_SIZE;
+	private int							requestThreadMaxPoolSize		= NetworkDefaults.REQUEST_THREAD_MAX_POOL_SIZE;
+	private int							requestThreadKeepAliveTimeSecs	= NetworkDefaults.REQUEST_THREAD_KEEP_ALIVE_TIME_SECS;
+	private int							idleTime						= NetworkDefaults.ALLIDLE_TIMEOUT_MILLIS;
 
 	// 100M
-	private int					maxContentLength				= 100 * 1024 * 1024;
+	private int							maxContentLength				= 100 * 1024 * 1024;
 
-	private IEndpointListener	endpointListener;
+	private IEndpointListener			endpointListener;
 
 	public HttpNetworkServer(String applicationName, String serviceName, String zooKeeperConnectString) {
 		super(applicationName, serviceName, zooKeeperConnectString);

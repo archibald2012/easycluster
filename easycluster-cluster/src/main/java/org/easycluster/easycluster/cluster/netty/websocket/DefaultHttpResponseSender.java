@@ -1,4 +1,4 @@
-package org.easycluster.easycluster.cluster.netty.http;
+package org.easycluster.easycluster.cluster.netty.websocket;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;

@@ -1,4 +1,4 @@
-package org.easycluster.easycluster.cluster.netty;
+package org.easycluster.easycluster.cluster.netty.tcp;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -6,6 +6,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.easycluster.easycluster.cluster.NetworkDefaults;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
+import org.easycluster.easycluster.cluster.netty.NettyIoServer;
+import org.easycluster.easycluster.cluster.netty.ServerChannelHandler;
 import org.easycluster.easycluster.cluster.netty.endpoint.IEndpointListener;
 import org.easycluster.easycluster.cluster.server.NetworkServer;
 import org.easycluster.easycluster.cluster.server.PartitionedThreadPoolMessageExecutor;
@@ -22,7 +24,7 @@ import org.jboss.netty.handler.logging.LoggingHandler;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 
-public class NettyNetworkServer extends NetworkServer {
+public class TcpNetworkServer extends NetworkServer {
 
 	private ChannelUpstreamHandler		decoder							= null;
 	private ChannelDownstreamHandler	encoder							= null;
@@ -34,7 +36,7 @@ public class NettyNetworkServer extends NetworkServer {
 
 	private IEndpointListener			endpointListener;
 
-	public NettyNetworkServer(String applicationName, String serviceName, String zooKeeperConnectString) {
+	public TcpNetworkServer(String applicationName, String serviceName, String zooKeeperConnectString) {
 		super(applicationName, serviceName, zooKeeperConnectString);
 	}
 

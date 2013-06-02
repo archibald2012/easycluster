@@ -4,6 +4,7 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.core.ByteUtil;
 import org.easycluster.easycluster.core.DES;
+import org.easycluster.easycluster.core.Transformer;
 import org.easycluster.easycluster.serialization.bytebean.codec.AnyCodec;
 import org.easycluster.easycluster.serialization.bytebean.codec.DefaultCodecProvider;
 import org.easycluster.easycluster.serialization.bytebean.codec.DefaultNumberCodecs;
@@ -27,11 +28,10 @@ import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetai
 import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
 import org.easycluster.easycluster.serialization.protocol.xip.XipHeader;
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ByteBeanDecoder {
+public class ByteBeanDecoder implements Transformer<ChannelBuffer, Object> {
 
 	private static final Logger		LOGGER			= LoggerFactory.getLogger(ByteBeanDecoder.class);
 
@@ -42,18 +42,11 @@ public class ByteBeanDecoder {
 	private boolean					isDebugEnabled	= true;
 	private byte[]					encryptKey;
 
-	public Object transform(ChannelBuffer buffer, Channel channel) {
-
-		// if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-		// LOGGER.debug("transform channel buffer - {}",
-		// ByteUtil.bytesAsHexString(buffer.array(), dumpBytes));
-		// }
+	@Override
+	public Object transform(ChannelBuffer buffer) {
 
 		int headerSize = XipHeader.HEADER_LENGTH;
 
-		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("parse header... try parse...");
-		}
 		byte[] headerBytes = new byte[headerSize];
 		buffer.readBytes(headerBytes);
 
@@ -82,13 +75,9 @@ public class ByteBeanDecoder {
 			throw new InvalidMessageException("Invalid message sequence:" + header.getSequence());
 		}
 
-		if (bodyBytes.length > 0 && encryptKey != null && bodyBytes.length > 0) {
+		if (bodyBytes.length > 0 && encryptKey != null) {
 			try {
 				bodyBytes = DES.decryptThreeDESECB(bodyBytes, encryptKey);
-
-				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-					LOGGER.debug("After decryption, body raw bytes --> {}", ByteUtil.bytesAsHexString(bodyBytes, dumpBytes));
-				}
 			} catch (Exception e) {
 				String error = "Failed to decrypt the body due to error " + e.getMessage();
 				LOGGER.error(error, e);
@@ -105,7 +94,7 @@ public class ByteBeanDecoder {
 		}
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("decoded signal:{}", ToStringBuilder.reflectionToString(signal));
+			LOGGER.debug("body bytes --> {}, decoded signal:{}", ByteUtil.bytesAsHexString(bodyBytes, dumpBytes), ToStringBuilder.reflectionToString(signal));
 		}
 
 		return signal;

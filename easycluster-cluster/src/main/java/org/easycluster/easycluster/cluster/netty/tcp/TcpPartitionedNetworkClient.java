@@ -1,4 +1,4 @@
-package org.easycluster.easycluster.cluster.netty;
+package org.easycluster.easycluster.cluster.netty.tcp;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -7,6 +7,9 @@ import org.easycluster.easycluster.cluster.NetworkDefaults;
 import org.easycluster.easycluster.cluster.client.PartitionedNetworkClient;
 import org.easycluster.easycluster.cluster.client.loadbalancer.PartitionedLoadBalancerFactory;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
+import org.easycluster.easycluster.cluster.netty.ChannelPoolFactory;
+import org.easycluster.easycluster.cluster.netty.ClientChannelHandler;
+import org.easycluster.easycluster.cluster.netty.NettyIoClient;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.ChannelDownstreamHandler;
 import org.jboss.netty.channel.ChannelPipeline;
@@ -17,7 +20,7 @@ import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.logging.LoggingHandler;
 
-public class NettyPartitionedNetworkClient<PartitionedId> extends PartitionedNetworkClient<PartitionedId> {
+public class TcpPartitionedNetworkClient<PartitionedId> extends PartitionedNetworkClient<PartitionedId> {
 
 	private ChannelUpstreamHandler		decoder								= null;
 	private ChannelDownstreamHandler	encoder								= null;
@@ -28,7 +31,7 @@ public class NettyPartitionedNetworkClient<PartitionedId> extends PartitionedNet
 	private int							staleRequestTimeoutMins				= NetworkDefaults.STALE_REQUEST_TIMEOUT_MINS;
 	private int							staleRequestCleanupFrequenceMins	= NetworkDefaults.STALE_REQUEST_CLEANUP_FREQUENCY_MINS;
 
-	public NettyPartitionedNetworkClient(String applicationName, String serviceName, String zooKeeperConnectString,
+	public TcpPartitionedNetworkClient(String applicationName, String serviceName, String zooKeeperConnectString,
 			PartitionedLoadBalancerFactory<PartitionedId> loadBalancerFactory) {
 		super(applicationName, serviceName, zooKeeperConnectString, loadBalancerFactory);
 	}

@@ -25,7 +25,7 @@ public class BinaryWebSocketFrameDecoder extends OneToOneDecoder {
 			
 			ChannelBuffer content = ((BinaryWebSocketFrame) msg).getBinaryData();
 			if (null != content) {
-				return byteBeanDecoder.transform(content, channel);
+				return byteBeanDecoder.transform(content);
 			}
 		}
 		return msg;

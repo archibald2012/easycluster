@@ -1,7 +1,7 @@
 package org.easycluster.easycluster.cluster.netty;
 
 import org.easycluster.easycluster.cluster.exception.NetworkingException;
-import org.easycluster.easycluster.cluster.netty.NettyNetworkServer;
+import org.easycluster.easycluster.cluster.netty.tcp.TcpNetworkServer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,7 +9,7 @@ import org.junit.Test;
 
 public class NettyNetworkServerTestCase {
 
-	private NettyNetworkServer	nettyNetworkServer;
+	private TcpNetworkServer	nettyNetworkServer;
 
 	@Before
 	public void setUp() throws Exception {
@@ -21,7 +21,7 @@ public class NettyNetworkServerTestCase {
 
 	@Test
 	public void testBind() throws Exception {
-		nettyNetworkServer = new NettyNetworkServer("app", "test", "127.0.0.1:2181");
+		nettyNetworkServer = new TcpNetworkServer("app", "test", "127.0.0.1:2181");
 		nettyNetworkServer.setPort(1000);
 		nettyNetworkServer.start();
 
@@ -32,7 +32,7 @@ public class NettyNetworkServerTestCase {
 
 	@Test(expected = NetworkingException.class)
 	public void testBindRetry() throws Exception {
-		nettyNetworkServer = new NettyNetworkServer("app", "test", "127.0.0.1:2181");
+		nettyNetworkServer = new TcpNetworkServer("app", "test", "127.0.0.1:2181");
 		nettyNetworkServer.setPort(1000);
 		nettyNetworkServer.start();
 
