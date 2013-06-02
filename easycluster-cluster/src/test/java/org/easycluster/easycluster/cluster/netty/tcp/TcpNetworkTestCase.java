@@ -8,6 +8,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import junit.framework.Assert;
 
+import org.easycluster.easycluster.cluster.NetworkClientConfig;
+import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
@@ -15,10 +17,6 @@ import org.easycluster.easycluster.cluster.client.loadbalancer.RoundRobinLoadBal
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.cluster.netty.GetBagItemsReq;
 import org.easycluster.easycluster.cluster.netty.GetBagItemsResp;
-import org.easycluster.easycluster.cluster.netty.tcp.NettyBeanDecoder;
-import org.easycluster.easycluster.cluster.netty.tcp.NettyBeanEncoder;
-import org.easycluster.easycluster.cluster.netty.tcp.TcpNetworkClient;
-import org.easycluster.easycluster.cluster.netty.tcp.TcpNetworkServer;
 import org.easycluster.easycluster.cluster.server.MessageClosure;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
 import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
@@ -41,9 +39,13 @@ public class TcpNetworkTestCase {
 	@Test(expected = InvalidMessageException.class)
 	public void testInvalidMessage() throws Exception {
 
-		nettyNetworkClient = new TcpNetworkClient("app", "test", "127.0.0.1:2181", new RoundRobinLoadBalancerFactory());
-		nettyNetworkClient.start();
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setApplicationName("app");
+		clientConfig.setServiceName("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 
+		nettyNetworkClient = new TcpNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient.start();
 		nettyNetworkClient.sendMessage("teststring");
 	}
 
@@ -57,18 +59,29 @@ public class TcpNetworkTestCase {
 		decoder.setTypeMetaInfo(typeMetaInfo);
 		decoder.setDebugEnabled(true);
 
-		TcpNetworkServer nettyNetworkServer = new TcpNetworkServer("app", "test", "127.0.0.1:2181");
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setApplicationName("app");
+		serverConfig.setServiceName("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		serverConfig.setDecoder(decoder);
+		serverConfig.setEncoder(new NettyBeanEncoder());
+
+		TcpNetworkServer nettyNetworkServer = new TcpNetworkServer(serverConfig);
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
-		nettyNetworkServer.setPort(1000);
-		nettyNetworkServer.setPartitionIds(new Integer[] { 0, 1 });
-		nettyNetworkServer.setDecoder(decoder);
 		nettyNetworkServer.start();
 
-		TcpNetworkClient nettyNetworkClient = new TcpNetworkClient("app", "test", "127.0.0.1:2181", new RoundRobinLoadBalancerFactory());
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setApplicationName("app");
+		clientConfig.setServiceName("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		NettyBeanDecoder decoder2 = new NettyBeanDecoder();
 		decoder2.setTypeMetaInfo(typeMetaInfo);
 		decoder2.setDebugEnabled(false);
-		nettyNetworkClient.setDecoder(decoder2);
+		clientConfig.setDecoder(decoder2);
+		clientConfig.setEncoder(new NettyBeanEncoder());
+
+		TcpNetworkClient nettyNetworkClient = new TcpNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -96,22 +109,32 @@ public class TcpNetworkTestCase {
 		decoder.setTypeMetaInfo(typeMetaInfo);
 		decoder.setDebugEnabled(true);
 
-		TcpNetworkServer nettyNetworkServer = new TcpNetworkServer("app", "test", "127.0.0.1:2181");
-		nettyNetworkServer.setPort(6000);
-		nettyNetworkServer.setDecoder(decoder);
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setApplicationName("app");
+		serverConfig.setServiceName("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		serverConfig.setDecoder(decoder);
 		NettyBeanEncoder encoder = new NettyBeanEncoder();
 		encoder.setDebugEnabled(false);
-		nettyNetworkServer.setEncoder(encoder);
+		serverConfig.setEncoder(encoder);
+
+		TcpNetworkServer nettyNetworkServer = new TcpNetworkServer(serverConfig);
 		nettyNetworkServer.start();
 
-		TcpNetworkClient nettyNetworkClient = new TcpNetworkClient("app", "test", "127.0.0.1:2181", new RoundRobinLoadBalancerFactory());
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setApplicationName("app");
+		clientConfig.setServiceName("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		NettyBeanEncoder encoder2 = new NettyBeanEncoder();
 		encoder2.setDebugEnabled(false);
-		nettyNetworkClient.setEncoder(encoder2);
+		clientConfig.setEncoder(encoder2);
 		NettyBeanDecoder decoder2 = new NettyBeanDecoder();
 		decoder2.setTypeMetaInfo(typeMetaInfo);
 		decoder2.setDebugEnabled(false);
-		nettyNetworkClient.setDecoder(decoder2);
+		clientConfig.setDecoder(decoder2);
+
+		TcpNetworkClient nettyNetworkClient = new TcpNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(GetBagItemsReq.class, GetBagItemsResp.class);
 		nettyNetworkClient.start();
 

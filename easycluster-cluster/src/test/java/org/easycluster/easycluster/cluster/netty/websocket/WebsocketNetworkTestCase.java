@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.easycluster.easycluster.cluster.NetworkClientConfig;
+import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
@@ -31,24 +33,32 @@ public class WebsocketNetworkTestCase {
 		packages.add("org.easycluster.easycluster.cluster");
 		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
-		WebSocketNetworkServer server = new WebSocketNetworkServer("app", "test", "127.0.0.1:2181");
-		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
-		server.setPort(5000);
-		server.setPartitionIds(new Integer[] { 0, 1 });
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setApplicationName("app");
+		serverConfig.setServiceName("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		serverConfig.setPartitions(new Integer[] { 0, 1 });
 		BinaryWebSocketFrameDecoder decoder = new BinaryWebSocketFrameDecoder();
 		decoder.setTypeMetaInfo(typeMetaInfo);
-		server.setDecoder(decoder);
-		server.setEncoder(new BinaryWebSocketFrameEncoder());
+		serverConfig.setDecoder(decoder);
+		serverConfig.setEncoder(new BinaryWebSocketFrameEncoder());
+
+		WebSocketNetworkServer server = new WebSocketNetworkServer(serverConfig);
+		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
-		WebSocketNetworkClient client = new WebSocketNetworkClient("app", "test", "127.0.0.1:2181", new RoundRobinLoadBalancerFactory());
-		client.setDecoder(decoder);
-		client.setEncoder(new BinaryWebSocketFrameEncoder());
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setApplicationName("app");
+		clientConfig.setServiceName("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		clientConfig.setDecoder(decoder);
+		clientConfig.setEncoder(new BinaryWebSocketFrameEncoder());
+
+		WebSocketNetworkClient client = new WebSocketNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
-		//Thread.sleep(20000);
-		
 		SampleRequest request = new SampleRequest();
 		request.setIntField(1);
 		request.setShortField((byte) 1);

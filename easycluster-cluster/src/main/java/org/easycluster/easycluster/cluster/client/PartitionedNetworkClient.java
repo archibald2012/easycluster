@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import org.easycluster.easycluster.cluster.NetworkClientConfig;
 import org.easycluster.easycluster.cluster.Node;
 import org.easycluster.easycluster.cluster.client.loadbalancer.PartitionedLoadBalancer;
 import org.easycluster.easycluster.cluster.client.loadbalancer.PartitionedLoadBalancerFactory;
@@ -24,34 +25,12 @@ public class PartitionedNetworkClient<PartitionedId> extends BaseNetworkClient {
 	private PartitionedLoadBalancerFactory<PartitionedId>	loadBalancerFactory	= null;
 	private volatile PartitionedLoadBalancer<PartitionedId>	loadBalancer;
 
-	public PartitionedNetworkClient(String applicationName, String serviceName, String zooKeeperConnectString,
-			PartitionedLoadBalancerFactory<PartitionedId> loadBalancerFactory) {
-		super(applicationName, serviceName, zooKeeperConnectString);
+	public PartitionedNetworkClient(NetworkClientConfig config, PartitionedLoadBalancerFactory<PartitionedId> loadBalancerFactory) {
+		super(config);
 		this.loadBalancerFactory = loadBalancerFactory;
 	}
 
-	/**
-	 * Sends a <code>Message</code> to the specified <code>PartitionedId</code>.
-	 * The <code>PartitionedNetworkClient</code> will interact with the current
-	 * <code>PartitionedLoadBalancer</code> to calculate which <code>Node</code>
-	 * the message must be sent to. This method is asynchronous and will return
-	 * immediately.
-	 * 
-	 * @param id
-	 *            the <code>PartitionedId</code> to which the message is
-	 *            addressed
-	 * @param message
-	 *            the message to send
-	 * 
-	 * @return a future which will become available when a response to the
-	 *         message is received
-	 */
-	public Future<Object> sendMessage(PartitionedId id, Object message) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
-
-		checkIfConnected();
-		if (loadBalancer == null) {
-			throw new ClusterDisconnectedException();
-		}
+	public Future<Object> sendMessage(PartitionedId id, Object message) {
 
 		if (id == null) {
 			throw new IllegalArgumentException("Partition id is null");
@@ -59,6 +38,13 @@ public class PartitionedNetworkClient<PartitionedId> extends BaseNetworkClient {
 		if (message == null) {
 			throw new IllegalArgumentException("Message is null");
 		}
+
+		checkIfConnected();
+
+		if (loadBalancer == null) {
+			throw new ClusterDisconnectedException();
+		}
+
 		verifyMessageRegistered(message);
 
 		Node node = loadBalancer.nextNode(id);
@@ -79,34 +65,21 @@ public class PartitionedNetworkClient<PartitionedId> extends BaseNetworkClient {
 		return future;
 	}
 
-	/**
-	 * Sends a <code>Message</code> to the specified <code>PartitionedId</code>
-	 * s. The <code>PartitionedNetworkClient</code> will interact with the
-	 * current <code>PartitionedLoadBalancer</code> to calculate which
-	 * <code>Node</code>s the message must be sent to. This method is
-	 * asynchronous and will return immediately.
-	 * 
-	 * @param ids
-	 *            the <code>PartitionedId</code>s to which the message is
-	 *            addressed
-	 * @param message
-	 *            the message to send
-	 * 
-	 * @return a <code>ResponseIterator</code>. One response will be returned by
-	 *         each <code>Node</code> the message was sent to.
-	 */
-	public ResponseIterator sendMessage(Set<PartitionedId> ids, Object message) throws InvalidClusterException, NoNodesAvailableException,
-			ClusterDisconnectedException {
-		checkIfConnected();
-		if (loadBalancer == null) {
-			throw new ClusterDisconnectedException("");
-		}
+	public ResponseIterator sendMessage(Set<PartitionedId> ids, Object message) {
+
 		if (ids == null) {
 			throw new IllegalArgumentException("Partition ids is null");
 		}
 		if (message == null) {
 			throw new IllegalArgumentException("Message is null");
 		}
+
+		checkIfConnected();
+
+		if (loadBalancer == null) {
+			throw new ClusterDisconnectedException();
+		}
+
 		verifyMessageRegistered(message);
 
 		Set<Node> nodes = calculateNodesFromIds(ids);

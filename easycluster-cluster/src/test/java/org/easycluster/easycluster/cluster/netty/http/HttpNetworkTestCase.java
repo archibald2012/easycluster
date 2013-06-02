@@ -9,6 +9,8 @@ import java.util.concurrent.TimeoutException;
 
 import junit.framework.Assert;
 
+import org.easycluster.easycluster.cluster.NetworkClientConfig;
+import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
@@ -35,27 +37,36 @@ public class HttpNetworkTestCase {
 		packages.add("org.easycluster.easycluster.cluster");
 		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
-		HttpNetworkServer server = new HttpNetworkServer("app", "test", "127.0.0.1:2181");
-		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
-		server.setPort(5000);
-		server.setPartitionIds(new Integer[] { 0, 1 });
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setApplicationName("app");
+		serverConfig.setServiceName("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
 		HttpRequestDecoder httpRequestDecoder = new HttpRequestDecoder();
 		httpRequestDecoder.setTypeMetaInfo(typeMetaInfo);
 		httpRequestDecoder.setDebugEnabled(true);
-		server.setDecoder(httpRequestDecoder);
+		serverConfig.setDecoder(httpRequestDecoder);
 		HttpResponseEncoder responseEncoder = new HttpResponseEncoder();
 		responseEncoder.setDebugEnabled(false);
-		server.setEncoder(responseEncoder);
+		serverConfig.setEncoder(responseEncoder);
+
+		HttpNetworkServer server = new HttpNetworkServer(serverConfig);
+		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
-		HttpNetworkClient client = new HttpNetworkClient("app", "test", "127.0.0.1:2181", new RoundRobinLoadBalancerFactory());
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setApplicationName("app");
+		clientConfig.setServiceName("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		HttpResponseDecoder responseDecoder = new HttpResponseDecoder();
 		responseDecoder.setTypeMetaInfo(typeMetaInfo);
 		responseDecoder.setDebugEnabled(false);
-		client.setDecoder(responseDecoder);
+		clientConfig.setDecoder(responseDecoder);
 		HttpRequestEncoder requestEncoder = new HttpRequestEncoder();
 		requestEncoder.setDebugEnabled(false);
-		client.setEncoder(requestEncoder);
+		clientConfig.setEncoder(requestEncoder);
+
+		HttpNetworkClient client = new HttpNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
@@ -116,27 +127,36 @@ public class HttpNetworkTestCase {
 		packages.add("org.easycluster.easycluster.cluster");
 		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
-		HttpNetworkServer server = new HttpNetworkServer("app", "test", "127.0.0.1:2181");
-		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
-		server.setPort(5000);
-		server.setPartitionIds(new Integer[] { 0, 1 });
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setApplicationName("app");
+		serverConfig.setServiceName("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
 		HttpRequestDecoder httpRequestDecoder = new HttpRequestDecoder();
 		httpRequestDecoder.setTypeMetaInfo(typeMetaInfo);
 		httpRequestDecoder.setDebugEnabled(true);
-		server.setDecoder(httpRequestDecoder);
+		serverConfig.setDecoder(httpRequestDecoder);
 		HttpResponseEncoder responseEncoder = new HttpResponseEncoder();
 		responseEncoder.setDebugEnabled(false);
-		server.setEncoder(responseEncoder);
+		serverConfig.setEncoder(responseEncoder);
+
+		HttpNetworkServer server = new HttpNetworkServer(serverConfig);
+		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
-		HttpNetworkClient client = new HttpNetworkClient("app", "test", "127.0.0.1:2181", new RoundRobinLoadBalancerFactory());
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setApplicationName("app");
+		clientConfig.setServiceName("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		HttpResponseDecoder responseDecoder = new HttpResponseDecoder();
 		responseDecoder.setTypeMetaInfo(typeMetaInfo);
 		responseDecoder.setDebugEnabled(false);
-		client.setDecoder(responseDecoder);
+		clientConfig.setDecoder(responseDecoder);
 		HttpRequestEncoder requestEncoder = new HttpRequestEncoder();
 		requestEncoder.setDebugEnabled(false);
-		client.setEncoder(requestEncoder);
+		clientConfig.setEncoder(requestEncoder);
+
+		HttpNetworkClient client = new HttpNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 

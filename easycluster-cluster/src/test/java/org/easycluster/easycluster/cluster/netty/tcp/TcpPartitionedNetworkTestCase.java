@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.easycluster.easycluster.cluster.NetworkClientConfig;
+import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
@@ -36,28 +38,39 @@ public class TcpPartitionedNetworkTestCase {
 		NettyBeanDecoder decoder = new NettyBeanDecoder(Integer.MAX_VALUE, 1, 4, 0, 28);
 		decoder.setTypeMetaInfo(typeMetaInfo);
 
-		TcpNetworkServer nettyNetworkServer = new TcpNetworkServer("app", "test", "127.0.0.1:2181");
-		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
-		nettyNetworkServer.setPort(1000);
-		nettyNetworkServer.setPartitionIds(new Integer[] { 1 });
-		nettyNetworkServer.setDecoder(decoder);
-		nettyNetworkServer.start();
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setApplicationName("app");
+		serverConfig.setServiceName("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		serverConfig.setPartitions(new Integer[] { 1 });
+		serverConfig.setDecoder(decoder);
+		serverConfig.setEncoder(new NettyBeanEncoder());
 
-		TcpPartitionedNetworkClient<Integer> nettyNetworkClient = new TcpPartitionedNetworkClient<Integer>("app", "test", "127.0.0.1:2181",
-				new IntegerConsistentHashPartitionedLoadBalancerFactory(1));
+		TcpNetworkServer nettyNetworkServer = new TcpNetworkServer(serverConfig);
+		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
+		nettyNetworkServer.start();
+		
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setApplicationName("app");
+		clientConfig.setServiceName("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		NettyBeanDecoder decoder2 = new NettyBeanDecoder(Integer.MAX_VALUE, 1, 4, 0, 28);
 		decoder2.setTypeMetaInfo(typeMetaInfo);
-		nettyNetworkClient.setDecoder(decoder2);
+		clientConfig.setDecoder(decoder2);
+		clientConfig.setEncoder(new NettyBeanEncoder());
+
+		TcpPartitionedNetworkClient<Integer> nettyNetworkClient = new TcpPartitionedNetworkClient<Integer>(clientConfig,
+				new IntegerConsistentHashPartitionedLoadBalancerFactory(1));
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
-
+		
 		SampleRequest request = new SampleRequest();
 		request.setIntField(1);
 		request.setShortField((byte) 1);
 		request.setByteField((byte) 1);
 		request.setLongField(1L);
 		request.setStringField("test");
-
 		request.setByteArrayField(new byte[] { 127 });
 
 		int partitionId = 1;

@@ -8,7 +8,7 @@ import org.easycluster.easycluster.core.Closure;
 
 public interface ClusterIoClient {
 
-	void sendMessage(Node node, Object message, Closure responseCallback);
+	void sendMessage(Node node, Object message, Closure closure);
 
 	void nodesChanged(Set<Node> nodes);
 
