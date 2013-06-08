@@ -4,7 +4,7 @@ import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.cluster.netty.endpoint.DefaultEndpointFactory;
 import org.easycluster.easycluster.cluster.netty.endpoint.Endpoint;
 import org.easycluster.easycluster.cluster.netty.endpoint.EndpointFactory;
-import org.easycluster.easycluster.cluster.netty.endpoint.IEndpointListener;
+import org.easycluster.easycluster.cluster.netty.endpoint.EndpointListener;
 import org.easycluster.easycluster.cluster.server.MessageClosureRegistry;
 import org.easycluster.easycluster.cluster.server.MessageExecutor;
 import org.easycluster.easycluster.core.Closure;
@@ -188,7 +188,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 		this.endpointFactory = endpointFactory;
 	}
 
-	public void setEndpointListener(IEndpointListener endpointListener) {
+	public void setEndpointListener(EndpointListener endpointListener) {
 		this.endpointFactory.setEndpointListener(endpointListener);
 	}
 

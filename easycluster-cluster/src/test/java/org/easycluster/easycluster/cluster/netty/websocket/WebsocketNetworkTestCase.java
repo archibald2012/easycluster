@@ -11,6 +11,7 @@ import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.cluster.client.loadbalancer.RoundRobinLoadBalancerFactory;
+import org.easycluster.easycluster.cluster.netty.codec.ProtocolCodecConfig;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
 import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
 import org.junit.After;
@@ -39,11 +40,14 @@ public class WebsocketNetworkTestCase {
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
 		serverConfig.setPartitions(new Integer[] { 0, 1 });
-		BinaryWebSocketFrameDecoder decoder = new BinaryWebSocketFrameDecoder();
-		decoder.setTypeMetaInfo(typeMetaInfo);
-		serverConfig.setDecoder(decoder);
-		serverConfig.setEncoder(new BinaryWebSocketFrameEncoder());
-
+		
+		ProtocolCodecConfig codecConfig = new ProtocolCodecConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setDecodeBytesDebugEnabled(true);
+		codecConfig.setLengthFieldOffset(0);
+		codecConfig.setLengthFieldLength(4);
+		serverConfig.setProtocolCodecConfig(codecConfig);
+		
 		WebSocketNetworkServer server = new WebSocketNetworkServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
@@ -52,8 +56,9 @@ public class WebsocketNetworkTestCase {
 		clientConfig.setApplicationName("app");
 		clientConfig.setServiceName("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		clientConfig.setDecoder(decoder);
-		clientConfig.setEncoder(new BinaryWebSocketFrameEncoder());
+		ProtocolCodecConfig clientCodecConfig = new ProtocolCodecConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientConfig.setProtocolCodecConfig(clientCodecConfig);
 
 		WebSocketNetworkClient client = new WebSocketNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);

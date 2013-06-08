@@ -15,6 +15,7 @@ import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.cluster.client.loadbalancer.RoundRobinLoadBalancerFactory;
+import org.easycluster.easycluster.cluster.netty.codec.ProtocolCodecConfig;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
 import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
 import org.junit.After;
@@ -42,13 +43,13 @@ public class HttpNetworkTestCase {
 		serverConfig.setServiceName("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
-		HttpRequestDecoder httpRequestDecoder = new HttpRequestDecoder();
-		httpRequestDecoder.setTypeMetaInfo(typeMetaInfo);
-		httpRequestDecoder.setDebugEnabled(true);
-		serverConfig.setDecoder(httpRequestDecoder);
-		HttpResponseEncoder responseEncoder = new HttpResponseEncoder();
-		responseEncoder.setDebugEnabled(false);
-		serverConfig.setEncoder(responseEncoder);
+		
+		ProtocolCodecConfig codecConfig = new ProtocolCodecConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setDecodeBytesDebugEnabled(true);
+		codecConfig.setLengthFieldOffset(0);
+		codecConfig.setLengthFieldLength(4);
+		serverConfig.setProtocolCodecConfig(codecConfig);
 
 		HttpNetworkServer server = new HttpNetworkServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
@@ -58,13 +59,9 @@ public class HttpNetworkTestCase {
 		clientConfig.setApplicationName("app");
 		clientConfig.setServiceName("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		HttpResponseDecoder responseDecoder = new HttpResponseDecoder();
-		responseDecoder.setTypeMetaInfo(typeMetaInfo);
-		responseDecoder.setDebugEnabled(false);
-		clientConfig.setDecoder(responseDecoder);
-		HttpRequestEncoder requestEncoder = new HttpRequestEncoder();
-		requestEncoder.setDebugEnabled(false);
-		clientConfig.setEncoder(requestEncoder);
+		ProtocolCodecConfig clientCodecConfig = new ProtocolCodecConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientConfig.setProtocolCodecConfig(clientCodecConfig);
 
 		HttpNetworkClient client = new HttpNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
@@ -132,13 +129,10 @@ public class HttpNetworkTestCase {
 		serverConfig.setServiceName("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
-		HttpRequestDecoder httpRequestDecoder = new HttpRequestDecoder();
-		httpRequestDecoder.setTypeMetaInfo(typeMetaInfo);
-		httpRequestDecoder.setDebugEnabled(true);
-		serverConfig.setDecoder(httpRequestDecoder);
-		HttpResponseEncoder responseEncoder = new HttpResponseEncoder();
-		responseEncoder.setDebugEnabled(false);
-		serverConfig.setEncoder(responseEncoder);
+		ProtocolCodecConfig codecConfig = new ProtocolCodecConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setDecodeBytesDebugEnabled(true);
+		serverConfig.setProtocolCodecConfig(codecConfig);
 
 		HttpNetworkServer server = new HttpNetworkServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
@@ -148,13 +142,10 @@ public class HttpNetworkTestCase {
 		clientConfig.setApplicationName("app");
 		clientConfig.setServiceName("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		HttpResponseDecoder responseDecoder = new HttpResponseDecoder();
-		responseDecoder.setTypeMetaInfo(typeMetaInfo);
-		responseDecoder.setDebugEnabled(false);
-		clientConfig.setDecoder(responseDecoder);
-		HttpRequestEncoder requestEncoder = new HttpRequestEncoder();
-		requestEncoder.setDebugEnabled(false);
-		clientConfig.setEncoder(requestEncoder);
+
+		ProtocolCodecConfig clientCodecConfig = new ProtocolCodecConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientConfig.setProtocolCodecConfig(clientCodecConfig);
 
 		HttpNetworkClient client = new HttpNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);

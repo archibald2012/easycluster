@@ -4,7 +4,7 @@ import org.jboss.netty.channel.Channel;
 
 public class DefaultEndpointFactory implements EndpointFactory {
 
-	private IEndpointListener	endpointListener	= null;
+	private EndpointListener	endpointListener	= null;
 
 	@Override
 	public Endpoint createEndpoint(Channel channel) {
@@ -15,7 +15,7 @@ public class DefaultEndpointFactory implements EndpointFactory {
 	}
 
 	@Override
-	public void setEndpointListener(IEndpointListener endpointListener) {
+	public void setEndpointListener(EndpointListener endpointListener) {
 		this.endpointListener = endpointListener;
 	}
 

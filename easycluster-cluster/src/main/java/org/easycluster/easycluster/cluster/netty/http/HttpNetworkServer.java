@@ -8,6 +8,8 @@ import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.NettyIoServer;
 import org.easycluster.easycluster.cluster.netty.ServerChannelHandler;
+import org.easycluster.easycluster.cluster.netty.codec.ProtocolCodecFactory;
+import org.easycluster.easycluster.cluster.netty.tcp.DefaultProtocolCodecFactory;
 import org.easycluster.easycluster.cluster.server.MessageExecutor;
 import org.easycluster.easycluster.cluster.server.NetworkServer;
 import org.easycluster.easycluster.cluster.server.PartitionedThreadPoolMessageExecutor;
@@ -47,6 +49,8 @@ public class HttpNetworkServer extends NetworkServer {
 		bootstrap.setOption("child.reuseAddress", true);
 		bootstrap.setOption("keepAlive", true);
 
+		final ProtocolCodecFactory codecFactory = new DefaultProtocolCodecFactory(config.getProtocolCodecConfig());
+
 		bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
 
 			private LoggingHandler	loggingHandler	= new LoggingHandler();
@@ -58,9 +62,9 @@ public class HttpNetworkServer extends NetworkServer {
 				p.addFirst("logging", loggingHandler);
 				// HttpServerCodec是非线程安全的,不能所有Channel使用同一个
 				p.addLast("codec", new HttpServerCodec());
-				p.addLast("aggregator", new HttpChunkAggregator(config.getMaxContentLength()));
-				p.addLast("encoder", config.getEncoder());
-				p.addLast("decoder", config.getDecoder());
+				p.addLast("aggregator", new HttpChunkAggregator(config.getProtocolCodecConfig().getMaxContentLength()));
+				p.addLast("encoder", codecFactory.getEncoder());
+				p.addLast("decoder", codecFactory.getDecoder());
 				p.addLast("idleHandler", new IdleStateHandler(new HashedWheelTimer(), 0, 0, config.getIdleTime(), TimeUnit.SECONDS));
 				p.addLast("handler", requestHandler);
 

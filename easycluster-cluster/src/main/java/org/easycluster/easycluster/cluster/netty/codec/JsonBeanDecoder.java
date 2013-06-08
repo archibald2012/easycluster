@@ -46,16 +46,13 @@ public class JsonBeanDecoder implements Transformer<ChannelBuffer, Object> {
 
 	private int						dumpBytes		= 256;
 	private boolean					isDebugEnabled	= true;
-	private byte[]					encryptKey;
+	private byte[]					encryptKey		= null;
 
 	@Override
 	public Object transform(ChannelBuffer buffer) {
 
 		int headerSize = XipHeader.HEADER_LENGTH;
 
-		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("parse header... try parse...");
-		}
 		byte[] headerBytes = new byte[headerSize];
 		buffer.readBytes(headerBytes);
 
@@ -176,10 +173,8 @@ public class JsonBeanDecoder implements Transformer<ChannelBuffer, Object> {
 	}
 
 	public void setEncryptKey(String encryptKey) {
-		this.encryptKey = encryptKey.getBytes();
-	}
-
-	public void setEncryptKey(byte[] encryptKey) {
-		this.encryptKey = encryptKey;
+		if (encryptKey != null) {
+			this.encryptKey = encryptKey.getBytes();
+		}
 	}
 }

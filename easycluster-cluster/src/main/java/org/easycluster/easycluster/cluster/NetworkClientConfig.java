@@ -1,67 +1,46 @@
 package org.easycluster.easycluster.cluster;
 
-import org.jboss.netty.channel.ChannelDownstreamHandler;
-import org.jboss.netty.channel.ChannelUpstreamHandler;
+import org.easycluster.easycluster.cluster.netty.codec.ProtocolCodecConfig;
 
 public class NetworkClientConfig {
 
-	private ChannelUpstreamHandler		decoder								= null;
+	private String				applicationName						= null;
 
-	private ChannelDownstreamHandler	encoder								= null;
+	private String				serviceName							= null;
 
-	private String						applicationName						= null;
-
-	private String						serviceName							= null;
-
-	private String						zooKeeperConnectString				= null;
+	private String				zooKeeperConnectString				= null;
 
 	/**
 	 * The ZooKeeper session timeout in milliseconds.
 	 */
-	private int							zooKeeperSessionTimeoutMillis		= ClusterDefaults.ZOOKEEPER_SESSION_TIMEOUT_MILLIS;
+	private int					zooKeeperSessionTimeoutMillis		= ClusterDefaults.ZOOKEEPER_SESSION_TIMEOUT_MILLIS;
 
 	/**
 	 * The number of milliseconds to wait when opening a socket.
 	 */
-	private int							connectTimeoutMillis				= NetworkDefaults.CONNECT_TIMEOUT_MILLIS;
+	private int					connectTimeoutMillis				= NetworkDefaults.CONNECT_TIMEOUT_MILLIS;
 
 	/**
 	 * The write timeout in milliseconds.
 	 */
-	private int							writeTimeoutMillis					= NetworkDefaults.WRITE_TIMEOUT_MILLIS;
+	private int					writeTimeoutMillis					= NetworkDefaults.WRITE_TIMEOUT_MILLIS;
 
 	/**
 	 * The maximum number of connections to be opened per node.
 	 */
-	private int							maxConnectionsPerNode				= NetworkDefaults.MAX_CONNECTIONS_PER_NODE;
+	private int					maxConnectionsPerNode				= NetworkDefaults.MAX_CONNECTIONS_PER_NODE;
 
 	/**
 	 * The time to wait before considering a request to be stale in minutes.
 	 */
-	private int							staleRequestTimeoutMins				= NetworkDefaults.STALE_REQUEST_TIMEOUT_MINS;
+	private int					staleRequestTimeoutMins				= NetworkDefaults.STALE_REQUEST_TIMEOUT_MINS;
 
 	/**
 	 * The frequency to clean up stale requests in minutes.
 	 */
-	private int							staleRequestCleanupFrequencyMins	= NetworkDefaults.STALE_REQUEST_CLEANUP_FREQUENCY_MINS;
+	private int					staleRequestCleanupFrequencyMins	= NetworkDefaults.STALE_REQUEST_CLEANUP_FREQUENCY_MINS;
 
-	private int							maxContentLength					= NetworkDefaults.REQUEST_MAX_CONTENT_LENGTH;
-
-	public ChannelUpstreamHandler getDecoder() {
-		return decoder;
-	}
-
-	public void setDecoder(ChannelUpstreamHandler decoder) {
-		this.decoder = decoder;
-	}
-
-	public ChannelDownstreamHandler getEncoder() {
-		return encoder;
-	}
-
-	public void setEncoder(ChannelDownstreamHandler encoder) {
-		this.encoder = encoder;
-	}
+	private ProtocolCodecConfig	protocolCodecConfig					= null;
 
 	public String getApplicationName() {
 		return applicationName;
@@ -135,12 +114,12 @@ public class NetworkClientConfig {
 		this.staleRequestCleanupFrequencyMins = staleRequestCleanupFrequencyMins;
 	}
 
-	public int getMaxContentLength() {
-		return maxContentLength;
+	public ProtocolCodecConfig getProtocolCodecConfig() {
+		return protocolCodecConfig;
 	}
 
-	public void setMaxContentLength(int maxContentLength) {
-		this.maxContentLength = maxContentLength;
+	public void setProtocolCodecConfig(ProtocolCodecConfig protocolCodecConfig) {
+		this.protocolCodecConfig = protocolCodecConfig;
 	}
 
 }

@@ -6,5 +6,5 @@ public interface EndpointFactory {
 
 	Endpoint createEndpoint(Channel channel);
 
-	void setEndpointListener(IEndpointListener endpointListener);
+	void setEndpointListener(EndpointListener endpointListener);
 }

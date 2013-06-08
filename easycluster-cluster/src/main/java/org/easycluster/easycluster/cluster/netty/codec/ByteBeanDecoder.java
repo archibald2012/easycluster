@@ -37,10 +37,9 @@ public class ByteBeanDecoder implements Transformer<ChannelBuffer, Object> {
 
 	private BeanFieldCodec			beanFieldCodec	= null;
 	private MsgCode2TypeMetainfo	typeMetaInfo	= null;
-
 	private int						dumpBytes		= 256;
 	private boolean					isDebugEnabled	= true;
-	private byte[]					encryptKey;
+	private byte[]					encryptKey		= null;
 
 	@Override
 	public Object transform(ChannelBuffer buffer) {
@@ -158,10 +157,8 @@ public class ByteBeanDecoder implements Transformer<ChannelBuffer, Object> {
 	}
 
 	public void setEncryptKey(String encryptKey) {
-		this.encryptKey = encryptKey.getBytes();
-	}
-
-	public void setEncryptKey(byte[] encryptKey) {
-		this.encryptKey = encryptKey;
+		if (encryptKey != null) {
+			this.encryptKey = encryptKey.getBytes();
+		}
 	}
 }

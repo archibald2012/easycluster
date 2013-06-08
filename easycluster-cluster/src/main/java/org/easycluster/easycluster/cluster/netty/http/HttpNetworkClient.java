@@ -10,6 +10,8 @@ import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.ChannelPoolFactory;
 import org.easycluster.easycluster.cluster.netty.ClientChannelHandler;
 import org.easycluster.easycluster.cluster.netty.NettyIoClient;
+import org.easycluster.easycluster.cluster.netty.codec.ProtocolCodecFactory;
+import org.easycluster.easycluster.cluster.netty.tcp.DefaultProtocolCodecFactory;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -36,6 +38,8 @@ public class HttpNetworkClient extends NetworkClient {
 		bootstrap.setOption("reuseAddress", true);
 		bootstrap.setOption("keepAlive", true);
 
+		final ProtocolCodecFactory codecFactory = new DefaultProtocolCodecFactory(config.getProtocolCodecConfig());
+
 		bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
 
 			private LoggingHandler	loggingHandler	= new LoggingHandler();
@@ -46,9 +50,9 @@ public class HttpNetworkClient extends NetworkClient {
 
 				p.addFirst("logging", loggingHandler);
 				p.addLast("codec", new HttpClientCodec());
-				p.addLast("aggregator", new HttpChunkAggregator(config.getMaxContentLength()));
-				p.addLast("decoder", config.getDecoder());
-				p.addLast("encoder", config.getEncoder());
+				p.addLast("aggregator", new HttpChunkAggregator(config.getProtocolCodecConfig().getMaxContentLength()));
+				p.addLast("decoder", codecFactory.getDecoder());
+				p.addLast("encoder", codecFactory.getEncoder());
 				p.addLast("handler", handler);
 
 				return p;

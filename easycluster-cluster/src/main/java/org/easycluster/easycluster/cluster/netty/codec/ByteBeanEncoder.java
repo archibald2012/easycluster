@@ -39,7 +39,7 @@ public class ByteBeanEncoder implements Transformer<XipSignal, byte[]> {
 	private BeanFieldCodec		beanFieldCodec	= null;
 	private int					dumpBytes		= 256;
 	private boolean				isDebugEnabled	= true;
-	private byte[]				encryptKey;
+	private byte[]				encryptKey		= null;
 
 	@Override
 	public byte[] transform(XipSignal signal) {
@@ -147,7 +147,9 @@ public class ByteBeanEncoder implements Transformer<XipSignal, byte[]> {
 	}
 
 	public void setEncryptKey(String encryptKey) {
-		this.encryptKey = encryptKey.getBytes();
+		if (encryptKey != null) {
+			this.encryptKey = encryptKey.getBytes();
+		}
 	}
 
 }

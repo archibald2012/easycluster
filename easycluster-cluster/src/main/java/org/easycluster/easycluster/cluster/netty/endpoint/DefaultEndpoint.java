@@ -15,7 +15,7 @@ public class DefaultEndpoint implements Endpoint {
 	private static final Logger	LOGGER				= LoggerFactory.getLogger(DefaultEndpoint.class);
 
 	private Channel				channel				= null;
-	private IEndpointListener	endpointListener	= null;
+	private EndpointListener	endpointListener	= null;
 
 	public DefaultEndpoint(Channel channel) {
 		this.channel = channel;
@@ -58,7 +58,7 @@ public class DefaultEndpoint implements Endpoint {
 		}
 	}
 
-	public void setEndpointListener(IEndpointListener endpointListener) {
+	public void setEndpointListener(EndpointListener endpointListener) {
 		this.endpointListener = endpointListener;
 	}
 

@@ -11,9 +11,7 @@ import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.cluster.client.loadbalancer.IntegerConsistentHashPartitionedLoadBalancerFactory;
-import org.easycluster.easycluster.cluster.netty.tcp.NettyBeanDecoder;
-import org.easycluster.easycluster.cluster.netty.tcp.TcpPartitionedNetworkClient;
-import org.easycluster.easycluster.cluster.netty.tcp.TcpNetworkServer;
+import org.easycluster.easycluster.cluster.netty.codec.ProtocolCodecConfig;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
 import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
 import org.junit.After;
@@ -35,17 +33,19 @@ public class TcpPartitionedNetworkTestCase {
 		List<String> packages = new ArrayList<String>();
 		packages.add("edu.hziee.common.cluster");
 		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
-		NettyBeanDecoder decoder = new NettyBeanDecoder(Integer.MAX_VALUE, 1, 4, 0, 28);
-		decoder.setTypeMetaInfo(typeMetaInfo);
-
+		
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
 		serverConfig.setApplicationName("app");
 		serverConfig.setServiceName("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
 		serverConfig.setPartitions(new Integer[] { 1 });
-		serverConfig.setDecoder(decoder);
-		serverConfig.setEncoder(new NettyBeanEncoder());
+
+		ProtocolCodecConfig codecConfig = new ProtocolCodecConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setLengthFieldOffset(0);
+		codecConfig.setLengthFieldLength(4);
+		serverConfig.setProtocolCodecConfig(codecConfig);
 
 		TcpNetworkServer nettyNetworkServer = new TcpNetworkServer(serverConfig);
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
@@ -55,10 +55,13 @@ public class TcpPartitionedNetworkTestCase {
 		clientConfig.setApplicationName("app");
 		clientConfig.setServiceName("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		NettyBeanDecoder decoder2 = new NettyBeanDecoder(Integer.MAX_VALUE, 1, 4, 0, 28);
-		decoder2.setTypeMetaInfo(typeMetaInfo);
-		clientConfig.setDecoder(decoder2);
-		clientConfig.setEncoder(new NettyBeanEncoder());
+		
+		ProtocolCodecConfig clientCodecConfig = new ProtocolCodecConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientCodecConfig.setDecodeBytesDebugEnabled(false);
+		clientCodecConfig.setLengthFieldOffset(0);
+		clientCodecConfig.setLengthFieldLength(4);
+		clientConfig.setProtocolCodecConfig(clientCodecConfig);
 
 		TcpPartitionedNetworkClient<Integer> nettyNetworkClient = new TcpPartitionedNetworkClient<Integer>(clientConfig,
 				new IntegerConsistentHashPartitionedLoadBalancerFactory(1));
