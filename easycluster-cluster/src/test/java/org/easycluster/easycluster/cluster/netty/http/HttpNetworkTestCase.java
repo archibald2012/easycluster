@@ -15,7 +15,8 @@ import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.cluster.client.loadbalancer.RoundRobinLoadBalancerFactory;
-import org.easycluster.easycluster.cluster.netty.codec.ProtocolCodecConfig;
+import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
+import org.easycluster.easycluster.cluster.netty.codec.SerializeType;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
 import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
 import org.junit.After;
@@ -33,7 +34,8 @@ public class HttpNetworkTestCase {
 	}
 
 	@Test
-	public void testSend_binary() {
+	public void testSend_binary() throws Exception {
+
 		List<String> packages = new ArrayList<String>();
 		packages.add("org.easycluster.easycluster.cluster");
 		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
@@ -43,15 +45,14 @@ public class HttpNetworkTestCase {
 		serverConfig.setServiceName("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
-		
-		ProtocolCodecConfig codecConfig = new ProtocolCodecConfig();
+
+		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setLengthFieldOffset(0);
-		codecConfig.setLengthFieldLength(4);
-		serverConfig.setProtocolCodecConfig(codecConfig);
+		codecConfig.setEncodeBytesDebugEnabled(true);
+		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpNetworkServer server = new HttpNetworkServer(serverConfig);
+		HttpAcceptor server = new HttpAcceptor(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -59,11 +60,142 @@ public class HttpNetworkTestCase {
 		clientConfig.setApplicationName("app");
 		clientConfig.setServiceName("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		ProtocolCodecConfig clientCodecConfig = new ProtocolCodecConfig();
+		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientConfig.setProtocolCodecConfig(clientCodecConfig);
+		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setDecodeBytesDebugEnabled(true);
+		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		HttpNetworkClient client = new HttpNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		HttpConnector client = new HttpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		client.registerRequest(SampleRequest.class, SampleResponse.class);
+		client.start();
+
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
+
+		request.setByteArrayField(new byte[] { 127 });
+
+		Future<Object> future = client.sendMessage(request);
+
+		System.out.println("Result: " + future.get(1800, TimeUnit.SECONDS));
+	}
+
+	@Test
+	public void testSend_batchBinary() {
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.cluster");
+		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setApplicationName("app");
+		serverConfig.setServiceName("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		serverConfig.setSerializationConfig(codecConfig);
+
+		HttpAcceptor server = new HttpAcceptor(serverConfig);
+		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
+		server.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setApplicationName("app");
+		clientConfig.setServiceName("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		clientConfig.setStaleRequestTimeoutMins(60);
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientConfig.setSerializationConfig(clientCodecConfig);
+
+		HttpConnector client = new HttpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		client.registerRequest(SampleRequest.class, SampleResponse.class);
+		client.start();
+
+		int num = 50000;
+
+		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
+
+		for (int i = 0; i < num; i++) {
+			SampleRequest request = new SampleRequest();
+			request.setIntField(1);
+			request.setShortField((byte) 1);
+			request.setByteField((byte) 1);
+			request.setLongField(1L);
+			request.setStringField("test");
+
+			request.setByteArrayField(new byte[] { 127 });
+
+			client1Requests.add(request);
+		}
+
+		long startTime = System.nanoTime();
+
+		final List<Future<Object>> futures = new ArrayList<Future<Object>>(num);
+
+		for (int i = 0; i < num; i++) {
+			futures.add(client.sendMessage(client1Requests.get(i)));
+		}
+
+		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
+		for (int i = 0; i < num; i++) {
+			try {
+				Object object = futures.get(i).get(1800, TimeUnit.SECONDS);
+				if (object instanceof SampleResponse) {
+					client1Responses.add((SampleResponse) object);
+				} 
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+			} catch (TimeoutException e) {
+				e.printStackTrace();
+			}
+		}
+		Assert.assertEquals(num, client1Responses.size());
+
+		long endTime = System.nanoTime();
+		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
+
+		client.stop();
+		server.stop();
+	}
+
+	@Test
+	public void testSend_batchjson() throws Exception {
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.cluster");
+		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setApplicationName("app");
+		serverConfig.setServiceName("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		serverConfig.setSerializationConfig(codecConfig);
+
+		HttpAcceptor server = new HttpAcceptor(serverConfig);
+		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
+		server.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setApplicationName("app");
+		clientConfig.setServiceName("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		clientConfig.setStaleRequestTimeoutMins(60);
+		
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientConfig.setSerializationConfig(clientCodecConfig);
+
+		HttpConnector client = new HttpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
@@ -129,12 +261,14 @@ public class HttpNetworkTestCase {
 		serverConfig.setServiceName("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
-		ProtocolCodecConfig codecConfig = new ProtocolCodecConfig();
+		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		codecConfig.setDecodeBytesDebugEnabled(true);
-		serverConfig.setProtocolCodecConfig(codecConfig);
+		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeType(SerializeType.JSON);
+		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpNetworkServer server = new HttpNetworkServer(serverConfig);
+		HttpAcceptor server = new HttpAcceptor(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -143,57 +277,39 @@ public class HttpNetworkTestCase {
 		clientConfig.setServiceName("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 
-		ProtocolCodecConfig clientCodecConfig = new ProtocolCodecConfig();
+		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientConfig.setProtocolCodecConfig(clientCodecConfig);
+		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setDecodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeType(SerializeType.JSON);
+		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		HttpNetworkClient client = new HttpNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		HttpConnector client = new HttpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
-		int num = 50000;
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
 
-		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
-
-		for (int i = 0; i < num; i++) {
-			SampleRequest request = new SampleRequest();
-			request.setIntField(1);
-			request.setShortField((byte) 1);
-			request.setByteField((byte) 1);
-			request.setLongField(1L);
-			request.setStringField("test");
-
-			request.setByteArrayField(new byte[] { 127 });
-
-			client1Requests.add(request);
-		}
+		request.setByteArrayField(new byte[] { 127 });
 
 		long startTime = System.nanoTime();
 
-		final List<Future<Object>> futures = new ArrayList<Future<Object>>(num);
+		Future<Object> future = client.sendMessage(request);
 
-		for (int i = 0; i < num; i++) {
-			futures.add(client.sendMessage(client1Requests.get(i)));
+		try {
+			future.get(30, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		} catch (TimeoutException e) {
+			e.printStackTrace();
 		}
-
-		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
-		for (int i = 0; i < num; i++) {
-			try {
-				Object object = futures.get(i).get(1800, TimeUnit.SECONDS);
-				if (object instanceof SampleResponse) {
-					client1Responses.add((SampleResponse) object);
-				} else {
-					System.out.println(object);
-				}
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				e.printStackTrace();
-			} catch (TimeoutException e) {
-				e.printStackTrace();
-			}
-		}
-		Assert.assertEquals(num, client1Responses.size());
 
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
@@ -201,5 +317,4 @@ public class HttpNetworkTestCase {
 		client.stop();
 		server.stop();
 	}
-
 }

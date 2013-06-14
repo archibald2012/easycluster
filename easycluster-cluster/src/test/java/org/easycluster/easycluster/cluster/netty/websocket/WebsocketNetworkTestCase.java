@@ -11,7 +11,7 @@ import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.cluster.client.loadbalancer.RoundRobinLoadBalancerFactory;
-import org.easycluster.easycluster.cluster.netty.codec.ProtocolCodecConfig;
+import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
 import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
 import org.junit.After;
@@ -41,14 +41,12 @@ public class WebsocketNetworkTestCase {
 		serverConfig.setPort(6000);
 		serverConfig.setPartitions(new Integer[] { 0, 1 });
 		
-		ProtocolCodecConfig codecConfig = new ProtocolCodecConfig();
+		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setLengthFieldOffset(0);
-		codecConfig.setLengthFieldLength(4);
-		serverConfig.setProtocolCodecConfig(codecConfig);
+		serverConfig.setSerializationConfig(codecConfig);
 		
-		WebSocketNetworkServer server = new WebSocketNetworkServer(serverConfig);
+		WebsocketAcceptor server = new WebsocketAcceptor(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -56,11 +54,11 @@ public class WebsocketNetworkTestCase {
 		clientConfig.setApplicationName("app");
 		clientConfig.setServiceName("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		ProtocolCodecConfig clientCodecConfig = new ProtocolCodecConfig();
+		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientConfig.setProtocolCodecConfig(clientCodecConfig);
+		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		WebSocketNetworkClient client = new WebSocketNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		WebsocketConnector client = new WebsocketConnector(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 

@@ -2,6 +2,7 @@ package org.easycluster.easycluster.cluster.netty.codec;
 
 import java.io.UnsupportedEncodingException;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.core.ByteUtil;
@@ -27,15 +28,13 @@ import org.easycluster.easycluster.serialization.bytebean.context.DefaultDecCont
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultEncContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.field.DefaultField2Desc;
 import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
-import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
-import org.easycluster.easycluster.serialization.protocol.xip.XipHeader;
-import org.jboss.netty.buffer.ChannelBuffer;
+import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 
-public class JsonBeanDecoder implements Transformer<ChannelBuffer, Object> {
+public class JsonBeanDecoder implements Transformer<byte[], XipSignal> {
 
 	private static final Logger		LOGGER			= LoggerFactory.getLogger(JsonBeanDecoder.class);
 
@@ -49,70 +48,55 @@ public class JsonBeanDecoder implements Transformer<ChannelBuffer, Object> {
 	private byte[]					encryptKey		= null;
 
 	@Override
-	public Object transform(ChannelBuffer buffer) {
+	public XipSignal transform(byte[] source) {
 
-		int headerSize = XipHeader.HEADER_LENGTH;
-
-		byte[] headerBytes = new byte[headerSize];
-		buffer.readBytes(headerBytes);
-
-		XipHeader header = (XipHeader) getBeanFieldCodec().decode(
-				getBeanFieldCodec().getDecContextFactory().createDecContext(headerBytes, XipHeader.class, null, null)).getValue();
-
-		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("header raw bytes --> {}, decoded XipHeader {}", ByteUtil.bytesAsHexString(headerBytes, dumpBytes),
-					ToStringBuilder.reflectionToString(header));
-		}
-
-		int bodySize = header.getLength() - headerSize;
-
-		byte[] bodyBytes = new byte[bodySize];
-		buffer.readBytes(bodyBytes);
-
-		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("body raw bytes --> {}", ByteUtil.bytesAsHexString(bodyBytes, dumpBytes));
-		}
-
-		Class<?> type = typeMetaInfo.find(header.getMessageCode());
-		if (null == type) {
-			throw new InvalidMessageException("unknow message code:" + header.getMessageCode());
-		}
-		if (header.getSequence() <= 0) {
-			throw new InvalidMessageException("Invalid message sequence:" + header.getSequence());
-		}
-
-		if (bodyBytes.length > 0 && encryptKey != null && bodyBytes.length > 0) {
+		if (source.length > 0 && encryptKey != null) {
 			try {
-				bodyBytes = DES.decryptThreeDESECB(bodyBytes, encryptKey);
+				source = DES.decryptThreeDESECB(source, encryptKey);
 
 				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-					LOGGER.debug("After decryption, body raw bytes --> {}", ByteUtil.bytesAsHexString(bodyBytes, dumpBytes));
+					LOGGER.debug("After decryption, raw bytes --> {}", ByteUtil.bytesAsHexString(source, dumpBytes));
 				}
 			} catch (Exception e) {
-				String error = "Failed to decrypt the body due to error " + e.getMessage();
+				String error = "Failed to decrypt the bytes due to error " + e.getMessage();
 				LOGGER.error(error, e);
 				throw new InvalidMessageException(error, e);
 			}
 		}
 
-		try {
-			String text = new String(bodyBytes, ENCODING);
-
-			AbstractXipSignal signal = (AbstractXipSignal) JSON.parseObject(text, type);
-
-			if (null != signal) {
-				signal.setIdentification(header.getSequence());
-				signal.setClient(header.getClientId());
-			}
-
-			if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-				LOGGER.debug("decoded signal:{}", ToStringBuilder.reflectionToString(signal));
-			}
-
-			return signal;
-		} catch (UnsupportedEncodingException e) {
-			throw new RuntimeException(e);
+		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+			LOGGER.debug("Signal raw bytes --> {}", ByteUtil.bytesAsHexString(source, dumpBytes));
 		}
+
+		byte[] headerBytes = ArrayUtils.subarray(source, 0, 4);
+
+		int messageCode = getBeanFieldCodec().getDecContextFactory().createDecContext(headerBytes, Integer.class, null, null).getNumberCodec()
+				.bytes2Int(headerBytes, headerBytes.length);
+
+		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+			LOGGER.debug("header bytes --> {}, decoded messageCode {}", ByteUtil.bytesAsHexString(headerBytes, dumpBytes), messageCode);
+		}
+
+		Class<?> type = typeMetaInfo.find(messageCode);
+		if (null == type) {
+			throw new InvalidMessageException("unknown message code:" + messageCode);
+		}
+
+		byte[] bodyBytes = ArrayUtils.subarray(source, 4, source.length);
+
+		String text = null;
+		try {
+			text = new String(bodyBytes, ENCODING);
+		} catch (UnsupportedEncodingException ingore) {
+		}
+
+		XipSignal signal = (XipSignal) JSON.parseObject(text, type);
+
+		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+			LOGGER.debug("body bytes --> {}, decoded signal:{}", ByteUtil.bytesAsHexString(bodyBytes, dumpBytes), ToStringBuilder.reflectionToString(signal));
+		}
+
+		return signal;
 
 	}
 

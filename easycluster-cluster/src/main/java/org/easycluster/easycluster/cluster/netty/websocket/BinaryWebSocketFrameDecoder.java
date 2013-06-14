@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 public class BinaryWebSocketFrameDecoder extends OneToOneDecoder {
 
 	private static final Logger	LOGGER			= LoggerFactory.getLogger(BinaryWebSocketFrameDecoder.class);
-	
-	private ByteBeanDecoder	byteBeanDecoder = new ByteBeanDecoder();
+
+	private ByteBeanDecoder		byteBeanDecoder	= new ByteBeanDecoder();
 
 	@Override
 	protected Object decode(ChannelHandlerContext ctx, Channel channel, Object msg) throws Exception {
@@ -22,10 +22,10 @@ public class BinaryWebSocketFrameDecoder extends OneToOneDecoder {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("receive websocket frame: [{}]", msg);
 			}
-			
+
 			ChannelBuffer content = ((BinaryWebSocketFrame) msg).getBinaryData();
 			if (null != content) {
-				return byteBeanDecoder.transform(content);
+				return byteBeanDecoder.transform(content.array());
 			}
 		}
 		return msg;

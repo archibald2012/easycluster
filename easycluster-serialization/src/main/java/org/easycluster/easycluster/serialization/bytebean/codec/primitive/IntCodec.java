@@ -1,4 +1,3 @@
-
 package org.easycluster.easycluster.serialization.bytebean.codec.primitive;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -10,7 +9,6 @@ import org.easycluster.easycluster.serialization.bytebean.context.EncContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * TODO
  * 
@@ -19,27 +17,13 @@ import org.slf4j.LoggerFactory;
  */
 public class IntCodec extends AbstractPrimitiveCodec implements ByteFieldCodec {
 
-	private static final Logger logger = LoggerFactory.getLogger(IntCodec.class);
+	private static final Logger	logger	= LoggerFactory.getLogger(IntCodec.class);
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#getFieldType
-	 * ()
-	 */
 	@Override
 	public Class<?>[] getFieldType() {
 		return new Class<?>[] { int.class, Integer.class };
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#decode
-	 * (com.taotaosou.common.serialization.bytebean.context.DecContext)
-	 */
 	@Override
 	public DecResult decode(DecContext ctx) {
 		byte[] bytes = ctx.getDecBytes();
@@ -47,8 +31,7 @@ public class IntCodec extends AbstractPrimitiveCodec implements ByteFieldCodec {
 		NumberCodec numberCodec = ctx.getNumberCodec();
 
 		if (byteLength > bytes.length) {
-			String errmsg = "IntCodec: not enough bytes for decode, need ["
-					+ byteLength + "], actually [" + bytes.length + "].";
+			String errmsg = "IntCodec: not enough bytes for decode, need [" + byteLength + "], actually [" + bytes.length + "].";
 			if (null != ctx.getField()) {
 				errmsg += "/ cause field is [" + ctx.getField() + "]";
 			}
@@ -56,17 +39,9 @@ public class IntCodec extends AbstractPrimitiveCodec implements ByteFieldCodec {
 			throw new RuntimeException(errmsg);
 		}
 
-		return new DecResult(numberCodec.bytes2Int(bytes, byteLength),
-				ArrayUtils.subarray(bytes, byteLength, bytes.length));
+		return new DecResult(numberCodec.bytes2Int(bytes, byteLength), ArrayUtils.subarray(bytes, byteLength, bytes.length));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#encode
-	 * (com.taotaosou.common.serialization.bytebean.context.EncContext)
-	 */
 	@Override
 	public byte[] encode(EncContext ctx) {
 		int enc = ((Integer) ctx.getEncObject()).intValue();

@@ -5,17 +5,18 @@ import org.easycluster.easycluster.core.Transformer;
 import org.easycluster.easycluster.serialization.kv.codec.DefaultKVCodec;
 import org.easycluster.easycluster.serialization.kv.codec.KVCodec;
 import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
+import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
 
-public class KVBeanDecoder implements Transformer<byte[], Object> {
+public class KVBeanDecoder implements Transformer<byte[], XipSignal> {
 
 	private KVCodec					kvCodec	= new DefaultKVCodec();
 
 	private MsgCode2TypeMetainfo	typeMetaInfo;
 
 	@Override
-	public Object transform(byte[] from) {
+	public XipSignal transform(byte[] from) {
 		String uri = new String(from).trim();
-		
+
 		int messageCode = Integer.parseInt(getRequestCode(uri));
 		Class<?> type = typeMetaInfo.find(messageCode);
 		if (null == type) {
@@ -33,7 +34,7 @@ public class KVBeanDecoder implements Transformer<byte[], Object> {
 		// request.getContent().toString(CharsetUtil.UTF_8) : queryString + "&"
 		// + request.getContent().toString(CharsetUtil.UTF_8);
 
-		return kvCodec.decode(kvCodec.getDecContextFactory().createDecContext(queryString, type, null));
+		return (XipSignal) kvCodec.decode(kvCodec.getDecContextFactory().createDecContext(queryString, type, null));
 	}
 
 	private String getRequestCode(String uri) {

@@ -4,6 +4,8 @@ public enum SerializeType {
 
 	BINARY,
 	
+	TLV,
+	
 	JSON,
 	
 	/**

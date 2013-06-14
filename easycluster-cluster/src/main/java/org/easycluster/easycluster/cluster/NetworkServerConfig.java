@@ -1,7 +1,7 @@
 package org.easycluster.easycluster.cluster;
 
 import org.easycluster.easycluster.cluster.common.SystemUtil;
-import org.easycluster.easycluster.cluster.netty.codec.ProtocolCodecConfig;
+import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
 import org.easycluster.easycluster.cluster.netty.endpoint.EndpointListener;
 
 public class NetworkServerConfig {
@@ -37,7 +37,7 @@ public class NetworkServerConfig {
 	 */
 	private int					requestThreadKeepAliveTimeSecs	= NetworkDefaults.REQUEST_THREAD_KEEP_ALIVE_TIME_SECS;
 
-	private ProtocolCodecConfig	protocolCodecConfig				= null;
+	private SerializationConfig	serializationConfig				= null;
 
 	private EndpointListener	endpointListener				= null;
 
@@ -163,12 +163,12 @@ public class NetworkServerConfig {
 		this.url = url;
 	}
 
-	public ProtocolCodecConfig getProtocolCodecConfig() {
-		return protocolCodecConfig;
+	public SerializationConfig getSerializationConfig() {
+		return serializationConfig;
 	}
 
-	public void setProtocolCodecConfig(ProtocolCodecConfig protocolCodecConfig) {
-		this.protocolCodecConfig = protocolCodecConfig;
+	public void setSerializationConfig(SerializationConfig serializationConfig) {
+		this.serializationConfig = serializationConfig;
 	}
 
 }

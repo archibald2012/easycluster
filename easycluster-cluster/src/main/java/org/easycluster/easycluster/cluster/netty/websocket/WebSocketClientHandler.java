@@ -120,7 +120,7 @@ public class WebSocketClientHandler extends SimpleChannelHandler {
 
 			ChannelBuffer content = ((BinaryWebSocketFrame) frame).getBinaryData();
 			if (null != content) {
-				Object message = byteBeanDecoder.transform(content);
+				Object message = byteBeanDecoder.transform(content.array());
 
 				Object requestId = keyTransformer.transform(message);
 				MessageContext requestContext = requestMap.get(requestId);

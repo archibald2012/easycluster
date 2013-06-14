@@ -15,7 +15,7 @@ import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.cluster.client.loadbalancer.RoundRobinLoadBalancerFactory;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
-import org.easycluster.easycluster.cluster.netty.codec.ProtocolCodecConfig;
+import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
 import org.easycluster.easycluster.cluster.netty.codec.SerializeType;
 import org.easycluster.easycluster.cluster.server.MessageClosure;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
@@ -26,7 +26,7 @@ import org.junit.Test;
 
 public class TcpNetworkTestCase {
 
-	private TcpNetworkClient	nettyNetworkClient;
+	private TcpConnector	nettyNetworkClient;
 
 	@Before
 	public void setUp() throws Exception {
@@ -43,18 +43,16 @@ public class TcpNetworkTestCase {
 		clientConfig.setApplicationName("app");
 		clientConfig.setServiceName("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		ProtocolCodecConfig codecConfig = new ProtocolCodecConfig();
-		codecConfig.setLengthFieldOffset(0);
-		codecConfig.setLengthFieldLength(4);
-		clientConfig.setProtocolCodecConfig(codecConfig);
+		SerializationConfig codecConfig = new SerializationConfig();
+		clientConfig.setSerializationConfig(codecConfig);
 
-		nettyNetworkClient = new TcpNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.start();
 		nettyNetworkClient.sendMessage("teststring");
 	}
-	
+
 	@Test
-	public void testInvalidMessage_batch()throws Exception{
+	public void testInvalidMessage_batch() throws Exception {
 		List<String> packages = new ArrayList<String>();
 		packages.add("org.easycluster.easycluster.cluster");
 		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
@@ -64,27 +62,23 @@ public class TcpNetworkTestCase {
 		serverConfig.setServiceName("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
-		ProtocolCodecConfig codecConfig = new ProtocolCodecConfig();
+		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setLengthFieldOffset(0);
-		codecConfig.setLengthFieldLength(4);
-		serverConfig.setProtocolCodecConfig(codecConfig);
+		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpNetworkServer nettyNetworkServer = new TcpNetworkServer(serverConfig);
+		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
 		clientConfig.setApplicationName("app");
 		clientConfig.setServiceName("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		ProtocolCodecConfig clientCodecConfig = new ProtocolCodecConfig();
+		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setLengthFieldOffset(0);
-		clientCodecConfig.setLengthFieldLength(4);
-		clientConfig.setProtocolCodecConfig(clientCodecConfig);
+		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpNetworkClient nettyNetworkClient = new TcpNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		TcpConnector nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -127,16 +121,14 @@ public class TcpNetworkTestCase {
 		serverConfig.setServiceName("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
-		ProtocolCodecConfig codecConfig = new ProtocolCodecConfig();
+		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		codecConfig.setDecodeBytesDebugEnabled(true);
 		codecConfig.setEncodeBytesDebugEnabled(true);
-		codecConfig.setLengthFieldOffset(0);
-		codecConfig.setLengthFieldLength(4);
 		codecConfig.setSerializeType(SerializeType.JSON);
-		serverConfig.setProtocolCodecConfig(codecConfig);
+		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpNetworkServer nettyNetworkServer = new TcpNetworkServer(serverConfig);
+		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		nettyNetworkServer.start();
 
@@ -145,16 +137,14 @@ public class TcpNetworkTestCase {
 		clientConfig.setServiceName("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 
-		ProtocolCodecConfig clientCodecConfig = new ProtocolCodecConfig();
+		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientCodecConfig.setDecodeBytesDebugEnabled(true);
 		clientCodecConfig.setEncodeBytesDebugEnabled(true);
-		clientCodecConfig.setLengthFieldOffset(0);
-		clientCodecConfig.setLengthFieldLength(4);
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
-		clientConfig.setProtocolCodecConfig(clientCodecConfig);
+		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpNetworkClient nettyNetworkClient = new TcpNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		TcpConnector nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -171,7 +161,7 @@ public class TcpNetworkTestCase {
 
 		System.out.println("Result: " + future.get(20, TimeUnit.SECONDS));
 	}
-	
+
 	@Test
 	public void testSend_binary() throws Exception {
 
@@ -184,16 +174,14 @@ public class TcpNetworkTestCase {
 		serverConfig.setServiceName("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
-		ProtocolCodecConfig codecConfig = new ProtocolCodecConfig();
+		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		codecConfig.setDecodeBytesDebugEnabled(true);
 		codecConfig.setEncodeBytesDebugEnabled(true);
-		codecConfig.setLengthFieldOffset(0);
-		codecConfig.setLengthFieldLength(4);
 		codecConfig.setSerializeType(SerializeType.BINARY);
-		serverConfig.setProtocolCodecConfig(codecConfig);
+		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpNetworkServer nettyNetworkServer = new TcpNetworkServer(serverConfig);
+		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		nettyNetworkServer.start();
 
@@ -202,16 +190,14 @@ public class TcpNetworkTestCase {
 		clientConfig.setServiceName("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 
-		ProtocolCodecConfig clientCodecConfig = new ProtocolCodecConfig();
+		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientCodecConfig.setDecodeBytesDebugEnabled(true);
 		clientCodecConfig.setEncodeBytesDebugEnabled(true);
-		clientCodecConfig.setLengthFieldOffset(0);
-		clientCodecConfig.setLengthFieldLength(4);
 		clientCodecConfig.setSerializeType(SerializeType.BINARY);
-		clientConfig.setProtocolCodecConfig(clientCodecConfig);
+		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpNetworkClient nettyNetworkClient = new TcpNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		TcpConnector nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -226,7 +212,7 @@ public class TcpNetworkTestCase {
 
 		Future<Object> future = nettyNetworkClient.sendMessage(request);
 
-		System.out.println("Result: " + future.get(20, TimeUnit.SECONDS));
+		System.out.println("Result: " + future.get(1800, TimeUnit.SECONDS));
 	}
 
 	@Test
@@ -241,27 +227,24 @@ public class TcpNetworkTestCase {
 		serverConfig.setServiceName("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
-		ProtocolCodecConfig codecConfig = new ProtocolCodecConfig();
+		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setLengthFieldOffset(0);
-		codecConfig.setLengthFieldLength(4);
-		serverConfig.setProtocolCodecConfig(codecConfig);
+		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpNetworkServer nettyNetworkServer = new TcpNetworkServer(serverConfig);
+		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
 		clientConfig.setApplicationName("app");
 		clientConfig.setServiceName("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		ProtocolCodecConfig clientCodecConfig = new ProtocolCodecConfig();
+		clientConfig.setWriteTimeoutMillis(1000);
+		clientConfig.setStaleRequestTimeoutMins(30);
+		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setLengthFieldOffset(0);
-		clientCodecConfig.setLengthFieldLength(4);
-		clientConfig.setProtocolCodecConfig(clientCodecConfig);
+		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpNetworkClient nettyNetworkClient = new TcpNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		TcpConnector nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -286,7 +269,7 @@ public class TcpNetworkTestCase {
 
 			@Override
 			public SampleResponse execute(SampleRequest input) {
-				System.out.println("received : " + count.incrementAndGet());
+				count.incrementAndGet();
 				SampleResponse response = new SampleResponse();
 
 				return response;
@@ -305,6 +288,7 @@ public class TcpNetworkTestCase {
 		for (int i = 0; i < num; i++) {
 			client1Responses.add((SampleResponse) futures.get(i).get(1800, TimeUnit.SECONDS));
 		}
+		Assert.assertEquals(num, count.get());
 		Assert.assertEquals(num, client1Responses.size());
 
 		long endTime = System.nanoTime();
@@ -313,7 +297,7 @@ public class TcpNetworkTestCase {
 		nettyNetworkClient.stop();
 		nettyNetworkServer.stop();
 	}
-	
+
 	@Test
 	public void testSend_batchJson() throws Exception {
 
@@ -326,33 +310,28 @@ public class TcpNetworkTestCase {
 		serverConfig.setServiceName("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
-		ProtocolCodecConfig codecConfig = new ProtocolCodecConfig();
+		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setLengthFieldOffset(0);
-		codecConfig.setLengthFieldLength(4);
 		codecConfig.setSerializeType(SerializeType.JSON);
-		serverConfig.setProtocolCodecConfig(codecConfig);
+		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpNetworkServer nettyNetworkServer = new TcpNetworkServer(serverConfig);
+		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
 		clientConfig.setApplicationName("app");
 		clientConfig.setServiceName("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		ProtocolCodecConfig clientCodecConfig = new ProtocolCodecConfig();
+		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setLengthFieldOffset(0);
-		clientCodecConfig.setLengthFieldLength(4);
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
-		clientConfig.setProtocolCodecConfig(clientCodecConfig);
+		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpNetworkClient nettyNetworkClient = new TcpNetworkClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		TcpConnector nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
-		int num = 50000;
+		int num = 500;
 
 		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
 
@@ -393,6 +372,7 @@ public class TcpNetworkTestCase {
 			client1Responses.add((SampleResponse) futures.get(i).get(1800, TimeUnit.SECONDS));
 		}
 		Assert.assertEquals(num, client1Responses.size());
+		Assert.assertEquals(num, count.get());
 
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");

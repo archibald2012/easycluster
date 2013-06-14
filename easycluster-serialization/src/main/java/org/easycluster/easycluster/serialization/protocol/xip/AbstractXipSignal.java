@@ -1,9 +1,11 @@
 package org.easycluster.easycluster.serialization.protocol.xip;
 
+import java.util.UUID;
+
 public class AbstractXipSignal extends DefaultPropertiesSupport implements
 		XipSignal {
 
-	private long sequence = System.nanoTime();
+	private long sequence = UUID.randomUUID().getLeastSignificantBits();
 	private long client = 0;
 
 	@Override

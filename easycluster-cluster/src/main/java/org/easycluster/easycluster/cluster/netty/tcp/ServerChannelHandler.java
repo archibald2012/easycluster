@@ -1,4 +1,4 @@
-package org.easycluster.easycluster.cluster.netty;
+package org.easycluster.easycluster.cluster.netty.tcp;
 
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.cluster.netty.endpoint.DefaultEndpointFactory;
@@ -25,15 +25,14 @@ import org.slf4j.LoggerFactory;
 
 public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 
-	private static final Logger			LOGGER					= LoggerFactory.getLogger(ServerChannelHandler.class);
+	private static final Logger				LOGGER					= LoggerFactory.getLogger(ServerChannelHandler.class);
 
-	private ChannelGroup				channelGroup			= null;
-	private MessageClosureRegistry		messageHandlerRegistry	= null;
-	private MessageExecutor				messageExecutor			= null;
-	private KeyTransformer				keyTransformer			= new KeyTransformer();
-	private EndpointFactory				endpointFactory			= new DefaultEndpointFactory();
-
-	public final ChannelLocal<Endpoint>	endpoints				= new ChannelLocal<Endpoint>();
+	private ChannelGroup					channelGroup			= null;
+	private MessageClosureRegistry			messageHandlerRegistry	= null;
+	private MessageExecutor					messageExecutor			= null;
+	private KeyTransformer					keyTransformer			= new KeyTransformer();
+	private EndpointFactory					endpointFactory			= new DefaultEndpointFactory();
+	private final ChannelLocal<Endpoint>	endpoints				= new ChannelLocal<Endpoint>();
 
 	public ServerChannelHandler(ChannelGroup channelGroup, MessageClosureRegistry messageHandlerRegistry, MessageExecutor messageExecutor) {
 		this.channelGroup = channelGroup;
@@ -84,7 +83,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("message received {}", e.getMessage());
+			LOGGER.trace("message received: {}", e.getMessage());
 		}
 
 		Channel channel = e.getChannel();
@@ -116,7 +115,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 
 		} else {
 			LOGGER.warn("missing endpoint, ignore incoming msg:", request);
-			//error reactor
+			// error reactor
 		}
 
 	}
@@ -136,12 +135,12 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	class ResponseHandler implements Closure {
 		private Endpoint	endpoint;
 		private Object		request;
-		private long		requestId;
+		private Object		requestId;
 
 		public ResponseHandler(Endpoint endpoint, Object request) {
 			this.endpoint = endpoint;
 			this.request = request;
-			this.requestId = (Long) keyTransformer.transform(request);
+			this.requestId = keyTransformer.transform(request);
 		}
 
 		@Override
@@ -174,10 +173,8 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 			if (message != null) {
 
 				if (message instanceof Identifiable) {
-					((Identifiable) message).setIdentification(requestId);
+					((Identifiable) message).setIdentification((Long)requestId);
 				}
-				Object original = TransportUtil.getRequestOf(request);
-				TransportUtil.attachRequest(message, original);
 
 				endpoint.send(message);
 			}

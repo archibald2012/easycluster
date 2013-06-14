@@ -1,6 +1,6 @@
 package org.easycluster.easycluster.cluster;
 
-import org.easycluster.easycluster.cluster.netty.codec.ProtocolCodecConfig;
+import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
 
 public class NetworkClientConfig {
 
@@ -40,7 +40,7 @@ public class NetworkClientConfig {
 	 */
 	private int					staleRequestCleanupFrequencyMins	= NetworkDefaults.STALE_REQUEST_CLEANUP_FREQUENCY_MINS;
 
-	private ProtocolCodecConfig	protocolCodecConfig					= null;
+	private SerializationConfig	serializationConfig					= null;
 
 	public String getApplicationName() {
 		return applicationName;
@@ -114,12 +114,12 @@ public class NetworkClientConfig {
 		this.staleRequestCleanupFrequencyMins = staleRequestCleanupFrequencyMins;
 	}
 
-	public ProtocolCodecConfig getProtocolCodecConfig() {
-		return protocolCodecConfig;
+	public SerializationConfig getSerializationConfig() {
+		return serializationConfig;
 	}
 
-	public void setProtocolCodecConfig(ProtocolCodecConfig protocolCodecConfig) {
-		this.protocolCodecConfig = protocolCodecConfig;
+	public void setSerializationConfig(SerializationConfig serializationConfig) {
+		this.serializationConfig = serializationConfig;
 	}
 
 }

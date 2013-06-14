@@ -15,10 +15,6 @@ public class DefaultDecContextFactory implements DecContextFactory {
 	private	FieldCodecProvider	codecProvider;
 	private NumberCodec numberCodec;
 	
-
-	/* (non-Javadoc)
-	 * @see com.taotaosou.common.serialization.bytebean.context.DecContextFactory#createDecContext(byte[], java.lang.Class, java.lang.Object, com.taotaosou.common.serialization.bytebean.field.ByteFieldDesc)
-	 */
 	public DecContext createDecContext(byte[] decBytes, Class<?> targetType,
 			Object parent, ByteFieldDesc desc) {
 		return new DefaultDecContext()

@@ -3,7 +3,7 @@ package org.easycluster.easycluster.cluster.netty.codec;
 import org.easycluster.easycluster.cluster.NetworkDefaults;
 import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
 
-public class ProtocolCodecConfig {
+public class SerializationConfig {
 
 	/**
 	 * The serialize type, binary as default.
@@ -14,13 +14,16 @@ public class ProtocolCodecConfig {
 	 * The type meta info mapping.
 	 */
 	private MsgCode2TypeMetainfo	typeMetaInfo			= null;
+	
 	private boolean					encodeBytesDebugEnabled	= false;
+	
 	private boolean					decodeBytesDebugEnabled	= false;
+	
 	private int						dumpBytes				= 256;
+	
 	private String					encryptKey				= null;
+	
 	private int						maxContentLength		= NetworkDefaults.REQUEST_MAX_CONTENT_LENGTH;
-	private int						lengthFieldOffset		= -1;
-	private int						lengthFieldLength		= -1;
 
 	public SerializeType getSerializeType() {
 		return serializeType;
@@ -76,22 +79,6 @@ public class ProtocolCodecConfig {
 
 	public void setMaxContentLength(int maxContentLength) {
 		this.maxContentLength = maxContentLength;
-	}
-
-	public int getLengthFieldOffset() {
-		return lengthFieldOffset;
-	}
-
-	public void setLengthFieldOffset(int lengthFieldOffset) {
-		this.lengthFieldOffset = lengthFieldOffset;
-	}
-
-	public int getLengthFieldLength() {
-		return lengthFieldLength;
-	}
-
-	public void setLengthFieldLength(int lengthFieldLength) {
-		this.lengthFieldLength = lengthFieldLength;
 	}
 
 }

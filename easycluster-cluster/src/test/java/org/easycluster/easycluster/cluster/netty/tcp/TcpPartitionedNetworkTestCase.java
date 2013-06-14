@@ -11,7 +11,7 @@ import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.cluster.client.loadbalancer.IntegerConsistentHashPartitionedLoadBalancerFactory;
-import org.easycluster.easycluster.cluster.netty.codec.ProtocolCodecConfig;
+import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
 import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
 import org.junit.After;
@@ -41,13 +41,11 @@ public class TcpPartitionedNetworkTestCase {
 		serverConfig.setPort(6000);
 		serverConfig.setPartitions(new Integer[] { 1 });
 
-		ProtocolCodecConfig codecConfig = new ProtocolCodecConfig();
+		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setLengthFieldOffset(0);
-		codecConfig.setLengthFieldLength(4);
-		serverConfig.setProtocolCodecConfig(codecConfig);
+		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpNetworkServer nettyNetworkServer = new TcpNetworkServer(serverConfig);
+		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		nettyNetworkServer.start();
 		
@@ -56,14 +54,12 @@ public class TcpPartitionedNetworkTestCase {
 		clientConfig.setServiceName("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		
-		ProtocolCodecConfig clientCodecConfig = new ProtocolCodecConfig();
+		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientCodecConfig.setDecodeBytesDebugEnabled(false);
-		clientCodecConfig.setLengthFieldOffset(0);
-		clientCodecConfig.setLengthFieldLength(4);
-		clientConfig.setProtocolCodecConfig(clientCodecConfig);
+		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpPartitionedNetworkClient<Integer> nettyNetworkClient = new TcpPartitionedNetworkClient<Integer>(clientConfig,
+		TcpPartitionedConnector<Integer> nettyNetworkClient = new TcpPartitionedConnector<Integer>(clientConfig,
 				new IntegerConsistentHashPartitionedLoadBalancerFactory(1));
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();

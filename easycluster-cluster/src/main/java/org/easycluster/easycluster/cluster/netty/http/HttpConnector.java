@@ -8,37 +8,41 @@ import org.easycluster.easycluster.cluster.client.NetworkClient;
 import org.easycluster.easycluster.cluster.client.loadbalancer.LoadBalancerFactory;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.ChannelPoolFactory;
-import org.easycluster.easycluster.cluster.netty.ClientChannelHandler;
+import org.easycluster.easycluster.cluster.netty.MessageContextHolder;
 import org.easycluster.easycluster.cluster.netty.NettyIoClient;
-import org.easycluster.easycluster.cluster.netty.codec.ProtocolCodecFactory;
-import org.easycluster.easycluster.cluster.netty.tcp.DefaultProtocolCodecFactory;
+import org.easycluster.easycluster.cluster.netty.codec.DefaultSerializationFactory;
+import org.easycluster.easycluster.cluster.netty.codec.SerializationFactory;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.DefaultChannelPipeline;
-import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
 import org.jboss.netty.handler.codec.http.HttpClientCodec;
 import org.jboss.netty.handler.logging.LoggingHandler;
 
-public class HttpNetworkClient extends NetworkClient {
+public class HttpConnector extends NetworkClient {
 
-	public HttpNetworkClient(final NetworkClientConfig config, final LoadBalancerFactory loadBalancerFactory) {
+	public HttpConnector(final NetworkClientConfig config, final LoadBalancerFactory loadBalancerFactory) {
 		super(config, loadBalancerFactory);
 
 		ExecutorService workExecutor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("client-pool-%s", config.getServiceName())));
 		ClientBootstrap bootstrap = new ClientBootstrap(new NioClientSocketChannelFactory(workExecutor, workExecutor));
 
-		final SimpleChannelHandler handler = new ClientChannelHandler(messageRegistry, config.getStaleRequestTimeoutMins(),
+		SerializationFactory codecFactory = new DefaultSerializationFactory(config.getSerializationConfig());
+		final HttpRequestEncoder encoder = new HttpRequestEncoder();
+		final HttpResponseDecoder decoder = new HttpResponseDecoder();
+		encoder.setBytesEncoder(codecFactory.getEncoder());
+		decoder.setBytesDecoder(codecFactory.getDecoder());
+
+		MessageContextHolder holder = new MessageContextHolder(messageRegistry, config.getStaleRequestTimeoutMins(),
 				config.getStaleRequestCleanupFrequencyMins());
+		final HttpClientChannelHandler handler = new HttpClientChannelHandler(holder);
+		handler.setRequestTransformer(encoder);
+		handler.setResponseTransformer(decoder);
 
-		bootstrap.setOption("connectTimeoutMillis", config.getConnectTimeoutMillis());
 		bootstrap.setOption("tcpNoDelay", true);
-		bootstrap.setOption("reuseAddress", true);
 		bootstrap.setOption("keepAlive", true);
-
-		final ProtocolCodecFactory codecFactory = new DefaultProtocolCodecFactory(config.getProtocolCodecConfig());
 
 		bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
 
@@ -50,9 +54,7 @@ public class HttpNetworkClient extends NetworkClient {
 
 				p.addFirst("logging", loggingHandler);
 				p.addLast("codec", new HttpClientCodec());
-				p.addLast("aggregator", new HttpChunkAggregator(config.getProtocolCodecConfig().getMaxContentLength()));
-				p.addLast("decoder", codecFactory.getDecoder());
-				p.addLast("encoder", codecFactory.getEncoder());
+				p.addLast("aggregator", new HttpChunkAggregator(config.getSerializationConfig().getMaxContentLength()));
 				p.addLast("handler", handler);
 
 				return p;

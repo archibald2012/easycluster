@@ -1,4 +1,4 @@
-package org.easycluster.easycluster.cluster.netty.tcp;
+package org.easycluster.easycluster.cluster.netty.http;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -7,8 +7,8 @@ import java.util.concurrent.TimeUnit;
 import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.NettyIoServer;
-import org.easycluster.easycluster.cluster.netty.ServerChannelHandler;
-import org.easycluster.easycluster.cluster.netty.codec.ProtocolCodecFactory;
+import org.easycluster.easycluster.cluster.netty.codec.DefaultSerializationFactory;
+import org.easycluster.easycluster.cluster.netty.codec.SerializationFactory;
 import org.easycluster.easycluster.cluster.server.MessageExecutor;
 import org.easycluster.easycluster.cluster.server.NetworkServer;
 import org.easycluster.easycluster.cluster.server.PartitionedThreadPoolMessageExecutor;
@@ -19,24 +19,34 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
+import org.jboss.netty.handler.codec.http.HttpServerCodec;
 import org.jboss.netty.handler.logging.LoggingHandler;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 
-public class TcpNetworkServer extends NetworkServer {
+public class HttpAcceptor extends NetworkServer {
 
-	public TcpNetworkServer(final NetworkServerConfig config) {
+	public HttpAcceptor(final NetworkServerConfig config) {
 		super(config);
 
 		MessageExecutor messageExecutor = new PartitionedThreadPoolMessageExecutor(messageClosureRegistry, 1, 1, config.getRequestThreadKeepAliveTimeSecs(),
 				config.getRequestThreadCorePoolSize());
 
-		ExecutorService workerExecutor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(
-				String.format("netty-server-pool-%s", config.getServiceName())));
-		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("netty-server-group-%s", config.getServiceName()));
+		ExecutorService workerExecutor = Executors
+				.newCachedThreadPool(new NamedPoolThreadFactory(String.format("http-server-pool-%s", config.getServiceName())));
+		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("http-server-group-%s", config.getServiceName()));
 
-		final ServerChannelHandler requestHandler = new ServerChannelHandler(channelGroup, messageClosureRegistry, messageExecutor);
+		final HttpServerChannelHandler requestHandler = new HttpServerChannelHandler(channelGroup, messageClosureRegistry, messageExecutor);
 		requestHandler.setEndpointListener(config.getEndpointListener());
+
+		SerializationFactory codecFactory = new DefaultSerializationFactory(config.getSerializationConfig());
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
+		encoder.setBytesEncoder(codecFactory.getEncoder());
+		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		decoder.setBytesDecoder(codecFactory.getDecoder());
+		requestHandler.setRequestTransformer(decoder);
+		requestHandler.setResponseTransformer(encoder);
 
 		ServerBootstrap bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(workerExecutor, workerExecutor));
 
@@ -45,8 +55,6 @@ public class TcpNetworkServer extends NetworkServer {
 		bootstrap.setOption("child.tcpNoDelay", true);
 		bootstrap.setOption("child.reuseAddress", true);
 		bootstrap.setOption("keepAlive", true);
-
-		final ProtocolCodecFactory codecFactory = new DefaultProtocolCodecFactory(config.getProtocolCodecConfig());
 
 		bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
 
@@ -57,11 +65,17 @@ public class TcpNetworkServer extends NetworkServer {
 				ChannelPipeline p = Channels.pipeline();
 
 				p.addFirst("logging", loggingHandler);
-				p.addLast("encoder", codecFactory.getEncoder());
-				p.addLast("decoder", codecFactory.getDecoder());
+
+				// Uncomment the following lines if you want HTTPS
+				//SSLEngine engine = SecureSslContextFactory.getServerContext().createSSLEngine();
+				//engine.setUseClientMode(false);
+				//p.addLast("ssl", new SslHandler(engine));
+
+				// HttpServerCodec是非线程安全的,不能所有Channel使用同一个
+				p.addLast("codec", new HttpServerCodec());
+				p.addLast("aggregator", new HttpChunkAggregator(config.getSerializationConfig().getMaxContentLength()));
 				p.addLast("idleHandler", new IdleStateHandler(new HashedWheelTimer(), 0, 0, config.getIdleTime(), TimeUnit.SECONDS));
 				p.addLast("handler", requestHandler);
-
 				return p;
 			}
 		});

@@ -1,10 +1,9 @@
-package org.easycluster.easycluster.cluster.netty.codec;
+package org.easycluster.easycluster.cluster.netty.tcp;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
-import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
+import org.easycluster.easycluster.cluster.common.MessageContext;
 import org.easycluster.easycluster.core.ByteUtil;
-import org.easycluster.easycluster.core.DES;
 import org.easycluster.easycluster.core.Transformer;
 import org.easycluster.easycluster.serialization.bytebean.codec.AnyCodec;
 import org.easycluster.easycluster.serialization.bytebean.codec.DefaultCodecProvider;
@@ -25,54 +24,74 @@ import org.easycluster.easycluster.serialization.bytebean.codec.primitive.ShortC
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultDecContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultEncContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.field.DefaultField2Desc;
-import org.easycluster.easycluster.serialization.protocol.annotation.SignalCode;
+import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
+import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
+import org.easycluster.easycluster.serialization.protocol.xip.XipHeader;
 import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ByteBeanEncoder implements Transformer<XipSignal, byte[]> {
+public class TcpBeanEncoder extends OneToOneEncoder {
 
-	private static final Logger	LOGGER			= LoggerFactory.getLogger(ByteBeanEncoder.class);
+	private static final Logger				LOGGER			= LoggerFactory.getLogger(TcpBeanEncoder.class);
 
-	private BeanFieldCodec		beanFieldCodec	= null;
-	private int					dumpBytes		= 256;
-	private boolean				isDebugEnabled	= true;
-	private byte[]				encryptKey		= null;
+	private static final byte				BASIC_VER		= (byte) 1;
+
+	private BeanFieldCodec					beanFieldCodec	= null;
+	private MsgCode2TypeMetainfo			typeMetaInfo	= null;
+	private int								dumpBytes		= 256;
+	private boolean							isDebugEnabled	= true;
+
+	private Transformer<XipSignal, byte[]>	bytesEncoder;
 
 	@Override
-	public byte[] transform(XipSignal signal) {
-		SignalCode attr = signal.getClass().getAnnotation(SignalCode.class);
-		if (null == attr) {
-			throw new InvalidMessageException("invalid signal, no messageCode defined.");
-		}
+	protected Object encode(ChannelHandlerContext ctx, Channel channel, Object message) throws Exception {
+		MessageContext context = (MessageContext) message;
+		Object request = context.getMessage();
 
-		byte[] messageCodeBytes = getBeanFieldCodec().getEncContextFactory().createEncContext(new Integer(attr.messageCode()), Integer.class, null)
-				.getNumberCodec().int2Bytes(attr.messageCode(), 4);
+		if (request instanceof XipSignal) {
+			XipSignal signal = (XipSignal) request;
 
-		byte[] bodyBytes = getBeanFieldCodec().encode(getBeanFieldCodec().getEncContextFactory().createEncContext(signal, signal.getClass(), null));
+			byte[] bytes = bytesEncoder.transform(signal);
 
-		byte[] bytes = ArrayUtils.addAll(messageCodeBytes, bodyBytes);
+			XipHeader header = createHeader(BASIC_VER, signal.getIdentification(), bytes.length);
 
-		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("encode signal {}, and signal raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
-					ByteUtil.bytesAsHexString(bytes, dumpBytes));
-		}
+			header.setClientId(((AbstractXipSignal) signal).getClient());
+			header.setTypeForClass(signal.getClass());
 
-		if (bytes.length > 0 && encryptKey != null) {
-			try {
-				bytes = DES.encryptThreeDESECB(bytes, encryptKey);
+			bytes = ArrayUtils.addAll(getBeanFieldCodec().encode(getBeanFieldCodec().getEncContextFactory().createEncContext(header, XipHeader.class, null)),
+					bytes);
 
-				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-					LOGGER.debug("After encryption, signal raw bytes --> {}", ByteUtil.bytesAsHexString(bytes, dumpBytes));
-				}
-			} catch (Exception e) {
-				String error = "Failed to encrypt the body due to error " + e.getMessage();
-				LOGGER.error(error, e);
-				throw new InvalidMessageException(error, e);
+			if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+				LOGGER.debug("encode signal {}, and signal raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
+						ByteUtil.bytesAsHexString(bytes, dumpBytes));
 			}
+			
+			return ChannelBuffers.wrappedBuffer(bytes);
 		}
+		return request;
+	}
 
-		return bytes;
+	private XipHeader createHeader(byte basicVer, long sequence, int messageLen) {
+
+		XipHeader header = new XipHeader();
+
+		header.setSequence(sequence);
+
+		int headerSize = getBeanFieldCodec().getStaticByteSize(XipHeader.class);
+
+		header.setLength(headerSize + messageLen);
+		header.setBasicVer(basicVer);
+
+		return header;
+	}
+
+	public void setBytesEncoder(Transformer<XipSignal, byte[]> bytesEncoder) {
+		this.bytesEncoder = bytesEncoder;
 	}
 
 	public void setBeanFieldCodec(BeanFieldCodec beanFieldCodec) {
@@ -107,12 +126,20 @@ public class ByteBeanEncoder implements Transformer<XipSignal, byte[]> {
 		return beanFieldCodec;
 	}
 
-	public int getDumpBytes() {
-		return dumpBytes;
+	public void setTypeMetaInfo(MsgCode2TypeMetainfo typeMetaInfo) {
+		this.typeMetaInfo = typeMetaInfo;
 	}
 
 	public void setDumpBytes(int dumpBytes) {
 		this.dumpBytes = dumpBytes;
+	}
+
+	public MsgCode2TypeMetainfo getTypeMetaInfo() {
+		return typeMetaInfo;
+	}
+
+	public int getDumpBytes() {
+		return dumpBytes;
 	}
 
 	public boolean isDebugEnabled() {
@@ -122,11 +149,4 @@ public class ByteBeanEncoder implements Transformer<XipSignal, byte[]> {
 	public void setDebugEnabled(boolean isDebugEnabled) {
 		this.isDebugEnabled = isDebugEnabled;
 	}
-
-	public void setEncryptKey(String encryptKey) {
-		if (encryptKey != null) {
-			this.encryptKey = encryptKey.getBytes();
-		}
-	}
-
 }

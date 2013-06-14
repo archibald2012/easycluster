@@ -9,8 +9,6 @@ import org.easycluster.easycluster.cluster.client.loadbalancer.LoadBalancerFacto
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.ChannelPoolFactory;
 import org.easycluster.easycluster.cluster.netty.NettyIoClient;
-import org.easycluster.easycluster.cluster.netty.codec.ProtocolCodecFactory;
-import org.easycluster.easycluster.cluster.netty.tcp.DefaultProtocolCodecFactory;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -22,9 +20,9 @@ import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 import org.jboss.netty.handler.logging.LoggingHandler;
 
-public class WebSocketNetworkClient extends NetworkClient {
+public class WebsocketConnector extends NetworkClient {
 
-	public WebSocketNetworkClient(final NetworkClientConfig config, final LoadBalancerFactory loadBalancerFactory) {
+	public WebsocketConnector(final NetworkClientConfig config, final LoadBalancerFactory loadBalancerFactory) {
 		super(config, loadBalancerFactory);
 
 		ExecutorService executor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("client-pool-%s", config.getServiceName())));
@@ -38,8 +36,6 @@ public class WebSocketNetworkClient extends NetworkClient {
 		bootstrap.setOption("tcpNoDelay", true);
 		bootstrap.setOption("keepAlive", true);
 
-		final ProtocolCodecFactory codecFactory = new DefaultProtocolCodecFactory(config.getProtocolCodecConfig());
-
 		bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
 
 			private LoggingHandler	loggingHandler	= new LoggingHandler();
@@ -49,11 +45,9 @@ public class WebSocketNetworkClient extends NetworkClient {
 				ChannelPipeline p = new DefaultChannelPipeline();
 
 				p.addFirst("logging", loggingHandler);
-				p.addLast("aggregator", new HttpChunkAggregator(config.getProtocolCodecConfig().getMaxContentLength()));
+				p.addLast("aggregator", new HttpChunkAggregator(config.getSerializationConfig().getMaxContentLength()));
 				p.addLast("httpResponseDecoder", new HttpResponseDecoder());
 				p.addLast("httpRequestEncoder", new HttpRequestEncoder());
-				p.addLast("decoder", codecFactory.getDecoder());
-				p.addLast("encoder", codecFactory.getEncoder());
 				p.addLast("handler", handler);
 
 				return p;

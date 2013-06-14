@@ -6,7 +6,7 @@ public class MessageContext {
 
 	private Object	message;
 	private Closure	closure;
-	private long		timestamp;
+	private long	timestamp;
 
 	public MessageContext(Object message) {
 		this.message = message;

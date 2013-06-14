@@ -28,8 +28,6 @@ import org.easycluster.easycluster.serialization.bytebean.context.DefaultDecCont
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultEncContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.field.DefaultField2Desc;
 import org.easycluster.easycluster.serialization.protocol.annotation.SignalCode;
-import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
-import org.easycluster.easycluster.serialization.protocol.xip.XipHeader;
 import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,9 +51,6 @@ public class JsonBeanEncoder implements Transformer<XipSignal, byte[]> {
 		if (null == attr) {
 			throw new InvalidMessageException("invalid signal, no messageCode defined.");
 		}
-		if (signal.getIdentification() <= 0) {
-			throw new InvalidMessageException("invalid signal sequence:" + signal.getIdentification());
-		}
 
 		String jsonString = JSON.toJSONString(signal);
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
@@ -68,6 +63,15 @@ public class JsonBeanEncoder implements Transformer<XipSignal, byte[]> {
 		} catch (UnsupportedEncodingException ignore) {
 		}
 
+		byte[] messageCodeBytes = getBeanFieldCodec().getEncContextFactory().createEncContext(new Integer(attr.messageCode()), Integer.class, null)
+				.getNumberCodec().int2Bytes(attr.messageCode(), 4);
+
+		byte[] bytes = ArrayUtils.addAll(messageCodeBytes, bodyBytes);
+
+		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+			LOGGER.debug("encoded bytes --> {}", ByteUtil.bytesAsHexString(bodyBytes, dumpBytes));
+		}
+
 		if (bodyBytes.length > 0 && encryptKey != null) {
 			try {
 				bodyBytes = DES.encryptThreeDESECB(bodyBytes, encryptKey);
@@ -78,35 +82,12 @@ public class JsonBeanEncoder implements Transformer<XipSignal, byte[]> {
 			}
 		}
 
-		XipHeader header = createHeader((byte) 1, signal.getIdentification(), attr.messageCode(), bodyBytes.length);
-		header.setClientId(((AbstractXipSignal) signal).getClient());
-
-		header.setTypeForClass(signal.getClass());
-
-		byte[] bytes = ArrayUtils.addAll(
-				getBeanFieldCodec().encode(getBeanFieldCodec().getEncContextFactory().createEncContext(header, XipHeader.class, null)), bodyBytes);
-
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
 			LOGGER.debug("encode signal {}, and signal raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
 					ByteUtil.bytesAsHexString(bytes, dumpBytes));
 		}
 
 		return bytes;
-	}
-
-	private XipHeader createHeader(byte basicVer, long sequence, int messageCode, int messageLen) {
-
-		XipHeader header = new XipHeader();
-
-		header.setSequence(sequence);
-
-		int headerSize = XipHeader.HEADER_LENGTH;
-
-		header.setLength(headerSize + messageLen);
-		header.setMessageCode(messageCode);
-		header.setBasicVer(basicVer);
-
-		return header;
 	}
 
 	public void setBeanFieldCodec(BeanFieldCodec beanFieldCodec) {
