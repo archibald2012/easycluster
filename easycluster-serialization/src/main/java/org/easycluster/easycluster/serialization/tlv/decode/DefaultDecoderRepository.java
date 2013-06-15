@@ -15,10 +15,6 @@ public class DefaultDecoderRepository implements TLVDecoderRepository {
 		decoders.put(cls, decoder);
 	}
 
-	/**
-	 * @param encoders
-	 *            the encoders to set
-	 */
 	public void setDecoders(Map<Class<?>, TLVDecoder> decoders) {
 		this.decoders.clear();
 

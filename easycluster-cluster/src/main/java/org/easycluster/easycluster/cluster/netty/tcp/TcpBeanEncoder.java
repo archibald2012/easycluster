@@ -24,7 +24,7 @@ import org.easycluster.easycluster.serialization.bytebean.codec.primitive.ShortC
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultDecContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultEncContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.field.DefaultField2Desc;
-import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
+import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
 import org.easycluster.easycluster.serialization.protocol.xip.XipHeader;
 import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
@@ -42,7 +42,7 @@ public class TcpBeanEncoder extends OneToOneEncoder {
 	private static final byte				BASIC_VER		= (byte) 1;
 
 	private BeanFieldCodec					beanFieldCodec	= null;
-	private MsgCode2TypeMetainfo			typeMetaInfo	= null;
+	private Int2TypeMetainfo			typeMetaInfo	= null;
 	private int								dumpBytes		= 256;
 	private boolean							isDebugEnabled	= true;
 
@@ -126,7 +126,7 @@ public class TcpBeanEncoder extends OneToOneEncoder {
 		return beanFieldCodec;
 	}
 
-	public void setTypeMetaInfo(MsgCode2TypeMetainfo typeMetaInfo) {
+	public void setTypeMetaInfo(Int2TypeMetainfo typeMetaInfo) {
 		this.typeMetaInfo = typeMetaInfo;
 	}
 
@@ -134,7 +134,7 @@ public class TcpBeanEncoder extends OneToOneEncoder {
 		this.dumpBytes = dumpBytes;
 	}
 
-	public MsgCode2TypeMetainfo getTypeMetaInfo() {
+	public Int2TypeMetainfo getTypeMetaInfo() {
 		return typeMetaInfo;
 	}
 

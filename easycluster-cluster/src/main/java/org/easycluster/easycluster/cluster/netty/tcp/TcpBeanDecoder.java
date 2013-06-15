@@ -23,7 +23,7 @@ import org.easycluster.easycluster.serialization.bytebean.codec.primitive.ShortC
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultDecContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultEncContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.field.DefaultField2Desc;
-import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
+import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
 import org.easycluster.easycluster.serialization.protocol.xip.XipHeader;
 import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
@@ -39,7 +39,7 @@ public class TcpBeanDecoder extends FrameDecoder {
 	private static final Logger				LOGGER				= LoggerFactory.getLogger(TcpBeanDecoder.class);
 
 	private BeanFieldCodec					beanFieldCodec		= null;
-	private MsgCode2TypeMetainfo			typeMetaInfo		= null;
+	private Int2TypeMetainfo			typeMetaInfo		= null;
 	private int								dumpBytes			= 256;
 	private boolean							isDebugEnabled		= true;
 	private int								maxMessageLength	= -1;
@@ -148,7 +148,7 @@ public class TcpBeanDecoder extends FrameDecoder {
 		this.maxMessageLength = maxMessageLength;
 	}
 
-	public void setTypeMetaInfo(MsgCode2TypeMetainfo typeMetaInfo) {
+	public void setTypeMetaInfo(Int2TypeMetainfo typeMetaInfo) {
 		this.typeMetaInfo = typeMetaInfo;
 	}
 
@@ -156,7 +156,7 @@ public class TcpBeanDecoder extends FrameDecoder {
 		this.dumpBytes = dumpBytes;
 	}
 
-	public MsgCode2TypeMetainfo getTypeMetaInfo() {
+	public Int2TypeMetainfo getTypeMetaInfo() {
 		return typeMetaInfo;
 	}
 

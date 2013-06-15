@@ -27,7 +27,7 @@ import org.easycluster.easycluster.serialization.bytebean.codec.primitive.ShortC
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultDecContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultEncContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.field.DefaultField2Desc;
-import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
+import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,10 +41,10 @@ public class JsonBeanDecoder implements Transformer<byte[], XipSignal> {
 	private static final String		ENCODING		= "UTF-8";
 
 	private BeanFieldCodec			beanFieldCodec	= null;
-	private MsgCode2TypeMetainfo	typeMetaInfo	= null;
+	private Int2TypeMetainfo	typeMetaInfo	= null;
 
 	private int						dumpBytes		= 256;
-	private boolean					isDebugEnabled	= true;
+	private boolean					isDebugEnabled	= false;
 	private byte[]					encryptKey		= null;
 
 	@Override
@@ -132,7 +132,7 @@ public class JsonBeanDecoder implements Transformer<byte[], XipSignal> {
 		return beanFieldCodec;
 	}
 
-	public void setTypeMetaInfo(MsgCode2TypeMetainfo typeMetaInfo) {
+	public void setTypeMetaInfo(Int2TypeMetainfo typeMetaInfo) {
 		this.typeMetaInfo = typeMetaInfo;
 	}
 
@@ -140,7 +140,7 @@ public class JsonBeanDecoder implements Transformer<byte[], XipSignal> {
 		this.dumpBytes = dumpBytes;
 	}
 
-	public MsgCode2TypeMetainfo getTypeMetaInfo() {
+	public Int2TypeMetainfo getTypeMetaInfo() {
 		return typeMetaInfo;
 	}
 

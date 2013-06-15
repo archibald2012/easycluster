@@ -19,7 +19,7 @@ public class KVBeanEncoder implements Transformer<XipSignal, byte[]> {
 
 	private KVCodec				kvCodec			= new DefaultKVCodec();
 	private int					dumpBytes		= 256;
-	private boolean				isDebugEnabled	= true;
+	private boolean				isDebugEnabled	= false;
 
 	@Override
 	public byte[] transform(XipSignal object) {

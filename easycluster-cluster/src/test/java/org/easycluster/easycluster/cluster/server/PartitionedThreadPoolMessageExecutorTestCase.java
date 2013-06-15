@@ -20,7 +20,7 @@ public class PartitionedThreadPoolMessageExecutorTestCase {
 		MessageClosureRegistry messageClosureRegistry = new MessageClosureRegistry();
 		messageClosureRegistry.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 
-		MessageExecutor messageExecutor = new PartitionedThreadPoolMessageExecutor(messageClosureRegistry, 1, 1, 10, 5);
+		MessageExecutor messageExecutor = new PartitionedThreadPoolMessageExecutor(messageClosureRegistry, 5, 10, 10, 5);
 
 		int num = 10000;
 
@@ -72,7 +72,7 @@ public class PartitionedThreadPoolMessageExecutorTestCase {
 			});
 
 			final SampleRequest req2 = client2Requests.get(i);
-			messageExecutor.execute(req, new Closure() {
+			messageExecutor.execute(req2, new Closure() {
 
 				@Override
 				public void execute(Object msg) {

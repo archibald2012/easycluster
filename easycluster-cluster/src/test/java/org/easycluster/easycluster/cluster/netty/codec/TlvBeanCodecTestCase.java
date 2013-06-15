@@ -10,18 +10,18 @@ import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class ByteBeanCodecTestCase {
+public class TlvBeanCodecTestCase {
 
 	@Test
 	public void test() {
-		
+
 		List<String> packages = new ArrayList<String>();
 		packages.add("org.easycluster.easycluster.cluster");
 		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
-		
-		ByteBeanEncoder encoder = new ByteBeanEncoder();
+
+		TlvBeanEncoder encoder = new TlvBeanEncoder();
 		encoder.setDebugEnabled(true);
-		
+
 		SampleRequest request = new SampleRequest();
 		request.setIntField(1);
 		request.setShortField((byte) 1);
@@ -35,12 +35,12 @@ public class ByteBeanCodecTestCase {
 
 		ByteUtil.bytesAsHexString(bytes, 1024);
 
-		ByteBeanDecoder decoder = new ByteBeanDecoder();
+		TlvBeanDecoder decoder = new TlvBeanDecoder();
 		decoder.setDebugEnabled(true);
 		decoder.setTypeMetaInfo(typeMetaInfo);
 
-		SampleRequest assertobj = (SampleRequest) decoder.transform(bytes);
-
+		SampleRequest assertobj = (SampleRequest)decoder.transform(bytes);
+		
 		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());

@@ -18,8 +18,8 @@ import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
 import org.easycluster.easycluster.cluster.netty.codec.SerializeType;
 import org.easycluster.easycluster.cluster.server.MessageClosure;
+import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
-import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,13 +49,15 @@ public class TcpNetworkTestCase {
 		nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.start();
 		nettyNetworkClient.sendMessage("teststring");
+		
+		nettyNetworkClient.stop();
 	}
 
 	@Test
 	public void testInvalidMessage_batch() throws Exception {
 		List<String> packages = new ArrayList<String>();
 		packages.add("org.easycluster.easycluster.cluster");
-		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
 		serverConfig.setApplicationName("app");
@@ -114,7 +116,7 @@ public class TcpNetworkTestCase {
 
 		List<String> packages = new ArrayList<String>();
 		packages.add("org.easycluster.easycluster.cluster");
-		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
 		serverConfig.setApplicationName("app");
@@ -160,6 +162,9 @@ public class TcpNetworkTestCase {
 		Future<Object> future = nettyNetworkClient.sendMessage(request);
 
 		System.out.println("Result: " + future.get(20, TimeUnit.SECONDS));
+		
+		nettyNetworkClient.stop();
+		nettyNetworkServer.stop();
 	}
 
 	@Test
@@ -167,7 +172,7 @@ public class TcpNetworkTestCase {
 
 		List<String> packages = new ArrayList<String>();
 		packages.add("org.easycluster.easycluster.cluster");
-		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
 		serverConfig.setApplicationName("app");
@@ -213,6 +218,65 @@ public class TcpNetworkTestCase {
 		Future<Object> future = nettyNetworkClient.sendMessage(request);
 
 		System.out.println("Result: " + future.get(1800, TimeUnit.SECONDS));
+		
+		nettyNetworkClient.stop();
+		nettyNetworkServer.stop();
+	}
+	
+	@Test
+	public void testSend_tlv() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.cluster");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setApplicationName("app");
+		serverConfig.setServiceName("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setDecodeBytesDebugEnabled(true);
+		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeType(SerializeType.TLV);
+		serverConfig.setSerializationConfig(codecConfig);
+
+		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
+		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
+		nettyNetworkServer.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setApplicationName("app");
+		clientConfig.setServiceName("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientCodecConfig.setDecodeBytesDebugEnabled(true);
+		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeType(SerializeType.TLV);
+		clientConfig.setSerializationConfig(clientCodecConfig);
+
+		TcpConnector nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
+		nettyNetworkClient.start();
+
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
+
+		request.setByteArrayField(new byte[] { 127 });
+
+		Future<Object> future = nettyNetworkClient.sendMessage(request);
+
+		System.out.println("Result: " + future.get(1800, TimeUnit.SECONDS));
+		
+		nettyNetworkClient.stop();
+		nettyNetworkServer.stop();
 	}
 
 	@Test
@@ -220,7 +284,7 @@ public class TcpNetworkTestCase {
 
 		List<String> packages = new ArrayList<String>();
 		packages.add("org.easycluster.easycluster.cluster");
-		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
 		serverConfig.setApplicationName("app");
@@ -303,7 +367,7 @@ public class TcpNetworkTestCase {
 
 		List<String> packages = new ArrayList<String>();
 		packages.add("org.easycluster.easycluster.cluster");
-		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
 		serverConfig.setApplicationName("app");
@@ -331,7 +395,7 @@ public class TcpNetworkTestCase {
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
-		int num = 500;
+		int num = 50000;
 
 		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
 
@@ -373,6 +437,91 @@ public class TcpNetworkTestCase {
 		}
 		Assert.assertEquals(num, client1Responses.size());
 		Assert.assertEquals(num, count.get());
+
+		long endTime = System.nanoTime();
+		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
+
+		nettyNetworkClient.stop();
+		nettyNetworkServer.stop();
+	}
+	
+	@Test
+	public void testSend_batchTlv() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.cluster");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setApplicationName("app");
+		serverConfig.setServiceName("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setSerializeType(SerializeType.TLV);
+		serverConfig.setSerializationConfig(codecConfig);
+
+		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
+		nettyNetworkServer.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setApplicationName("app");
+		clientConfig.setServiceName("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		clientConfig.setWriteTimeoutMillis(1000);
+		clientConfig.setStaleRequestTimeoutMins(30);
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientCodecConfig.setSerializeType(SerializeType.TLV);
+		clientConfig.setSerializationConfig(clientCodecConfig);
+
+		TcpConnector nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
+		nettyNetworkClient.start();
+
+		int num = 50000;
+
+		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
+
+		for (int i = 0; i < num; i++) {
+			SampleRequest request = new SampleRequest();
+			request.setIntField(1);
+			request.setShortField((byte) 1);
+			request.setByteField((byte) 1);
+			request.setLongField(1L);
+			request.setStringField("test");
+			request.setByteArrayField(new byte[] { 127 });
+
+			client1Requests.add(request);
+		}
+
+		final AtomicInteger count = new AtomicInteger();
+		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new MessageClosure<SampleRequest, SampleResponse>() {
+
+			@Override
+			public SampleResponse execute(SampleRequest input) {
+				count.incrementAndGet();
+				SampleResponse response = new SampleResponse();
+
+				return response;
+			}
+		});
+
+		long startTime = System.nanoTime();
+
+		final List<Future<Object>> futures = new ArrayList<Future<Object>>(num);
+
+		for (int i = 0; i < num; i++) {
+			futures.add(nettyNetworkClient.sendMessage(client1Requests.get(i)));
+		}
+
+		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
+		for (int i = 0; i < num; i++) {
+			client1Responses.add((SampleResponse) futures.get(i).get(1800, TimeUnit.SECONDS));
+		}
+		Assert.assertEquals(num, count.get());
+		Assert.assertEquals(num, client1Responses.size());
 
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");

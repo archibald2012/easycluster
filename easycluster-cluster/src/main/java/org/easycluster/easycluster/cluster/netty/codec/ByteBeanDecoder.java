@@ -25,20 +25,20 @@ import org.easycluster.easycluster.serialization.bytebean.codec.primitive.ShortC
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultDecContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultEncContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.field.DefaultField2Desc;
-import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
+import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ByteBeanDecoder implements Transformer<byte[], XipSignal> {
 
-	private static final Logger		LOGGER			= LoggerFactory.getLogger(ByteBeanDecoder.class);
+	private static final Logger	LOGGER			= LoggerFactory.getLogger(ByteBeanDecoder.class);
 
-	private BeanFieldCodec			beanFieldCodec	= null;
-	private MsgCode2TypeMetainfo	typeMetaInfo	= null;
-	private int						dumpBytes		= 256;
-	private boolean					isDebugEnabled	= true;
-	private byte[]					encryptKey		= null;
+	private BeanFieldCodec		beanFieldCodec	= null;
+	private Int2TypeMetainfo	typeMetaInfo	= null;
+	private int					dumpBytes		= 256;
+	private boolean				isDebugEnabled	= false;
+	private byte[]				encryptKey		= null;
 
 	@Override
 	public XipSignal transform(byte[] source) {
@@ -56,7 +56,7 @@ public class ByteBeanDecoder implements Transformer<byte[], XipSignal> {
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
 			LOGGER.debug("Signal raw bytes --> {}", ByteUtil.bytesAsHexString(source, dumpBytes));
 		}
-		
+
 		byte[] headerBytes = ArrayUtils.subarray(source, 0, 4);
 
 		int messageCode = getBeanFieldCodec().getDecContextFactory().createDecContext(headerBytes, Integer.class, null, null).getNumberCodec()
@@ -116,7 +116,7 @@ public class ByteBeanDecoder implements Transformer<byte[], XipSignal> {
 		return beanFieldCodec;
 	}
 
-	public void setTypeMetaInfo(MsgCode2TypeMetainfo typeMetaInfo) {
+	public void setTypeMetaInfo(Int2TypeMetainfo typeMetaInfo) {
 		this.typeMetaInfo = typeMetaInfo;
 	}
 
@@ -124,7 +124,7 @@ public class ByteBeanDecoder implements Transformer<byte[], XipSignal> {
 		this.dumpBytes = dumpBytes;
 	}
 
-	public MsgCode2TypeMetainfo getTypeMetaInfo() {
+	public Int2TypeMetainfo getTypeMetaInfo() {
 		return typeMetaInfo;
 	}
 

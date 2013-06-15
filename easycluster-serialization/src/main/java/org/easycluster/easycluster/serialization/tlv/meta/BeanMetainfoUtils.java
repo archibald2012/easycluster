@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.Collection;
 
 import org.easycluster.easycluster.core.Transformer;
+import org.easycluster.easycluster.serialization.protocol.meta.DefaultInt2TypeMetainfo;
+import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.meta.PackageUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

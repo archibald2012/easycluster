@@ -11,6 +11,8 @@ import java.util.concurrent.Callable;
 import org.easycluster.easycluster.core.SimpleCache;
 import org.easycluster.easycluster.core.Transformer;
 import org.easycluster.easycluster.serialization.kv.FieldUtil;
+import org.easycluster.easycluster.serialization.protocol.meta.DefaultInt2TypeMetainfo;
+import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.tlv.annotation.TLVAttribute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,20 +88,6 @@ public class TLVCodecUtils {
 
 		return typeMetainfo;
 	}
-
-	// static public TLVTypeMetainfo chainTypeMetainfo(
-	// final TLVTypeMetainfo first, final TLVTypeMetainfo second) {
-	// return new TLVTypeMetainfo() {
-	//
-	// public Class<?> find(int tag) {
-	// Class<?> cls = first.find(tag);
-	// if ( null != cls ) {
-	// return cls;
-	// }
-	//
-	// return second.find(tag);
-	// }};
-	// }
 
 	static public Int2TypeMetainfo createTopmostTypeMetainfo(Collection<String> packages) {
 		return BeanMetainfoUtils.createTypeMetainfo(packages, CLS2INT);

@@ -28,9 +28,9 @@ public class MetainfoUtils {
 	private MetainfoUtils() {
 	}
 
-	static public DefaultMsgCode2TypeMetainfo createTypeMetainfo(
+	static public DefaultInt2TypeMetainfo createTypeMetainfo(
 			Collection<String> packages) {
-		DefaultMsgCode2TypeMetainfo typeMetainfo = new DefaultMsgCode2TypeMetainfo();
+		DefaultInt2TypeMetainfo typeMetainfo = new DefaultInt2TypeMetainfo();
 
 		if (null != packages) {
 			for (String pkgName : packages) {

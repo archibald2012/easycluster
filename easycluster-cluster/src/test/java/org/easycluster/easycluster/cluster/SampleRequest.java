@@ -7,7 +7,7 @@ import org.easycluster.easycluster.serialization.bytebean.annotation.ByteField;
 import org.easycluster.easycluster.serialization.protocol.annotation.SignalCode;
 import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
 import org.easycluster.easycluster.serialization.protocol.xip.XipRequest;
-
+import org.easycluster.easycluster.serialization.tlv.annotation.TLVAttribute;
 
 /**
  * TODO
@@ -19,22 +19,28 @@ import org.easycluster.easycluster.serialization.protocol.xip.XipRequest;
 public class SampleRequest extends AbstractXipSignal implements XipRequest {
 
 	@ByteField(index = 0)
-	private int			intField;
+	@TLVAttribute(tag = 0)
+	private int		intField;
 
 	@ByteField(index = 1)
-	private byte		byteField;
+	@TLVAttribute(tag = 1)
+	private byte	byteField;
 
 	@ByteField(index = 2)
-	private String	stringField			= "";
+	@TLVAttribute(tag = 2)
+	private String	stringField		= "";
 
 	@ByteField(index = 3)
+	@TLVAttribute(tag = 3)
 	private byte[]	byteArrayField	= new byte[0];
 
 	@ByteField(index = 4)
-	private short		shortField;
+	@TLVAttribute(tag =4)
+	private short	shortField;
 
-	@ByteField(index = 7)
-	private long		longField;
+	@ByteField(index = 5)
+	@TLVAttribute(tag = 5)
+	private long	longField;
 
 	public int getIntField() {
 		return intField;

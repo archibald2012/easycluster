@@ -12,8 +12,8 @@ import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.cluster.client.loadbalancer.RoundRobinLoadBalancerFactory;
 import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
+import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
-import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +32,7 @@ public class WebsocketNetworkTestCase {
 	public void testBind() throws Exception {
 		List<String> packages = new ArrayList<String>();
 		packages.add("org.easycluster.easycluster.cluster");
-		MsgCode2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
 		serverConfig.setApplicationName("app");

@@ -36,7 +36,7 @@ public class ByteBeanEncoder implements Transformer<XipSignal, byte[]> {
 
 	private BeanFieldCodec		beanFieldCodec	= null;
 	private int					dumpBytes		= 256;
-	private boolean				isDebugEnabled	= true;
+	private boolean				isDebugEnabled	= false;
 	private byte[]				encryptKey		= null;
 
 	@Override

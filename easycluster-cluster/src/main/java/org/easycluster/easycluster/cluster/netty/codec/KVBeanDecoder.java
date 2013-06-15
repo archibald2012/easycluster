@@ -4,14 +4,14 @@ import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.core.Transformer;
 import org.easycluster.easycluster.serialization.kv.codec.DefaultKVCodec;
 import org.easycluster.easycluster.serialization.kv.codec.KVCodec;
-import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
+import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
 
 public class KVBeanDecoder implements Transformer<byte[], XipSignal> {
 
 	private KVCodec					kvCodec	= new DefaultKVCodec();
 
-	private MsgCode2TypeMetainfo	typeMetaInfo;
+	private Int2TypeMetainfo	typeMetaInfo;
 
 	@Override
 	public XipSignal transform(byte[] from) {
@@ -68,7 +68,7 @@ public class KVBeanDecoder implements Transformer<byte[], XipSignal> {
 		this.kvCodec = kvCodec;
 	}
 
-	public void setTypeMetaInfo(MsgCode2TypeMetainfo typeMetaInfo) {
+	public void setTypeMetaInfo(Int2TypeMetainfo typeMetaInfo) {
 		this.typeMetaInfo = typeMetaInfo;
 	}
 

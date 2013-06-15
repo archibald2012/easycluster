@@ -1,7 +1,7 @@
 package org.easycluster.easycluster.cluster.netty.websocket;
 
 import org.easycluster.easycluster.cluster.netty.codec.ByteBeanDecoder;
-import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
+import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -35,7 +35,7 @@ public class BinaryWebSocketFrameDecoder extends OneToOneDecoder {
 		this.byteBeanDecoder = byteBeanDecoder;
 	}
 
-	public void setTypeMetaInfo(MsgCode2TypeMetainfo typeMetaInfo) {
+	public void setTypeMetaInfo(Int2TypeMetainfo typeMetaInfo) {
 		byteBeanDecoder.setTypeMetaInfo(typeMetaInfo);
 	}
 

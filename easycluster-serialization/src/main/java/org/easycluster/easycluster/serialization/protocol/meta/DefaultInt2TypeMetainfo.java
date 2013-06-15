@@ -1,24 +1,21 @@
+/**
+ * 
+ */
 package org.easycluster.easycluster.serialization.protocol.meta;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultMsgCode2TypeMetainfo implements MsgCode2TypeMetainfo {
+public class DefaultInt2TypeMetainfo implements Int2TypeMetainfo {
 
 	private Map<Integer, Class<?>>	codes	= new HashMap<Integer, Class<?>>();
-
-	@Override
-	public Class<?> find(int value) {
-		return codes.get(value);
-	}
 
 	public void add(int tag, Class<?> type) {
 		codes.put(tag, type);
 	}
 
-	public Collection<Class<?>> getClasses() {
-		return codes.values();
+	public Class<?> find(int value) {
+		return codes.get(value);
 	}
 
 	public Map<Integer, String> getAllMetainfo() {
@@ -29,4 +26,5 @@ public class DefaultMsgCode2TypeMetainfo implements MsgCode2TypeMetainfo {
 
 		return ret;
 	}
+
 }

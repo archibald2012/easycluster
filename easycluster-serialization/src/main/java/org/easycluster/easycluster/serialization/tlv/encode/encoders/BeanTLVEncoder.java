@@ -27,7 +27,7 @@ public class BeanTLVEncoder implements TLVEncoderOfBean {
 	@SuppressWarnings("unchecked")
 	public List<byte[]> encode(Object tlvBean, TLVEncodeContext ctx) {
 		if (null == tlvBean) {
-			throw new RuntimeException("null == tlvBean.");
+			throw new IllegalArgumentException("null == tlvBean.");
 		}
 
 		List<byte[]> ret = new ArrayList<byte[]>();

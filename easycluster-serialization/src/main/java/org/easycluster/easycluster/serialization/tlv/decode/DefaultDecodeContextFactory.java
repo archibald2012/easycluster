@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 
 import org.easycluster.easycluster.core.SimpleCache;
 import org.easycluster.easycluster.serialization.bytebean.codec.NumberCodec;
-import org.easycluster.easycluster.serialization.tlv.meta.Int2TypeMetainfo;
+import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.tlv.meta.TLVCodecUtils;
 import org.easycluster.easycluster.serialization.tlv.meta.TLVFieldMetainfo;
 
@@ -37,13 +37,6 @@ public class DefaultDecodeContextFactory implements TLVDecodeContextFactory {
 		this.decoderRepository = decoderRepository;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.skymobi.bean.tlv.decode.TLVDecodeContextBuilder#buildContext(java
-	 * .lang.Class, com.skymobi.bean.tlv.TLVDecodeContext)
-	 */
 	public TLVDecodeContext createDecodeContext(final Class<?> type, final Field field) {
 		final TLVFieldMetainfo fieldMetainfo = fieldMetainfoCache.get(type, new Callable<TLVFieldMetainfo>() {
 

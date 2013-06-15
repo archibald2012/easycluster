@@ -8,12 +8,12 @@ import java.util.ArrayList;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.ArrayUtils;
+import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.tlv.annotation.TLVAttribute;
 import org.easycluster.easycluster.serialization.tlv.decode.TLVDecodeContext;
 import org.easycluster.easycluster.serialization.tlv.decode.TLVDecodeContextFactory;
 import org.easycluster.easycluster.serialization.tlv.decode.TLVDecoder;
 import org.easycluster.easycluster.serialization.tlv.decode.TLVDecoderOfBean;
-import org.easycluster.easycluster.serialization.tlv.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.tlv.meta.TLVFieldMetainfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,29 +1,29 @@
 package org.easycluster.easycluster.cluster.netty.codec;
 
 import org.easycluster.easycluster.cluster.NetworkDefaults;
-import org.easycluster.easycluster.serialization.protocol.meta.MsgCode2TypeMetainfo;
+import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 
 public class SerializationConfig {
 
 	/**
 	 * The serialize type, binary as default.
 	 */
-	private SerializeType			serializeType			= SerializeType.BINARY;
+	private SerializeType		serializeType			= SerializeType.BINARY;
 
 	/**
 	 * The type meta info mapping.
 	 */
-	private MsgCode2TypeMetainfo	typeMetaInfo			= null;
-	
-	private boolean					encodeBytesDebugEnabled	= false;
-	
-	private boolean					decodeBytesDebugEnabled	= false;
-	
-	private int						dumpBytes				= 256;
-	
-	private String					encryptKey				= null;
-	
-	private int						maxContentLength		= NetworkDefaults.REQUEST_MAX_CONTENT_LENGTH;
+	private Int2TypeMetainfo	typeMetaInfo			= null;
+
+	private boolean				encodeBytesDebugEnabled	= false;
+
+	private boolean				decodeBytesDebugEnabled	= false;
+
+	private int					dumpBytes				= 256;
+
+	private String				encryptKey				= null;
+
+	private int					maxContentLength		= NetworkDefaults.REQUEST_MAX_CONTENT_LENGTH;
 
 	public SerializeType getSerializeType() {
 		return serializeType;
@@ -33,11 +33,11 @@ public class SerializationConfig {
 		this.serializeType = serializeType;
 	}
 
-	public MsgCode2TypeMetainfo getTypeMetaInfo() {
+	public Int2TypeMetainfo getTypeMetaInfo() {
 		return typeMetaInfo;
 	}
 
-	public void setTypeMetaInfo(MsgCode2TypeMetainfo typeMetaInfo) {
+	public void setTypeMetaInfo(Int2TypeMetainfo typeMetaInfo) {
 		this.typeMetaInfo = typeMetaInfo;
 	}
 
