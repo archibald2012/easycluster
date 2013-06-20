@@ -1,8 +1,8 @@
 package org.easycluster.easycluster.cluster;
 
 import org.easycluster.easycluster.cluster.common.SystemUtil;
-import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
 import org.easycluster.easycluster.cluster.netty.endpoint.EndpointListener;
+import org.easycluster.easycluster.cluster.netty.serialization.SerializationConfig;
 
 public class NetworkServerConfig {
 

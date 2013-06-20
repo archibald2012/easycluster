@@ -15,8 +15,8 @@ import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.cluster.client.loadbalancer.RoundRobinLoadBalancerFactory;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
-import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
-import org.easycluster.easycluster.cluster.netty.codec.SerializeType;
+import org.easycluster.easycluster.cluster.netty.serialization.SerializationConfig;
+import org.easycluster.easycluster.cluster.netty.serialization.SerializeType;
 import org.easycluster.easycluster.cluster.server.MessageClosure;
 import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
@@ -26,7 +26,7 @@ import org.junit.Test;
 
 public class TcpNetworkTestCase {
 
-	private TcpConnector	nettyNetworkClient;
+	private TcpClient	nettyNetworkClient;
 
 	@Before
 	public void setUp() throws Exception {
@@ -46,7 +46,7 @@ public class TcpNetworkTestCase {
 		SerializationConfig codecConfig = new SerializationConfig();
 		clientConfig.setSerializationConfig(codecConfig);
 
-		nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.start();
 		nettyNetworkClient.sendMessage("teststring");
 		
@@ -69,7 +69,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setDecodeBytesDebugEnabled(true);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
+		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
@@ -80,7 +80,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpConnector nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -130,7 +130,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
+		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		nettyNetworkServer.start();
 
@@ -146,7 +146,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpConnector nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -186,7 +186,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.BINARY);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
+		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		nettyNetworkServer.start();
 
@@ -202,7 +202,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.BINARY);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpConnector nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -242,7 +242,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.TLV);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
+		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		nettyNetworkServer.start();
 
@@ -258,7 +258,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.TLV);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpConnector nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -295,7 +295,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
+		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
@@ -308,7 +308,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpConnector nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -379,7 +379,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
+		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
@@ -391,7 +391,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpConnector nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -462,7 +462,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.TLV);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
+		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
@@ -476,7 +476,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.TLV);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpConnector nettyNetworkClient = new TcpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 

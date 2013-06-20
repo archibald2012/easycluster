@@ -11,7 +11,7 @@ import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.cluster.client.loadbalancer.RoundRobinLoadBalancerFactory;
-import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
+import org.easycluster.easycluster.cluster.netty.serialization.SerializationConfig;
 import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
 import org.junit.After;
@@ -46,7 +46,7 @@ public class WebsocketNetworkTestCase {
 		codecConfig.setDecodeBytesDebugEnabled(true);
 		serverConfig.setSerializationConfig(codecConfig);
 		
-		WebsocketAcceptor server = new WebsocketAcceptor(serverConfig);
+		WebsocketServer server = new WebsocketServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -58,7 +58,7 @@ public class WebsocketNetworkTestCase {
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		WebsocketConnector client = new WebsocketConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		WebsocketClient client = new WebsocketClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 

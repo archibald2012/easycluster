@@ -11,7 +11,7 @@ import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.cluster.client.loadbalancer.IntegerConsistentHashPartitionedLoadBalancerFactory;
-import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
+import org.easycluster.easycluster.cluster.netty.serialization.SerializationConfig;
 import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
 import org.junit.After;
@@ -45,7 +45,7 @@ public class TcpPartitionedNetworkTestCase {
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpAcceptor nettyNetworkServer = new TcpAcceptor(serverConfig);
+		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		nettyNetworkServer.start();
 		
@@ -59,7 +59,7 @@ public class TcpPartitionedNetworkTestCase {
 		clientCodecConfig.setDecodeBytesDebugEnabled(false);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpPartitionedConnector<Integer> nettyNetworkClient = new TcpPartitionedConnector<Integer>(clientConfig,
+		TcpPartitionedClient<Integer> nettyNetworkClient = new TcpPartitionedClient<Integer>(clientConfig,
 				new IntegerConsistentHashPartitionedLoadBalancerFactory(1));
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();

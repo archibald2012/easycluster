@@ -1,6 +1,6 @@
 package org.easycluster.easycluster.cluster;
 
-import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
+import org.easycluster.easycluster.cluster.netty.serialization.SerializationConfig;
 
 public class NetworkClientConfig {
 

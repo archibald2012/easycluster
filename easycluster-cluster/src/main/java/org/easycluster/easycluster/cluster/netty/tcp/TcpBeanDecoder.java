@@ -2,8 +2,9 @@ package org.easycluster.easycluster.cluster.netty.tcp;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
+import org.easycluster.easycluster.cluster.netty.serialization.Serialization;
 import org.easycluster.easycluster.core.ByteUtil;
-import org.easycluster.easycluster.core.Transformer;
 import org.easycluster.easycluster.serialization.bytebean.codec.AnyCodec;
 import org.easycluster.easycluster.serialization.bytebean.codec.DefaultCodecProvider;
 import org.easycluster.easycluster.serialization.bytebean.codec.DefaultNumberCodecs;
@@ -26,7 +27,6 @@ import org.easycluster.easycluster.serialization.bytebean.field.DefaultField2Des
 import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
 import org.easycluster.easycluster.serialization.protocol.xip.XipHeader;
-import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -36,15 +36,15 @@ import org.slf4j.LoggerFactory;
 
 public class TcpBeanDecoder extends FrameDecoder {
 
-	private static final Logger				LOGGER				= LoggerFactory.getLogger(TcpBeanDecoder.class);
+	private static final Logger	LOGGER				= LoggerFactory.getLogger(TcpBeanDecoder.class);
 
-	private BeanFieldCodec					beanFieldCodec		= null;
-	private Int2TypeMetainfo			typeMetaInfo		= null;
-	private int								dumpBytes			= 256;
-	private boolean							isDebugEnabled		= true;
-	private int								maxMessageLength	= -1;
+	private BeanFieldCodec		beanFieldCodec		= null;
+	private Int2TypeMetainfo	typeMetaInfo		= null;
+	private int					dumpBytes			= 256;
+	private boolean				isDebugEnabled		= true;
+	private int					maxMessageLength	= -1;
 
-	private Transformer<byte[], XipSignal>	bytesDecoder;
+	private Serialization		serialization;
 
 	@Override
 	protected Object decode(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
@@ -96,7 +96,12 @@ public class TcpBeanDecoder extends FrameDecoder {
 			byte[] bodyBytes = new byte[bodySize];
 			buffer.readBytes(bodyBytes);
 
-			AbstractXipSignal signal = (AbstractXipSignal) bytesDecoder.transform(bodyBytes);
+			Class<?> type = typeMetaInfo.find(header.getMessageCode());
+			if (null == type) {
+				throw new InvalidMessageException("unknown message code:" + header.getMessageCode());
+			}
+
+			AbstractXipSignal signal = (AbstractXipSignal) serialization.deserialize(bodyBytes, type);
 
 			if (null != signal) {
 				signal.setIdentification(header.getSequence());
@@ -108,8 +113,8 @@ public class TcpBeanDecoder extends FrameDecoder {
 
 	}
 
-	public void setBytesDecoder(Transformer<byte[], XipSignal> bytesDecoder) {
-		this.bytesDecoder = bytesDecoder;
+	public void setSerialization(Serialization serialization) {
+		this.serialization = serialization;
 	}
 
 	public void setBeanFieldCodec(BeanFieldCodec beanFieldCodec) {

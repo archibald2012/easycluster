@@ -7,8 +7,8 @@ import java.util.concurrent.TimeUnit;
 import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.NettyIoServer;
-import org.easycluster.easycluster.cluster.netty.codec.DefaultSerializationFactory;
-import org.easycluster.easycluster.cluster.netty.codec.SerializationFactory;
+import org.easycluster.easycluster.cluster.netty.serialization.DefaultSerializationFactory;
+import org.easycluster.easycluster.cluster.netty.serialization.SerializationFactory;
 import org.easycluster.easycluster.cluster.server.MessageExecutor;
 import org.easycluster.easycluster.cluster.server.NetworkServer;
 import org.easycluster.easycluster.cluster.server.PartitionedThreadPoolMessageExecutor;
@@ -25,9 +25,9 @@ import org.jboss.netty.handler.logging.LoggingHandler;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 
-public class HttpAcceptor extends NetworkServer {
+public class HttpServer extends NetworkServer {
 
-	public HttpAcceptor(final NetworkServerConfig config) {
+	public HttpServer(final NetworkServerConfig config) {
 		super(config);
 
 		MessageExecutor messageExecutor = new PartitionedThreadPoolMessageExecutor(messageClosureRegistry, 1, 1, config.getRequestThreadKeepAliveTimeSecs(),
@@ -40,11 +40,14 @@ public class HttpAcceptor extends NetworkServer {
 		final HttpServerChannelHandler requestHandler = new HttpServerChannelHandler(channelGroup, messageClosureRegistry, messageExecutor);
 		requestHandler.setEndpointListener(config.getEndpointListener());
 
-		SerializationFactory codecFactory = new DefaultSerializationFactory(config.getSerializationConfig());
+		SerializationFactory serializationFactory = new DefaultSerializationFactory(config.getSerializationConfig());
 		HttpResponseEncoder encoder = new HttpResponseEncoder();
-		encoder.setBytesEncoder(codecFactory.getEncoder());
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		decoder.setBytesDecoder(codecFactory.getDecoder());
+		encoder.setSerialization(serializationFactory.getSerialization());
+		encoder.setSerializationConfig(config.getSerializationConfig());
+		decoder.setSerialization(serializationFactory.getSerialization());
+		decoder.setSerializationConfig(config.getSerializationConfig());
+
 		requestHandler.setRequestTransformer(decoder);
 		requestHandler.setResponseTransformer(encoder);
 
@@ -67,9 +70,10 @@ public class HttpAcceptor extends NetworkServer {
 				p.addFirst("logging", loggingHandler);
 
 				// Uncomment the following lines if you want HTTPS
-				//SSLEngine engine = SecureSslContextFactory.getServerContext().createSSLEngine();
-				//engine.setUseClientMode(false);
-				//p.addLast("ssl", new SslHandler(engine));
+				// SSLEngine engine =
+				// SecureSslContextFactory.getServerContext().createSSLEngine();
+				// engine.setUseClientMode(false);
+				// p.addLast("ssl", new SslHandler(engine));
 
 				// HttpServerCodec是非线程安全的,不能所有Channel使用同一个
 				p.addLast("codec", new HttpServerCodec());

@@ -1,25 +1,17 @@
-package org.easycluster.easycluster.cluster.netty.codec;
-
-import java.util.ArrayList;
-import java.util.List;
+package org.easycluster.easycluster.cluster.netty.serialization;
 
 import org.easycluster.easycluster.cluster.SampleRequest;
+import org.easycluster.easycluster.cluster.netty.serialization.ByteBeanSerialization;
 import org.easycluster.easycluster.core.ByteUtil;
-import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
-import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class TlvBeanCodecTestCase {
+public class ByteBeanSerializationTestCase {
 
 	@Test
 	public void test() {
 
-		List<String> packages = new ArrayList<String>();
-		packages.add("org.easycluster.easycluster.cluster");
-		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
-
-		TlvBeanEncoder encoder = new TlvBeanEncoder();
+		ByteBeanSerialization encoder = new ByteBeanSerialization();
 		encoder.setDebugEnabled(true);
 
 		SampleRequest request = new SampleRequest();
@@ -31,16 +23,12 @@ public class TlvBeanCodecTestCase {
 
 		request.setByteArrayField(new byte[] { 127, (byte) 128 });
 
-		byte[] bytes = encoder.transform(request);
+		byte[] bytes = encoder.serialize(request);
 
 		ByteUtil.bytesAsHexString(bytes, 1024);
 
-		TlvBeanDecoder decoder = new TlvBeanDecoder();
-		decoder.setDebugEnabled(true);
-		decoder.setTypeMetaInfo(typeMetaInfo);
+		SampleRequest assertobj = (SampleRequest) encoder.deserialize(bytes, SampleRequest.class);
 
-		SampleRequest assertobj = (SampleRequest)decoder.transform(bytes);
-		
 		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());

@@ -3,8 +3,9 @@ package org.easycluster.easycluster.cluster.netty.tcp;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.easycluster.easycluster.cluster.common.MessageContext;
+import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
+import org.easycluster.easycluster.cluster.netty.serialization.Serialization;
 import org.easycluster.easycluster.core.ByteUtil;
-import org.easycluster.easycluster.core.Transformer;
 import org.easycluster.easycluster.serialization.bytebean.codec.AnyCodec;
 import org.easycluster.easycluster.serialization.bytebean.codec.DefaultCodecProvider;
 import org.easycluster.easycluster.serialization.bytebean.codec.DefaultNumberCodecs;
@@ -24,7 +25,7 @@ import org.easycluster.easycluster.serialization.bytebean.codec.primitive.ShortC
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultDecContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultEncContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.field.DefaultField2Desc;
-import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
+import org.easycluster.easycluster.serialization.protocol.annotation.SignalCode;
 import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
 import org.easycluster.easycluster.serialization.protocol.xip.XipHeader;
 import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
@@ -37,16 +38,15 @@ import org.slf4j.LoggerFactory;
 
 public class TcpBeanEncoder extends OneToOneEncoder {
 
-	private static final Logger				LOGGER			= LoggerFactory.getLogger(TcpBeanEncoder.class);
+	private static final Logger	LOGGER			= LoggerFactory.getLogger(TcpBeanEncoder.class);
 
-	private static final byte				BASIC_VER		= (byte) 1;
+	private static final byte	BASIC_VER		= (byte) 1;
 
-	private BeanFieldCodec					beanFieldCodec	= null;
-	private Int2TypeMetainfo			typeMetaInfo	= null;
-	private int								dumpBytes		= 256;
-	private boolean							isDebugEnabled	= true;
+	private BeanFieldCodec		beanFieldCodec	= null;
+	private int					dumpBytes		= 256;
+	private boolean				isDebugEnabled	= true;
 
-	private Transformer<XipSignal, byte[]>	bytesEncoder;
+	private Serialization		serialization;
 
 	@Override
 	protected Object encode(ChannelHandlerContext ctx, Channel channel, Object message) throws Exception {
@@ -56,9 +56,13 @@ public class TcpBeanEncoder extends OneToOneEncoder {
 		if (request instanceof XipSignal) {
 			XipSignal signal = (XipSignal) request;
 
-			byte[] bytes = bytesEncoder.transform(signal);
+			byte[] bytes = serialization.serialize(signal);
 
-			XipHeader header = createHeader(BASIC_VER, signal.getIdentification(), bytes.length);
+			SignalCode attr = signal.getClass().getAnnotation(SignalCode.class);
+			if (null == attr) {
+				throw new InvalidMessageException("invalid signal, no messageCode defined.");
+			}
+			XipHeader header = createHeader(BASIC_VER, signal.getIdentification(), bytes.length, attr.messageCode());
 
 			header.setClientId(((AbstractXipSignal) signal).getClient());
 			header.setTypeForClass(signal.getClass());
@@ -70,13 +74,13 @@ public class TcpBeanEncoder extends OneToOneEncoder {
 				LOGGER.debug("encode signal {}, and signal raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
 						ByteUtil.bytesAsHexString(bytes, dumpBytes));
 			}
-			
+
 			return ChannelBuffers.wrappedBuffer(bytes);
 		}
 		return request;
 	}
 
-	private XipHeader createHeader(byte basicVer, long sequence, int messageLen) {
+	private XipHeader createHeader(byte basicVer, long sequence, int messageLen, int messageCode) {
 
 		XipHeader header = new XipHeader();
 
@@ -86,12 +90,13 @@ public class TcpBeanEncoder extends OneToOneEncoder {
 
 		header.setLength(headerSize + messageLen);
 		header.setBasicVer(basicVer);
+		header.setMessageCode(messageCode);
 
 		return header;
 	}
 
-	public void setBytesEncoder(Transformer<XipSignal, byte[]> bytesEncoder) {
-		this.bytesEncoder = bytesEncoder;
+	public void setSerialization(Serialization serialization) {
+		this.serialization = serialization;
 	}
 
 	public void setBeanFieldCodec(BeanFieldCodec beanFieldCodec) {
@@ -126,16 +131,8 @@ public class TcpBeanEncoder extends OneToOneEncoder {
 		return beanFieldCodec;
 	}
 
-	public void setTypeMetaInfo(Int2TypeMetainfo typeMetaInfo) {
-		this.typeMetaInfo = typeMetaInfo;
-	}
-
 	public void setDumpBytes(int dumpBytes) {
 		this.dumpBytes = dumpBytes;
-	}
-
-	public Int2TypeMetainfo getTypeMetaInfo() {
-		return typeMetaInfo;
 	}
 
 	public int getDumpBytes() {

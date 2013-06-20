@@ -16,8 +16,8 @@ import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.cluster.client.loadbalancer.RoundRobinLoadBalancerFactory;
-import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
-import org.easycluster.easycluster.cluster.netty.codec.SerializeType;
+import org.easycluster.easycluster.cluster.netty.serialization.SerializationConfig;
+import org.easycluster.easycluster.cluster.netty.serialization.SerializeType;
 import org.easycluster.easycluster.cluster.server.MessageClosure;
 import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
@@ -54,7 +54,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setEncodeBytesDebugEnabled(true);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpAcceptor server = new HttpAcceptor(serverConfig);
+		HttpServer server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -68,7 +68,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setDecodeBytesDebugEnabled(true);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		HttpConnector client = new HttpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		HttpClient client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
@@ -105,7 +105,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpAcceptor server = new HttpAcceptor(serverConfig);
+		HttpServer server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -118,7 +118,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		HttpConnector client = new HttpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		HttpClient client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
@@ -187,7 +187,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpAcceptor nettyNetworkServer = new HttpAcceptor(serverConfig);
+		HttpServer nettyNetworkServer = new HttpServer(serverConfig);
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
@@ -200,7 +200,7 @@ public class HttpNetworkTestCase {
 		clientConfig.setSerializationConfig(clientCodecConfig);
 		clientConfig.setWriteTimeoutMillis(600000);
 
-		HttpConnector nettyNetworkClient = new HttpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		HttpClient nettyNetworkClient = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -273,7 +273,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpAcceptor server = new HttpAcceptor(serverConfig);
+		HttpServer server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -289,7 +289,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		HttpConnector client = new HttpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		HttpClient client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
@@ -341,7 +341,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.TLV);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpAcceptor server = new HttpAcceptor(serverConfig);
+		HttpServer server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -357,7 +357,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.TLV);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		HttpConnector client = new HttpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		HttpClient client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
@@ -407,7 +407,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.TLV);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpAcceptor server = new HttpAcceptor(serverConfig);
+		HttpServer server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -422,7 +422,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.TLV);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		HttpConnector client = new HttpConnector(clientConfig, new RoundRobinLoadBalancerFactory());
+		HttpClient client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 

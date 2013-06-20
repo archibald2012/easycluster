@@ -20,16 +20,16 @@ import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 import org.jboss.netty.handler.logging.LoggingHandler;
 
-public class WebsocketConnector extends NetworkClient {
+public class WebsocketClient extends NetworkClient {
 
-	public WebsocketConnector(final NetworkClientConfig config, final LoadBalancerFactory loadBalancerFactory) {
+	public WebsocketClient(final NetworkClientConfig config, final LoadBalancerFactory loadBalancerFactory) {
 		super(config, loadBalancerFactory);
 
 		ExecutorService executor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("client-pool-%s", config.getServiceName())));
 		ClientBootstrap bootstrap = new ClientBootstrap(new NioClientSocketChannelFactory(executor, executor));
 
-		final SimpleChannelHandler handler = new WebSocketClientHandler(messageRegistry, config.getStaleRequestTimeoutMins(),
-				config.getStaleRequestCleanupFrequencyMins());
+//		final SimpleChannelHandler handler = new WebSocketClientHandler(messageRegistry, config.getStaleRequestTimeoutMins(),
+//				config.getStaleRequestCleanupFrequencyMins());
 
 		bootstrap.setOption("connectTimeoutMillis", config.getConnectTimeoutMillis());
 		bootstrap.setOption("reuseAddress", true);
@@ -48,7 +48,7 @@ public class WebsocketConnector extends NetworkClient {
 				p.addLast("aggregator", new HttpChunkAggregator(config.getSerializationConfig().getMaxContentLength()));
 				p.addLast("httpResponseDecoder", new HttpResponseDecoder());
 				p.addLast("httpRequestEncoder", new HttpRequestEncoder());
-				p.addLast("handler", handler);
+				//p.addLast("handler", handler);
 
 				return p;
 			}

@@ -47,9 +47,9 @@ import org.jboss.netty.util.HashedWheelTimer;
  * @author wangqi
  * @version $Id: WebSocketAcceptor.java 59 2012-02-24 08:40:46Z archie $
  */
-public class WebsocketAcceptor extends NetworkServer {
+public class WebsocketServer extends NetworkServer {
 
-	public WebsocketAcceptor(final NetworkServerConfig config) {
+	public WebsocketServer(final NetworkServerConfig config) {
 		super(config);
 
 		MessageExecutor messageExecutor = new PartitionedThreadPoolMessageExecutor(messageClosureRegistry, 1, 1, config.getRequestThreadKeepAliveTimeSecs(),

@@ -10,9 +10,9 @@ import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.ChannelPoolFactory;
 import org.easycluster.easycluster.cluster.netty.MessageContextHolder;
 import org.easycluster.easycluster.cluster.netty.NettyIoClient;
-import org.easycluster.easycluster.cluster.netty.codec.DefaultSerializationFactory;
-import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
-import org.easycluster.easycluster.cluster.netty.codec.SerializationFactory;
+import org.easycluster.easycluster.cluster.netty.serialization.DefaultSerializationFactory;
+import org.easycluster.easycluster.cluster.netty.serialization.SerializationConfig;
+import org.easycluster.easycluster.cluster.netty.serialization.SerializationFactory;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -21,9 +21,9 @@ import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.logging.LoggingHandler;
 
-public class TcpConnector extends NetworkClient {
+public class TcpClient extends NetworkClient {
 
-	public TcpConnector(final NetworkClientConfig config, final LoadBalancerFactory loadBalancerFactory) {
+	public TcpClient(final NetworkClientConfig config, final LoadBalancerFactory loadBalancerFactory) {
 		super(config, loadBalancerFactory);
 
 		ExecutorService workExecutor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("client-pool-%s", config.getServiceName())));
@@ -55,14 +55,14 @@ public class TcpConnector extends NetworkClient {
 				TcpBeanEncoder encoder = new TcpBeanEncoder();
 				encoder.setDebugEnabled(serializationConfig.isEncodeBytesDebugEnabled());
 				encoder.setDumpBytes(serializationConfig.getDumpBytes());
-				encoder.setBytesEncoder(serializationFactory.getEncoder());
+				encoder.setSerialization(serializationFactory.getSerialization());
 				p.addLast("encoder", encoder);
 
 				TcpBeanDecoder decoder = new TcpBeanDecoder();
 				decoder.setDebugEnabled(serializationConfig.isEncodeBytesDebugEnabled());
 				decoder.setDumpBytes(serializationConfig.getDumpBytes());
 				decoder.setTypeMetaInfo(serializationConfig.getTypeMetaInfo());
-				decoder.setBytesDecoder(serializationFactory.getDecoder());
+				decoder.setSerialization(serializationFactory.getSerialization());
 				p.addLast("decoder", decoder);
 
 				p.addLast("handler", handler);

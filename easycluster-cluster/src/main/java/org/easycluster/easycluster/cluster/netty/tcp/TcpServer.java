@@ -7,9 +7,9 @@ import java.util.concurrent.TimeUnit;
 import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.NettyIoServer;
-import org.easycluster.easycluster.cluster.netty.codec.DefaultSerializationFactory;
-import org.easycluster.easycluster.cluster.netty.codec.SerializationConfig;
-import org.easycluster.easycluster.cluster.netty.codec.SerializationFactory;
+import org.easycluster.easycluster.cluster.netty.serialization.DefaultSerializationFactory;
+import org.easycluster.easycluster.cluster.netty.serialization.SerializationConfig;
+import org.easycluster.easycluster.cluster.netty.serialization.SerializationFactory;
 import org.easycluster.easycluster.cluster.server.MessageExecutor;
 import org.easycluster.easycluster.cluster.server.NetworkServer;
 import org.easycluster.easycluster.cluster.server.PartitionedThreadPoolMessageExecutor;
@@ -24,9 +24,9 @@ import org.jboss.netty.handler.logging.LoggingHandler;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 
-public class TcpAcceptor extends NetworkServer {
+public class TcpServer extends NetworkServer {
 
-	public TcpAcceptor(final NetworkServerConfig config) {
+	public TcpServer(final NetworkServerConfig config) {
 		super(config);
 
 		MessageExecutor messageExecutor = new PartitionedThreadPoolMessageExecutor(messageClosureRegistry, 1, 1, config.getRequestThreadKeepAliveTimeSecs(),
@@ -64,7 +64,7 @@ public class TcpAcceptor extends NetworkServer {
 				TcpBeanEncoder encoder = new TcpBeanEncoder();
 				encoder.setDebugEnabled(serializationConfig.isEncodeBytesDebugEnabled());
 				encoder.setDumpBytes(serializationConfig.getDumpBytes());
-				encoder.setBytesEncoder(serializationFactory.getEncoder());
+				encoder.setSerialization(serializationFactory.getSerialization());
 				p.addLast("encoder", encoder);
 
 				TcpBeanDecoder decoder = new TcpBeanDecoder();
@@ -72,9 +72,9 @@ public class TcpAcceptor extends NetworkServer {
 				decoder.setDumpBytes(serializationConfig.getDumpBytes());
 				decoder.setTypeMetaInfo(serializationConfig.getTypeMetaInfo());
 				decoder.setMaxMessageLength(serializationConfig.getMaxContentLength());
-				decoder.setBytesDecoder(serializationFactory.getDecoder());
+				decoder.setSerialization(serializationFactory.getSerialization());
 				p.addLast("decoder", decoder);
-				
+
 				p.addLast("handler", requestHandler);
 
 				return p;

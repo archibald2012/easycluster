@@ -1,13 +1,9 @@
-package org.easycluster.easycluster.cluster.netty.codec;
+package org.easycluster.easycluster.cluster.netty.serialization;
 
-import java.io.UnsupportedEncodingException;
-
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.core.ByteUtil;
 import org.easycluster.easycluster.core.DES;
-import org.easycluster.easycluster.core.Transformer;
 import org.easycluster.easycluster.serialization.bytebean.codec.AnyCodec;
 import org.easycluster.easycluster.serialization.bytebean.codec.DefaultCodecProvider;
 import org.easycluster.easycluster.serialization.bytebean.codec.DefaultNumberCodecs;
@@ -28,17 +24,12 @@ import org.easycluster.easycluster.serialization.bytebean.context.DefaultDecCont
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultEncContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.field.DefaultField2Desc;
 import org.easycluster.easycluster.serialization.protocol.annotation.SignalCode;
-import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
+public class ByteBeanSerialization implements Serialization {
 
-public class JsonBeanEncoder implements Transformer<XipSignal, byte[]> {
-
-	private static final Logger	LOGGER			= LoggerFactory.getLogger(JsonBeanEncoder.class);
-
-	private static final String	ENCODING		= "UTF-8";
+	private static final Logger	LOGGER			= LoggerFactory.getLogger(ByteBeanSerialization.class);
 
 	private BeanFieldCodec		beanFieldCodec	= null;
 	private int					dumpBytes		= 256;
@@ -46,35 +37,30 @@ public class JsonBeanEncoder implements Transformer<XipSignal, byte[]> {
 	private byte[]				encryptKey		= null;
 
 	@Override
-	public byte[] transform(XipSignal signal) {
+	public <T> byte[] serialize(T signal) {
+		if (signal instanceof byte[]) {
+			return (byte[]) signal;
+		}
+
 		SignalCode attr = signal.getClass().getAnnotation(SignalCode.class);
 		if (null == attr) {
 			throw new InvalidMessageException("invalid signal, no messageCode defined.");
 		}
 
-		String jsonString = JSON.toJSONString(signal);
-		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("encode signal {}, and body string --> {}", ToStringBuilder.reflectionToString(signal), jsonString);
-		}
-
-		byte[] bodyBytes = null;
-		try {
-			bodyBytes = jsonString.getBytes(ENCODING);
-		} catch (UnsupportedEncodingException ignore) {
-		}
-
-		byte[] messageCodeBytes = getBeanFieldCodec().getEncContextFactory().createEncContext(new Integer(attr.messageCode()), Integer.class, null)
-				.getNumberCodec().int2Bytes(attr.messageCode(), 4);
-
-		byte[] bytes = ArrayUtils.addAll(messageCodeBytes, bodyBytes);
+		byte[] bytes = getBeanFieldCodec().encode(getBeanFieldCodec().getEncContextFactory().createEncContext(signal, signal.getClass(), null));
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("encoded bytes --> {}", ByteUtil.bytesAsHexString(bodyBytes, dumpBytes));
+			LOGGER.debug("Serialize object {}, and object raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
+					ByteUtil.bytesAsHexString(bytes, dumpBytes));
 		}
 
-		if (bodyBytes.length > 0 && encryptKey != null) {
+		if (bytes.length > 0 && encryptKey != null) {
 			try {
-				bodyBytes = DES.encryptThreeDESECB(bodyBytes, encryptKey);
+				bytes = DES.encryptThreeDESECB(bytes, encryptKey);
+
+				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+					LOGGER.debug("After encryption, object raw bytes --> {}", ByteUtil.bytesAsHexString(bytes, dumpBytes));
+				}
 			} catch (Exception e) {
 				String error = "Failed to encrypt the body due to error " + e.getMessage();
 				LOGGER.error(error, e);
@@ -82,12 +68,33 @@ public class JsonBeanEncoder implements Transformer<XipSignal, byte[]> {
 			}
 		}
 
-		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("encode signal {}, and signal raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
-					ByteUtil.bytesAsHexString(bytes, dumpBytes));
+		return bytes;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T deserialize(byte[] bytes, Class<T> type) {
+		if (bytes.length > 0 && encryptKey != null) {
+			try {
+				bytes = DES.decryptThreeDESECB(bytes, encryptKey);
+				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+					LOGGER.debug("After decryption, object raw bytes --> {}", ByteUtil.bytesAsHexString(bytes, dumpBytes));
+				}
+			} catch (Exception e) {
+				String error = "Failed to decrypt the bytes due to error " + e.getMessage();
+				LOGGER.error(error, e);
+				throw new InvalidMessageException(error, e);
+			}
 		}
 
-		return bytes;
+		T signal = (T) getBeanFieldCodec().decode(getBeanFieldCodec().getDecContextFactory().createDecContext(bytes, type, null, null)).getValue();
+
+		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+			LOGGER.debug("Deserialize object raw bytes --> {}, deserialized object:{}", ByteUtil.bytesAsHexString(bytes, dumpBytes),
+					ToStringBuilder.reflectionToString(signal));
+		}
+
+		return signal;
 	}
 
 	public void setBeanFieldCodec(BeanFieldCodec beanFieldCodec) {
@@ -143,5 +150,4 @@ public class JsonBeanEncoder implements Transformer<XipSignal, byte[]> {
 			this.encryptKey = encryptKey.getBytes();
 		}
 	}
-
 }

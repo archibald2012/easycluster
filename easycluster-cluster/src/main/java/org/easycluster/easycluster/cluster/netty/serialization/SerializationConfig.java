@@ -1,4 +1,4 @@
-package org.easycluster.easycluster.cluster.netty.codec;
+package org.easycluster.easycluster.cluster.netty.serialization;
 
 import org.easycluster.easycluster.cluster.NetworkDefaults;
 import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
