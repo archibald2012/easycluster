@@ -26,7 +26,7 @@ public class TcpClient extends NetworkClient {
 	public TcpClient(final NetworkClientConfig config, final LoadBalancerFactory loadBalancerFactory) {
 		super(config, loadBalancerFactory);
 
-		ExecutorService workExecutor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("client-pool-%s", config.getServiceName())));
+		ExecutorService workExecutor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("client-pool-%s", config.getService())));
 
 		ClientBootstrap bootstrap = new ClientBootstrap(new NioClientSocketChannelFactory(workExecutor, workExecutor));
 

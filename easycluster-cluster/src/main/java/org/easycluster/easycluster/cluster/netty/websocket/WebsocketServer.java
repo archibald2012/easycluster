@@ -56,8 +56,8 @@ public class WebsocketServer extends NetworkServer {
 				config.getRequestThreadCorePoolSize());
 
 		ExecutorService workerExecutor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("websocket-server-pool-%s",
-				config.getServiceName())));
-		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("websocket-server-group-%s", config.getServiceName()));
+				config.getService())));
+		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("websocket-server-group-%s", config.getService()));
 
 		final ServerChannelHandler requestHandler = new ServerChannelHandler(channelGroup, messageClosureRegistry, messageExecutor);
 		requestHandler.setEndpointListener(config.getEndpointListener());

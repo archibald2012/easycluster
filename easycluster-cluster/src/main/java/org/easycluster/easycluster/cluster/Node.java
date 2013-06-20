@@ -2,40 +2,24 @@ package org.easycluster.easycluster.cluster;
 
 import java.net.InetSocketAddress;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
-@XmlRootElement(name = "node")
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Node", propOrder = { "applicationName", "serviceName", "hostName", "port", "version", "partitions", "url" })
 public class Node implements Comparable<Node> {
 
-	@XmlElement(name = "application", required = true)
-	private String				applicationName;
+	private String				serviceGroup;
 
-	@XmlElement(name = "service", required = true)
-	private String				serviceName;
+	private String				service;
 
-	@XmlElement(name = "host", required = true)
 	private String				hostName;
 
-	@XmlElement(name = "port", required = true)
 	private int					port		= -1;
 
-	@XmlElement(name = "version", required = true)
 	private String				version		= "1.0.0";
 
-	@XmlElement(name = "partitions", required = false)
 	private Integer[]			partitions	= new Integer[0];
 
-	@XmlElement(name = "url", required = false)
 	private String				url;
 
 	private transient boolean	available	= false;
@@ -89,20 +73,20 @@ public class Node implements Comparable<Node> {
 		this.version = version;
 	}
 
-	public String getApplicationName() {
-		return applicationName;
+	public String getServiceGroup() {
+		return serviceGroup;
 	}
 
-	public void setApplicationName(String applicationName) {
-		this.applicationName = applicationName;
+	public void setServiceGroup(String serviceGroup) {
+		this.serviceGroup = serviceGroup;
 	}
 
-	public String getServiceName() {
-		return serviceName;
+	public String getService() {
+		return service;
 	}
 
-	public void setServiceName(String serviceName) {
-		this.serviceName = serviceName;
+	public void setService(String service) {
+		this.service = service;
 	}
 
 	public String getHostName() {
@@ -155,8 +139,8 @@ public class Node implements Comparable<Node> {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("Node[");
-		sb.append("applicationName=[").append(applicationName).append("],");
-		sb.append("serviceName=[").append(serviceName).append("],");
+		sb.append("applicationName=[").append(serviceGroup).append("],");
+		sb.append("serviceName=[").append(service).append("],");
 		sb.append("hostName=[").append(hostName).append("],");
 		sb.append("port=[").append(port).append("],");
 		sb.append("version=[").append(version).append("],");

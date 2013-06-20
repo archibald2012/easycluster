@@ -33,8 +33,8 @@ public class TcpServer extends NetworkServer {
 				config.getRequestThreadCorePoolSize());
 
 		ExecutorService workerExecutor = Executors
-				.newCachedThreadPool(new NamedPoolThreadFactory(String.format("tcp-server-pool-%s", config.getServiceName())));
-		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("netty-server-group-%s", config.getServiceName()));
+				.newCachedThreadPool(new NamedPoolThreadFactory(String.format("tcp-server-pool-%s", config.getService())));
+		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("netty-server-group-%s", config.getService()));
 
 		final SerializationConfig serializationConfig = config.getSerializationConfig();
 		final SerializationFactory serializationFactory = new DefaultSerializationFactory(serializationConfig);

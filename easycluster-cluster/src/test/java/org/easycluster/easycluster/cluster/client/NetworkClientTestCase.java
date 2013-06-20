@@ -45,8 +45,8 @@ public class NetworkClientTestCase {
 		messageRegistry = mockControl.createMock(MessageRegistry.class);
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
-		clientConfig.setApplicationName("app");
-		clientConfig.setServiceName("test");
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 
 		networkClient = new NetworkClient(clientConfig, loadBalancerFactory);

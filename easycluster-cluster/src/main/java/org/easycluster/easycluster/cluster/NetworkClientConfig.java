@@ -4,10 +4,19 @@ import org.easycluster.easycluster.cluster.netty.serialization.SerializationConf
 
 public class NetworkClientConfig {
 
-	private String				applicationName						= null;
+	/**
+	 * The group of service.
+	 */
+	private String				serviceGroup						= null;
 
-	private String				serviceName							= null;
+	/**
+	 * The service name.
+	 */
+	private String				service								= null;
 
+	/**
+	 * The ZooKeeper connection string.
+	 */
 	private String				zooKeeperConnectString				= null;
 
 	/**
@@ -40,22 +49,25 @@ public class NetworkClientConfig {
 	 */
 	private int					staleRequestCleanupFrequencyMins	= NetworkDefaults.STALE_REQUEST_CLEANUP_FREQUENCY_MINS;
 
+	/**
+	 * The serialization configuration.
+	 */
 	private SerializationConfig	serializationConfig					= null;
 
-	public String getApplicationName() {
-		return applicationName;
+	public String getServiceGroup() {
+		return serviceGroup;
 	}
 
-	public void setApplicationName(String applicationName) {
-		this.applicationName = applicationName;
+	public void setServiceGroup(String serviceGroup) {
+		this.serviceGroup = serviceGroup;
 	}
 
-	public String getServiceName() {
-		return serviceName;
+	public String getService() {
+		return service;
 	}
 
-	public void setServiceName(String serviceName) {
-		this.serviceName = serviceName;
+	public void setService(String service) {
+		this.service = service;
 	}
 
 	public String getZooKeeperConnectString() {

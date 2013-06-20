@@ -35,8 +35,8 @@ public class WebsocketNetworkTestCase {
 		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
-		serverConfig.setApplicationName("app");
-		serverConfig.setServiceName("test");
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
 		serverConfig.setPartitions(new Integer[] { 0, 1 });
@@ -51,8 +51,8 @@ public class WebsocketNetworkTestCase {
 		server.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
-		clientConfig.setApplicationName("app");
-		clientConfig.setServiceName("test");
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);

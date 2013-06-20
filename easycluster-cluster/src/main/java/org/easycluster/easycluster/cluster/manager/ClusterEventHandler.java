@@ -5,12 +5,11 @@ import org.easycluster.easycluster.core.ebus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class ClusterEventHandler {
 
 	private static final Logger	LOGGER		= LoggerFactory.getLogger(ClusterEventHandler.class);
 
-	private EventBus						eventBus	= null;
+	private EventBus			eventBus	= null;
 
 	public ClusterEventHandler(EventBus eventBus) {
 		this.eventBus = eventBus;

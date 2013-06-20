@@ -5,14 +5,14 @@ import java.util.Set;
 import org.easycluster.easycluster.cluster.Node;
 import org.easycluster.easycluster.cluster.manager.event.ClusterEvent;
 
-
 public interface ClusterListener {
 
 	/**
 	 * Handle the case that you are now connected to the cluster.
 	 * 
 	 * @param nodes
-	 *          the current list of available <code>Node</code>s stored in the cluster metadata
+	 *            the current list of available <code>Node</code>s stored in the
+	 *            cluster metadata
 	 */
 	void handleClusterConnected(Set<Node> nodes);
 
@@ -20,7 +20,8 @@ public interface ClusterListener {
 	 * Handle the case that the cluster topology has changed.
 	 * 
 	 * @param nodes
-	 *          the current list of available<code>Node</code>s stored in the cluster metadata
+	 *            the current list of available<code>Node</code>s stored in the
+	 *            cluster metadata
 	 */
 	void handleClusterNodesChanged(Set<Node> nodes);
 

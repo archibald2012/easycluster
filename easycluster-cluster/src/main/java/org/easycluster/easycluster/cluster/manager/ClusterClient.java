@@ -4,34 +4,29 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.easycluster.easycluster.cluster.Node;
-import org.easycluster.easycluster.cluster.exception.ClusterDisconnectedException;
-import org.easycluster.easycluster.cluster.exception.InvalidNodeException;
 
 public interface ClusterClient {
 
 	/**
-	 * Retrieves the name of the application running on this cluster
+	 * Retrieves the name of the service group running on this cluster
 	 * 
-	 * @return the name of the application running on this cluster
+	 * @return the name of the service group running on this cluster
 	 */
-	String getApplicationName();
+	String getServiceGroup();
 
 	/**
 	 * Retrieves the name of the service running on this cluster
 	 * 
 	 * @return the name of the service running on this cluster
 	 */
-	String getServiceName();
+	String getService();
 
 	/**
 	 * Retrieves the current list of nodes registered with the cluster.
 	 * 
 	 * @return the current list of nodes
-	 * @throws ClusterDisconnectedException
-	 *             thrown if the cluster is not connected when the method is
-	 *             called
 	 */
-	Set<Node> getNodes() throws ClusterDisconnectedException;
+	Set<Node> getNodes();
 
 	/**
 	 * Looks up the node with the specified id.
@@ -40,11 +35,8 @@ public interface ClusterClient {
 	 *            the id of the node to find
 	 * 
 	 * @return the node if found, otherwise null
-	 * @throws ClusterDisconnectedException
-	 *             thrown if the cluster is not connected when the method is
-	 *             called
 	 */
-	Node getNodeWithId(String nodeId) throws ClusterDisconnectedException;
+	Node getNodeWithId(String nodeId);
 
 	/**
 	 * Adds a node to the cluster metadata.
@@ -53,26 +45,16 @@ public interface ClusterClient {
 	 *            the node to add
 	 * 
 	 * @return the newly added node
-	 * @throws InvalidNodeException
-	 *             thrown if there is an error adding the new node to the
-	 *             cluster metadata
-	 * @throws ClusterDisconnectedException
-	 *             thrown if the cluster is disconnected when the method is
-	 *             called
 	 */
-	Node addNode(Node node) throws ClusterDisconnectedException;
+	Node addNode(Node node);
 
 	/**
 	 * Removes a node from the cluster metadata.
 	 * 
 	 * @param nodeId
 	 *            the id of the node to remove
-	 * 
-	 * @throws ClusterDisconnectedException
-	 *             thrown if the cluster is disconnected when the method is
-	 *             called
 	 */
-	void removeNode(String nodeId) throws ClusterDisconnectedException;
+	void removeNode(String nodeId);
 
 	/**
 	 * Marks a cluster node as online and available for receiving requests.
@@ -80,23 +62,16 @@ public interface ClusterClient {
 	 * @param nodeId
 	 *            the id of the node to mark available
 	 * 
-	 * @throws ClusterDisconnectedException
-	 *             thrown if the cluster is disconnected when the method is
-	 *             called
 	 */
-	void markNodeAvailable(String nodeId) throws ClusterDisconnectedException;
+	void markNodeAvailable(String nodeId);
 
 	/**
 	 * Marks a cluster node as offline and unavailable for receiving requests.
 	 * 
 	 * @param nodeId
 	 *            the id of the node to mark unavailable
-	 * 
-	 * @throws ClusterDisconnectedException
-	 *             thrown if the cluster is disconnected when the method is
-	 *             called
 	 */
-	void markNodeUnavailable(String nodeId) throws ClusterDisconnectedException;
+	void markNodeUnavailable(String nodeId);
 
 	/**
 	 * Registers a <code>ClusterListener</code> with the
@@ -159,8 +134,7 @@ public interface ClusterClient {
 	 * @throws InterruptedException
 	 *             thrown if the current thread is interrupted while waiting
 	 */
-	boolean awaitConnection(long timeout, TimeUnit unit)
-			throws InterruptedException;
+	boolean awaitConnection(long timeout, TimeUnit unit) throws InterruptedException;
 
 	/**
 	 * Waits for the connection to the cluster to be established. This method

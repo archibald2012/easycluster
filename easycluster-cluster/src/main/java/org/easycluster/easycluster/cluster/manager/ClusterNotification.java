@@ -23,22 +23,20 @@ import org.easycluster.easycluster.cluster.manager.event.CoreEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  *
  */
 public class ClusterNotification {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(ClusterNotification.class);
+	private static final Logger			LOGGER				= LoggerFactory.getLogger(ClusterNotification.class);
 
-	private String serviceName = null;
-	private Set<Node> currentNodes = new HashSet<Node>();
-	private Map<Long, ClusterListener> listeners = new HashMap<Long, ClusterListener>();
-	private boolean connected = false;
-	private Long listenerId = 0L;
+	private String						serviceName			= null;
+	private Set<Node>					currentNodes		= new HashSet<Node>();
+	private Map<Long, ClusterListener>	listeners			= new HashMap<Long, ClusterListener>();
+	private boolean						connected			= false;
+	private Long						listenerId			= 0L;
 
-	private JAXBContext clusterEventcontext = null;
+	private JAXBContext					clusterEventcontext	= null;
 
 	public ClusterNotification(String serviceName) {
 		this.serviceName = serviceName;
@@ -46,8 +44,7 @@ public class ClusterNotification {
 		try {
 			clusterEventcontext = JAXBContext.newInstance(ClusterEvent.class);
 		} catch (JAXBException e) {
-			String error = "Failed to ininitialize JAXB with error "
-					+ e.getMessage();
+			String error = "Failed to ininitialize JAXB with error " + e.getMessage();
 			LOGGER.error(error);
 			throw new RuntimeException(error, e);
 		}
@@ -72,8 +69,7 @@ public class ClusterNotification {
 		}
 		ClusterListener listener = listeners.remove(key);
 		if (listener == null) {
-			LOGGER.info("Attempt to remove an unknown listener with key: {}",
-					key);
+			LOGGER.info("Attempt to remove an unknown listener with key: {}", key);
 		}
 	}
 
@@ -135,13 +131,10 @@ public class ClusterNotification {
 
 		Object request = null;
 		try {
-			Unmarshaller unmarshaller = clusterEventcontext
-					.createUnmarshaller();
-			request = unmarshaller.unmarshal(new ByteArrayInputStream(
-					clusterEvent.getBytes()));
+			Unmarshaller unmarshaller = clusterEventcontext.createUnmarshaller();
+			request = unmarshaller.unmarshal(new ByteArrayInputStream(clusterEvent.getBytes()));
 		} catch (JAXBException e) {
-			String error = "Ignored the request with JAXB error "
-					+ e.getMessage();
+			String error = "Ignored the request with JAXB error " + e.getMessage();
 			LOGGER.warn(error, e);
 			throw new SerializeException(error, e);
 		}
@@ -166,8 +159,7 @@ public class ClusterNotification {
 			}
 		}
 		if (!isTargeted) {
-			LOGGER.debug("Event " + event
-					+ " is not targeted to this instance.");
+			LOGGER.debug("Event " + event + " is not targeted to this instance.");
 			return;
 		}
 

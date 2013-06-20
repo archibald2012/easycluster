@@ -34,12 +34,12 @@ public class NetworkServer {
 	public NetworkServer(final NetworkServerConfig config) {
 
 		this.node = new Node(config.getIp(), config.getPort(), config.getPartitions());
-		node.setApplicationName(config.getApplicationName());
-		node.setServiceName(config.getServiceName());
+		node.setServiceGroup(config.getServiceGroup());
+		node.setService(config.getService());
 		node.setVersion(config.getVersion());
 		node.setUrl(config.getUrl());
 
-		this.clusterClient = new ZooKeeperClusterClient(config.getApplicationName(), config.getServiceName(), config.getZooKeeperConnectString(),
+		this.clusterClient = new ZooKeeperClusterClient(config.getServiceGroup(), config.getService(), config.getZooKeeperConnectString(),
 				config.getZooKeeperSessionTimeoutMillis());
 	}
 

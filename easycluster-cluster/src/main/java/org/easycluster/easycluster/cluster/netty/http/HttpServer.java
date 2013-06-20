@@ -34,8 +34,8 @@ public class HttpServer extends NetworkServer {
 				config.getRequestThreadCorePoolSize());
 
 		ExecutorService workerExecutor = Executors
-				.newCachedThreadPool(new NamedPoolThreadFactory(String.format("http-server-pool-%s", config.getServiceName())));
-		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("http-server-group-%s", config.getServiceName()));
+				.newCachedThreadPool(new NamedPoolThreadFactory(String.format("http-server-pool-%s", config.getService())));
+		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("http-server-group-%s", config.getService()));
 
 		final HttpServerChannelHandler requestHandler = new HttpServerChannelHandler(channelGroup, messageClosureRegistry, messageExecutor);
 		requestHandler.setEndpointListener(config.getEndpointListener());

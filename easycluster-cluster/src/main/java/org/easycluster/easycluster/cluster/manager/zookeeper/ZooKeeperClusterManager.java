@@ -16,23 +16,24 @@ import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.easycluster.easycluster.cluster.Node;
-import org.easycluster.easycluster.cluster.common.XmlUtil;
 import org.easycluster.easycluster.cluster.manager.ClusterManager;
 import org.easycluster.easycluster.cluster.manager.ClusterNotification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson.JSON;
+
 public class ZooKeeperClusterManager implements ClusterManager {
 
-	private static final String	NODE_SEPARATOR		= "/";
+	private static final Logger	LOGGER				= LoggerFactory.getLogger(ZooKeeperClusterManager.class);
 
-	protected Logger			LOGGER				= LoggerFactory.getLogger(getClass());
+	private static final String	NODE_SEPARATOR		= "/";
 
 	private ClusterNotification	clusterNotification	= null;
 	private String				connectString		= "";
 	private int					sessionTimeout		= 0;
 	private String				rootNode			= "/clusters";
-	private String				applicationNode		= null;
+	private String				serviceGroupNode	= null;
 	private String				serviceNode			= null;
 	private String				membershipNode		= null;
 	private String				eventNode			= null;
@@ -43,16 +44,16 @@ public class ZooKeeperClusterManager implements ClusterManager {
 	private ClusterWatcher		watcher				= null;
 	private volatile boolean	connected			= false;
 
-	public ZooKeeperClusterManager(String applicationName, String serviceName, String zooKeeperConnectString, int zooKeeperSessionTimeoutMillis) {
+	public ZooKeeperClusterManager(String serviceGroup, String service, String zooKeeperConnectString, int zooKeeperSessionTimeoutMillis) {
 		this.connectString = zooKeeperConnectString;
 		this.sessionTimeout = zooKeeperSessionTimeoutMillis;
-		this.applicationNode = rootNode + NODE_SEPARATOR + applicationName;
-		this.serviceNode = applicationNode + NODE_SEPARATOR + serviceName;
+		this.serviceGroupNode = rootNode + NODE_SEPARATOR + serviceGroup;
+		this.serviceNode = serviceGroupNode + NODE_SEPARATOR + service;
 		this.membershipNode = serviceNode + NODE_SEPARATOR + "members";
 		this.eventNode = serviceNode + NODE_SEPARATOR + "event";
 		this.availabilityNode = serviceNode + NODE_SEPARATOR + "available";
 
-		this.clusterNotification = new ClusterNotification(serviceName);
+		this.clusterNotification = new ClusterNotification(service);
 	}
 
 	@Override
@@ -77,7 +78,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
 				String path = membershipNode + NODE_SEPARATOR + node.getId();
 
-				String nodeString = XmlUtil.marshal(node);
+				String nodeString = JSON.toJSONString(node);
 
 				try {
 					if (LOGGER.isDebugEnabled()) {
@@ -298,7 +299,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 
 		for (String nodeId : members) {
 			byte[] data = zk.getData(membershipNode + NODE_SEPARATOR + nodeId, false, null);
-			Node node = XmlUtil.unmarshal(new String(data), Node.class);
+			Node node = JSON.parseObject(new String(data), Node.class);
 			if (node != null) {
 				boolean available = false;
 				for (String availableNode : availableSet) {
@@ -421,7 +422,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 			LOGGER.debug("Verifying ZooKeeper structure...");
 		}
 
-		for (String path : new String[] { rootNode, applicationNode, serviceNode, membershipNode, availabilityNode, eventNode }) {
+		for (String path : new String[] { rootNode, serviceGroupNode, serviceNode, membershipNode, availabilityNode, eventNode }) {
 			try {
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Ensuring {} exists", path);
@@ -452,6 +453,10 @@ public class ZooKeeperClusterManager implements ClusterManager {
 			LOGGER.error("Unhandled exception while working with ZooKeeper", ex);
 		}
 
+	}
+
+	interface ZooKeeperStatement {
+		void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException;
 	}
 
 	public void setClusterNotification(ClusterNotification clusterNotification) {

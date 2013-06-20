@@ -1,5 +1,8 @@
 package org.easycluster.easycluster.cluster.netty.serialization;
 
+import java.util.Date;
+import java.util.Map;
+
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.core.ByteUtil;
@@ -12,8 +15,10 @@ import org.easycluster.easycluster.serialization.tlv.decode.decoders.BeanTLVDeco
 import org.easycluster.easycluster.serialization.tlv.decode.decoders.BooleanTLVDecoder;
 import org.easycluster.easycluster.serialization.tlv.decode.decoders.ByteArrayTLVDecoder;
 import org.easycluster.easycluster.serialization.tlv.decode.decoders.ByteTLVDecoder;
+import org.easycluster.easycluster.serialization.tlv.decode.decoders.DateTLVDecoder;
 import org.easycluster.easycluster.serialization.tlv.decode.decoders.IntTLVDecoder;
 import org.easycluster.easycluster.serialization.tlv.decode.decoders.LongTLVDecoder;
+import org.easycluster.easycluster.serialization.tlv.decode.decoders.MapTLVDecoder;
 import org.easycluster.easycluster.serialization.tlv.decode.decoders.ShortTLVDecoder;
 import org.easycluster.easycluster.serialization.tlv.decode.decoders.StringTLVDecoder;
 import org.easycluster.easycluster.serialization.tlv.encode.DefaultEncodeContextFactory;
@@ -23,8 +28,10 @@ import org.easycluster.easycluster.serialization.tlv.encode.encoders.BeanTLVEnco
 import org.easycluster.easycluster.serialization.tlv.encode.encoders.BooleanTLVEncoder;
 import org.easycluster.easycluster.serialization.tlv.encode.encoders.ByteArrayTLVEncoder;
 import org.easycluster.easycluster.serialization.tlv.encode.encoders.ByteTLVEncoder;
+import org.easycluster.easycluster.serialization.tlv.encode.encoders.DateTLVEncoder;
 import org.easycluster.easycluster.serialization.tlv.encode.encoders.IntTLVEncoder;
 import org.easycluster.easycluster.serialization.tlv.encode.encoders.LongTLVEncoder;
+import org.easycluster.easycluster.serialization.tlv.encode.encoders.MapTLVEncoder;
 import org.easycluster.easycluster.serialization.tlv.encode.encoders.ShortTLVEncoder;
 import org.easycluster.easycluster.serialization.tlv.encode.encoders.StringTLVEncoder;
 import org.slf4j.Logger;
@@ -41,16 +48,16 @@ public class TlvBeanSerialization implements Serialization {
 	private byte[]				encryptKey		= null;
 
 	@Override
-	public <T> byte[] serialize(T signal) {
-		if (signal instanceof byte[]) {
-			return (byte[]) signal;
+	public <T> byte[] serialize(T object) {
+		if (object instanceof byte[]) {
+			return (byte[]) object;
 		}
 
-		byte[] bytes = ByteUtil.union(getTlvBeanEncoder().encode(signal,
-				getTlvBeanEncoder().getEncodeContextFactory().createEncodeContext(signal.getClass(), null)));
+		byte[] bytes = ByteUtil.union(getTlvBeanEncoder().encode(object,
+				getTlvBeanEncoder().getEncodeContextFactory().createEncodeContext(object.getClass(), null)));
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("Serialize object {}, and object raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
+			LOGGER.debug("Serialize object {}, and object raw bytes --> {}", ToStringBuilder.reflectionToString(object),
 					ByteUtil.bytesAsHexString(bytes, dumpBytes));
 		}
 
@@ -87,14 +94,14 @@ public class TlvBeanSerialization implements Serialization {
 			}
 		}
 
-		T signal = (T) getTlvBeanDecoder().decode(bytes.length, bytes, getTlvBeanDecoder().getDecodeContextFactory().createDecodeContext(type, null));
+		T object = (T) getTlvBeanDecoder().decode(bytes.length, bytes, getTlvBeanDecoder().getDecodeContextFactory().createDecodeContext(type, null));
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
 			LOGGER.debug("Deserialize object raw bytes --> {}, deserialized object:{}", ByteUtil.bytesAsHexString(bytes, dumpBytes),
-					ToStringBuilder.reflectionToString(signal));
+					ToStringBuilder.reflectionToString(object));
 		}
 
-		return signal;
+		return object;
 	}
 
 	public TLVEncoderOfBean getTlvBeanEncoder() {
@@ -112,6 +119,8 @@ public class TlvBeanSerialization implements Serialization {
 			encoderRepository.add(boolean.class, new BooleanTLVEncoder());
 			encoderRepository.add(Boolean.class, new BooleanTLVEncoder());
 			encoderRepository.add(String.class, new StringTLVEncoder());
+			encoderRepository.add(Date.class, new DateTLVEncoder());
+			encoderRepository.add(Map.class, new MapTLVEncoder());
 
 			DefaultEncodeContextFactory encodeContextFactory = new DefaultEncodeContextFactory();
 			encodeContextFactory.setEncoderRepository(encoderRepository);
@@ -146,6 +155,8 @@ public class TlvBeanSerialization implements Serialization {
 			decoderRepository.add(boolean.class, new BooleanTLVDecoder());
 			decoderRepository.add(Boolean.class, new BooleanTLVDecoder());
 			decoderRepository.add(String.class, new StringTLVDecoder());
+			decoderRepository.add(Date.class, new DateTLVDecoder());
+			decoderRepository.add(Map.class, new MapTLVDecoder());
 
 			DefaultDecodeContextFactory decodeContextFactory = new DefaultDecodeContextFactory();
 			decodeContextFactory.setDecoderRepository(decoderRepository);

@@ -23,15 +23,15 @@ public class KvBeanSerialization implements Serialization {
 	private byte[]				encryptKey		= null;
 
 	@Override
-	public <T> byte[] serialize(T signal) {
-		if (signal instanceof byte[]) {
-			return (byte[]) signal;
+	public <T> byte[] serialize(T object) {
+		if (object instanceof byte[]) {
+			return (byte[]) object;
 		}
 
-		String text = kvCodec.encode(kvCodec.getEncContextFactory().createEncContext(signal, signal.getClass()));
+		String text = kvCodec.encode(kvCodec.getEncContextFactory().createEncContext(object, object.getClass()));
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("Serialize object {}, and object as KV --> {}", ToStringBuilder.reflectionToString(signal), text);
+			LOGGER.debug("Serialize object {}, and object as KV --> {}", ToStringBuilder.reflectionToString(object), text);
 		}
 
 		byte[] bytes = null;
@@ -41,7 +41,7 @@ public class KvBeanSerialization implements Serialization {
 		}
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("Serialize object {}, and object raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
+			LOGGER.debug("Serialize object {}, and object raw bytes --> {}", ToStringBuilder.reflectionToString(object),
 					ByteUtil.bytesAsHexString(bytes, dumpBytes));
 		}
 
@@ -84,14 +84,14 @@ public class KvBeanSerialization implements Serialization {
 		} catch (UnsupportedEncodingException ingore) {
 		}
 
-		T signal = (T) kvCodec.decode(kvCodec.getDecContextFactory().createDecContext(text, type, null));
+		T object = (T) kvCodec.decode(kvCodec.getDecContextFactory().createDecContext(text, type, null));
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
 			LOGGER.debug("Deserialize object raw bytes --> {}, deserialized object:{}", ByteUtil.bytesAsHexString(bytes, dumpBytes),
-					ToStringBuilder.reflectionToString(signal));
+					ToStringBuilder.reflectionToString(object));
 		}
 
-		return signal;
+		return object;
 	}
 
 	public void setKvCodec(KVCodec kvCodec) {

@@ -40,8 +40,8 @@ public class TcpNetworkTestCase {
 	public void testInvalidMessage() throws Exception {
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
-		clientConfig.setApplicationName("app");
-		clientConfig.setServiceName("test");
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		SerializationConfig codecConfig = new SerializationConfig();
 		clientConfig.setSerializationConfig(codecConfig);
@@ -60,8 +60,8 @@ public class TcpNetworkTestCase {
 		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
-		serverConfig.setApplicationName("app");
-		serverConfig.setServiceName("test");
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
 		SerializationConfig codecConfig = new SerializationConfig();
@@ -73,8 +73,8 @@ public class TcpNetworkTestCase {
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
-		clientConfig.setApplicationName("app");
-		clientConfig.setServiceName("test");
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
@@ -119,8 +119,8 @@ public class TcpNetworkTestCase {
 		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
-		serverConfig.setApplicationName("app");
-		serverConfig.setServiceName("test");
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
 		SerializationConfig codecConfig = new SerializationConfig();
@@ -135,8 +135,8 @@ public class TcpNetworkTestCase {
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
-		clientConfig.setApplicationName("app");
-		clientConfig.setServiceName("test");
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
@@ -175,8 +175,8 @@ public class TcpNetworkTestCase {
 		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
-		serverConfig.setApplicationName("app");
-		serverConfig.setServiceName("test");
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
 		SerializationConfig codecConfig = new SerializationConfig();
@@ -191,8 +191,8 @@ public class TcpNetworkTestCase {
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
-		clientConfig.setApplicationName("app");
-		clientConfig.setServiceName("test");
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
@@ -231,8 +231,8 @@ public class TcpNetworkTestCase {
 		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
-		serverConfig.setApplicationName("app");
-		serverConfig.setServiceName("test");
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
 		SerializationConfig codecConfig = new SerializationConfig();
@@ -247,8 +247,8 @@ public class TcpNetworkTestCase {
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
-		clientConfig.setApplicationName("app");
-		clientConfig.setServiceName("test");
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
@@ -280,6 +280,62 @@ public class TcpNetworkTestCase {
 	}
 
 	@Test
+	public void testSend_kv() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.cluster");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setDecodeBytesDebugEnabled(true);
+		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeType(SerializeType.KV);
+		serverConfig.setSerializationConfig(codecConfig);
+
+		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
+		nettyNetworkServer.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientCodecConfig.setDecodeBytesDebugEnabled(true);
+		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeType(SerializeType.KV);
+		clientConfig.setSerializationConfig(clientCodecConfig);
+
+		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
+		nettyNetworkClient.start();
+
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
+
+		request.setByteArrayField(new byte[] { 127 });
+
+		Future<Object> future = nettyNetworkClient.sendMessage(request);
+
+		System.out.println("Result: " + future.get(1800, TimeUnit.SECONDS));
+		
+		nettyNetworkClient.stop();
+		nettyNetworkServer.stop();
+	}
+		
+	@Test
 	public void testSend_batchBinary() throws Exception {
 
 		List<String> packages = new ArrayList<String>();
@@ -287,8 +343,8 @@ public class TcpNetworkTestCase {
 		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
-		serverConfig.setApplicationName("app");
-		serverConfig.setServiceName("test");
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
 		SerializationConfig codecConfig = new SerializationConfig();
@@ -299,8 +355,8 @@ public class TcpNetworkTestCase {
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
-		clientConfig.setApplicationName("app");
-		clientConfig.setServiceName("test");
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		clientConfig.setWriteTimeoutMillis(1000);
 		clientConfig.setStaleRequestTimeoutMins(30);
@@ -370,8 +426,8 @@ public class TcpNetworkTestCase {
 		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
-		serverConfig.setApplicationName("app");
-		serverConfig.setServiceName("test");
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
 		SerializationConfig codecConfig = new SerializationConfig();
@@ -383,8 +439,8 @@ public class TcpNetworkTestCase {
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
-		clientConfig.setApplicationName("app");
-		clientConfig.setServiceName("test");
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
@@ -453,8 +509,8 @@ public class TcpNetworkTestCase {
 		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
-		serverConfig.setApplicationName("app");
-		serverConfig.setServiceName("test");
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig.setPort(6000);
 		SerializationConfig codecConfig = new SerializationConfig();
@@ -466,8 +522,8 @@ public class TcpNetworkTestCase {
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
-		clientConfig.setApplicationName("app");
-		clientConfig.setServiceName("test");
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		clientConfig.setWriteTimeoutMillis(1000);
 		clientConfig.setStaleRequestTimeoutMins(30);

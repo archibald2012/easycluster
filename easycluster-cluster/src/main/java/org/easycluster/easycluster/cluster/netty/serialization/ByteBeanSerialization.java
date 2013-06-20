@@ -37,20 +37,20 @@ public class ByteBeanSerialization implements Serialization {
 	private byte[]				encryptKey		= null;
 
 	@Override
-	public <T> byte[] serialize(T signal) {
-		if (signal instanceof byte[]) {
-			return (byte[]) signal;
+	public <T> byte[] serialize(T object) {
+		if (object instanceof byte[]) {
+			return (byte[]) object;
 		}
 
-		SignalCode attr = signal.getClass().getAnnotation(SignalCode.class);
+		SignalCode attr = object.getClass().getAnnotation(SignalCode.class);
 		if (null == attr) {
 			throw new InvalidMessageException("invalid signal, no messageCode defined.");
 		}
 
-		byte[] bytes = getBeanFieldCodec().encode(getBeanFieldCodec().getEncContextFactory().createEncContext(signal, signal.getClass(), null));
+		byte[] bytes = getBeanFieldCodec().encode(getBeanFieldCodec().getEncContextFactory().createEncContext(object, object.getClass(), null));
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("Serialize object {}, and object raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
+			LOGGER.debug("Serialize object {}, and object raw bytes --> {}", ToStringBuilder.reflectionToString(object),
 					ByteUtil.bytesAsHexString(bytes, dumpBytes));
 		}
 
@@ -87,14 +87,14 @@ public class ByteBeanSerialization implements Serialization {
 			}
 		}
 
-		T signal = (T) getBeanFieldCodec().decode(getBeanFieldCodec().getDecContextFactory().createDecContext(bytes, type, null, null)).getValue();
+		T object = (T) getBeanFieldCodec().decode(getBeanFieldCodec().getDecContextFactory().createDecContext(bytes, type, null, null)).getValue();
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
 			LOGGER.debug("Deserialize object raw bytes --> {}, deserialized object:{}", ByteUtil.bytesAsHexString(bytes, dumpBytes),
-					ToStringBuilder.reflectionToString(signal));
+					ToStringBuilder.reflectionToString(object));
 		}
 
-		return signal;
+		return object;
 	}
 
 	public void setBeanFieldCodec(BeanFieldCodec beanFieldCodec) {

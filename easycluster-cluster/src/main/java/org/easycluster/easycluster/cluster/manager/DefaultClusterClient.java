@@ -21,18 +21,18 @@ public class DefaultClusterClient implements ClusterClient {
 
 	private ClusterNotification		clusterNotification	= null;
 	private ClusterManager			clusterManager		= null;
-	private String					applicationName		= null;
-	private String					serviceName			= null;
+	private String					serviceGroup		= null;
+	private String					service			= null;
 	private AtomicBoolean			shutdownSwitch		= new AtomicBoolean(false);
 	private AtomicBoolean			startedSwitch		= new AtomicBoolean(false);
 	private ClusterEventHandler		clusterEventHandler	= null;
 
 	private volatile CountDownLatch	connectedLatch		= new CountDownLatch(1);
 
-	public DefaultClusterClient(String applicationName, String serviceName) {
-		this.applicationName = applicationName;
-		this.serviceName = serviceName;
-		this.clusterNotification = new ClusterNotification(serviceName);
+	public DefaultClusterClient(String serviceGroup, String service) {
+		this.serviceGroup = serviceGroup;
+		this.service = service;
+		this.clusterNotification = new ClusterNotification(service);
 	}
 
 	@Override
@@ -81,13 +81,13 @@ public class DefaultClusterClient implements ClusterClient {
 	}
 
 	@Override
-	public String getApplicationName() {
-		return applicationName;
+	public String getServiceGroup() {
+		return serviceGroup;
 	}
 
 	@Override
-	public String getServiceName() {
-		return serviceName;
+	public String getService() {
+		return service;
 	}
 
 	@Override

@@ -39,7 +39,7 @@ public class BaseNetworkClient {
 	protected volatile boolean		connected		= false;
 
 	public BaseNetworkClient(final NetworkClientConfig config) {
-		clusterClient = new ZooKeeperClusterClient(config.getApplicationName(), config.getServiceName(), config.getZooKeeperConnectString(),
+		clusterClient = new ZooKeeperClusterClient(config.getServiceGroup(), config.getService(), config.getZooKeeperConnectString(),
 				config.getZooKeeperSessionTimeoutMillis());
 	}
 

@@ -1,23 +1,11 @@
 package org.easycluster.easycluster.cluster;
 
-/**
- * A container for defaults related to the networking code.
- */
 public interface NetworkDefaults {
 
-	/**
-	 * The default maximum number of times to try to open a socket.
-	 */
 	int		MAX_RETRY_COUNT							= 20;
 
-	/**
-	 * The default number of milliseconds to wait for retry opening a socket.
-	 */
 	long	RETRY_TIMEOUT_MILLIS					= 30000;
 
-	/**
-	 * The default number of milliseconds to wait for retry opening a socket.
-	 */
 	int		ALLIDLE_TIMEOUT_MILLIS					= 90000;
 
 	int		MAX_CONNECTIONS_PER_NODE				= 5;

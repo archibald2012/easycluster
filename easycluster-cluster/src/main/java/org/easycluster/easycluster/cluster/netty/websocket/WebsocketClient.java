@@ -25,7 +25,7 @@ public class WebsocketClient extends NetworkClient {
 	public WebsocketClient(final NetworkClientConfig config, final LoadBalancerFactory loadBalancerFactory) {
 		super(config, loadBalancerFactory);
 
-		ExecutorService executor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("client-pool-%s", config.getServiceName())));
+		ExecutorService executor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("client-pool-%s", config.getService())));
 		ClientBootstrap bootstrap = new ClientBootstrap(new NioClientSocketChannelFactory(executor, executor));
 
 //		final SimpleChannelHandler handler = new WebSocketClientHandler(messageRegistry, config.getStaleRequestTimeoutMins(),
