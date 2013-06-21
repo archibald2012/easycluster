@@ -161,8 +161,13 @@ public class TcpNetworkTestCase {
 
 		Future<Object> future = nettyNetworkClient.sendMessage(request);
 
-		System.out.println("Result: " + future.get(20, TimeUnit.SECONDS));
-		
+		SampleResponse assertobj = (SampleResponse)future.get(1800, TimeUnit.SECONDS);
+		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
+				
 		nettyNetworkClient.stop();
 		nettyNetworkServer.stop();
 	}
@@ -183,7 +188,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		codecConfig.setDecodeBytesDebugEnabled(true);
 		codecConfig.setEncodeBytesDebugEnabled(true);
-		codecConfig.setSerializeType(SerializeType.BINARY);
+		codecConfig.setSerializeType(SerializeType.BYTE_BEAN);
 		serverConfig.setSerializationConfig(codecConfig);
 
 		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
@@ -199,7 +204,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientCodecConfig.setDecodeBytesDebugEnabled(true);
 		clientCodecConfig.setEncodeBytesDebugEnabled(true);
-		clientCodecConfig.setSerializeType(SerializeType.BINARY);
+		clientCodecConfig.setSerializeType(SerializeType.BYTE_BEAN);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
 		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
@@ -217,7 +222,12 @@ public class TcpNetworkTestCase {
 
 		Future<Object> future = nettyNetworkClient.sendMessage(request);
 
-		System.out.println("Result: " + future.get(1800, TimeUnit.SECONDS));
+		SampleResponse assertobj = (SampleResponse)future.get(1800, TimeUnit.SECONDS);
+		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
 		
 		nettyNetworkClient.stop();
 		nettyNetworkServer.stop();
@@ -273,7 +283,73 @@ public class TcpNetworkTestCase {
 
 		Future<Object> future = nettyNetworkClient.sendMessage(request);
 
-		System.out.println("Result: " + future.get(1800, TimeUnit.SECONDS));
+		SampleResponse assertobj = (SampleResponse)future.get(1800, TimeUnit.SECONDS);
+		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
+		
+		nettyNetworkClient.stop();
+		nettyNetworkServer.stop();
+	}
+	
+	@Test
+	public void testSend_xml() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.cluster");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setDecodeBytesDebugEnabled(true);
+		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeType(SerializeType.XML);
+		serverConfig.setSerializationConfig(codecConfig);
+
+		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
+		nettyNetworkServer.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientCodecConfig.setDecodeBytesDebugEnabled(true);
+		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeType(SerializeType.XML);
+		clientConfig.setSerializationConfig(clientCodecConfig);
+
+		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
+		nettyNetworkClient.start();
+
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
+
+		request.setByteArrayField(new byte[] { 127 });
+
+		Future<Object> future = nettyNetworkClient.sendMessage(request);
+
+		SampleResponse assertobj = (SampleResponse)future.get(1800, TimeUnit.SECONDS);
+		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
 		
 		nettyNetworkClient.stop();
 		nettyNetworkServer.stop();
@@ -329,7 +405,12 @@ public class TcpNetworkTestCase {
 
 		Future<Object> future = nettyNetworkClient.sendMessage(request);
 
-		System.out.println("Result: " + future.get(1800, TimeUnit.SECONDS));
+		SampleResponse assertobj = (SampleResponse)future.get(1800, TimeUnit.SECONDS);
+		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
 		
 		nettyNetworkClient.stop();
 		nettyNetworkServer.stop();
@@ -530,6 +611,91 @@ public class TcpNetworkTestCase {
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientCodecConfig.setSerializeType(SerializeType.TLV);
+		clientConfig.setSerializationConfig(clientCodecConfig);
+
+		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
+		nettyNetworkClient.start();
+
+		int num = 50000;
+
+		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
+
+		for (int i = 0; i < num; i++) {
+			SampleRequest request = new SampleRequest();
+			request.setIntField(1);
+			request.setShortField((byte) 1);
+			request.setByteField((byte) 1);
+			request.setLongField(1L);
+			request.setStringField("test");
+			request.setByteArrayField(new byte[] { 127 });
+
+			client1Requests.add(request);
+		}
+
+		final AtomicInteger count = new AtomicInteger();
+		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new MessageClosure<SampleRequest, SampleResponse>() {
+
+			@Override
+			public SampleResponse execute(SampleRequest input) {
+				count.incrementAndGet();
+				SampleResponse response = new SampleResponse();
+
+				return response;
+			}
+		});
+
+		long startTime = System.nanoTime();
+
+		final List<Future<Object>> futures = new ArrayList<Future<Object>>(num);
+
+		for (int i = 0; i < num; i++) {
+			futures.add(nettyNetworkClient.sendMessage(client1Requests.get(i)));
+		}
+
+		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
+		for (int i = 0; i < num; i++) {
+			client1Responses.add((SampleResponse) futures.get(i).get(1800, TimeUnit.SECONDS));
+		}
+		Assert.assertEquals(num, count.get());
+		Assert.assertEquals(num, client1Responses.size());
+
+		long endTime = System.nanoTime();
+		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
+
+		nettyNetworkClient.stop();
+		nettyNetworkServer.stop();
+	}
+	
+	@Test
+	public void testSend_batchKv() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.cluster");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setSerializeType(SerializeType.KV);
+		serverConfig.setSerializationConfig(codecConfig);
+
+		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		clientConfig.setWriteTimeoutMillis(1000);
+		clientConfig.setStaleRequestTimeoutMins(30);
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientCodecConfig.setSerializeType(SerializeType.KV);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
 		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());

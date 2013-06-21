@@ -2,9 +2,10 @@ package org.easycluster.easycluster.cluster;
 
 import java.net.InetSocketAddress;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 
 public class Node implements Comparable<Node> {
 
@@ -138,16 +139,6 @@ public class Node implements Comparable<Node> {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder("Node[");
-		sb.append("applicationName=[").append(serviceGroup).append("],");
-		sb.append("serviceName=[").append(service).append("],");
-		sb.append("hostName=[").append(hostName).append("],");
-		sb.append("port=[").append(port).append("],");
-		sb.append("version=[").append(version).append("],");
-		sb.append("partitions=[").append(ArrayUtils.toString(partitions)).append("],");
-		sb.append("url=[").append(url).append("],");
-		sb.append("available=[").append(available).append("]");
-		sb.append("]");
-		return sb.toString();
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 	}
 }

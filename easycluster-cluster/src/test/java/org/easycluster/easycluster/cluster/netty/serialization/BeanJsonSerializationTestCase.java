@@ -1,18 +1,19 @@
 package org.easycluster.easycluster.cluster.netty.serialization;
 
 import org.easycluster.easycluster.cluster.SampleRequest;
-import org.easycluster.easycluster.cluster.netty.serialization.ByteBeanSerialization;
+import org.easycluster.easycluster.cluster.netty.serialization.BeanJsonSerialization;
 import org.easycluster.easycluster.core.ByteUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class ByteBeanSerializationTestCase {
+public class BeanJsonSerializationTestCase {
 
 	@Test
 	public void test() {
 
-		ByteBeanSerialization encoder = new ByteBeanSerialization();
+		BeanJsonSerialization encoder = new BeanJsonSerialization();
 		encoder.setDebugEnabled(true);
+		encoder.setEncryptKey("izmFNROXQ98C3w3T8tTiDD/ril0TlAzJGuEY+WiagsN19YPz3ewZJPIsLH4JBp2mUDwr5mfv1y7mPNLAnnndSQbklhcpK/aZXJfO7xxuLt2Z9/xRX7J6DcxlHa9LTOfhloXHrlFeOVGbX1O8Et4t6DvFdZOh2SIendLNsF");
 
 		SampleRequest request = new SampleRequest();
 		request.setIntField(1);

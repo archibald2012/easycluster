@@ -1,9 +1,18 @@
 package org.easycluster.easycluster.cluster;
 
+import java.io.Serializable;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.easycluster.easycluster.serialization.bytebean.annotation.ByteField;
+import org.easycluster.easycluster.serialization.kv.annotation.KeyValueAttribute;
 import org.easycluster.easycluster.serialization.protocol.annotation.SignalCode;
 import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
 import org.easycluster.easycluster.serialization.protocol.xip.XipRequest;
@@ -16,31 +25,51 @@ import org.easycluster.easycluster.serialization.tlv.annotation.TLVAttribute;
  * @version $Id: SampleSignal.java 4 2012-01-10 11:51:54Z archie $
  */
 @SignalCode(messageCode = 0x121)
-public class SampleRequest extends AbstractXipSignal implements XipRequest {
+@XmlRootElement(name = "node")
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "Node", propOrder = { "intField", "byteField", "stringField", "byteArrayField", "shortField", "longField" })
+public class SampleRequest extends AbstractXipSignal implements XipRequest, Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long	serialVersionUID	= 1L;
 
 	@ByteField(index = 0)
 	@TLVAttribute(tag = 0)
-	private int		intField;
+	@KeyValueAttribute(key = "intField")
+	@XmlElement(name = "intField", required = true)
+	private int					intField;
 
 	@ByteField(index = 1)
 	@TLVAttribute(tag = 1)
-	private byte	byteField;
+	@KeyValueAttribute
+	@XmlElement(name = "byteField", required = true)
+	private byte				byteField;
 
 	@ByteField(index = 2)
 	@TLVAttribute(tag = 2)
-	private String	stringField		= "";
+	@KeyValueAttribute
+	@XmlElement(name = "stringField", required = true)
+	private String				stringField			= "";
 
 	@ByteField(index = 3)
 	@TLVAttribute(tag = 3)
-	private byte[]	byteArrayField	= new byte[0];
+	@KeyValueAttribute
+	@XmlElement(name = "byteArrayField", required = true)
+	private byte[]				byteArrayField		= new byte[0];
 
 	@ByteField(index = 4)
-	@TLVAttribute(tag =4)
-	private short	shortField;
+	@TLVAttribute(tag = 4)
+	@KeyValueAttribute
+	@XmlElement(name = "shortField", required = true)
+	private short				shortField;
 
 	@ByteField(index = 5)
 	@TLVAttribute(tag = 5)
-	private long	longField;
+	@KeyValueAttribute
+	@XmlElement(name = "longField", required = true)
+	private long				longField;
 
 	public int getIntField() {
 		return intField;

@@ -16,7 +16,7 @@ public class SampleMessageClosure implements MessageClosure<SampleRequest, Sampl
 		response.setIntField(input.getIntField());
 		response.setLongField(input.getLongField());
 		response.setByteField(input.getByteField());
-		response.setStringField(input.getStringField() + "resp");
+		response.setStringField(input.getStringField());
 		response.setShortField(input.getShortField());
 		response.setByteArrayField(input.getByteArrayField());
 		return response;

@@ -23,13 +23,12 @@ import org.easycluster.easycluster.serialization.bytebean.codec.primitive.ShortC
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultDecContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultEncContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.field.DefaultField2Desc;
-import org.easycluster.easycluster.serialization.protocol.annotation.SignalCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ByteBeanSerialization implements Serialization {
+public class BeanBinarySerialization implements Serialization {
 
-	private static final Logger	LOGGER			= LoggerFactory.getLogger(ByteBeanSerialization.class);
+	private static final Logger	LOGGER			= LoggerFactory.getLogger(BeanBinarySerialization.class);
 
 	private BeanFieldCodec		beanFieldCodec	= null;
 	private int					dumpBytes		= 256;
@@ -40,11 +39,6 @@ public class ByteBeanSerialization implements Serialization {
 	public <T> byte[] serialize(T object) {
 		if (object instanceof byte[]) {
 			return (byte[]) object;
-		}
-
-		SignalCode attr = object.getClass().getAnnotation(SignalCode.class);
-		if (null == attr) {
-			throw new InvalidMessageException("invalid signal, no messageCode defined.");
 		}
 
 		byte[] bytes = getBeanFieldCodec().encode(getBeanFieldCodec().getEncContextFactory().createEncContext(object, object.getClass(), null));
@@ -76,6 +70,9 @@ public class ByteBeanSerialization implements Serialization {
 	public <T> T deserialize(byte[] bytes, Class<T> type) {
 		if (bytes.length > 0 && encryptKey != null) {
 			try {
+				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+					LOGGER.debug("Before decryption, object raw bytes --> {}", ByteUtil.bytesAsHexString(bytes, dumpBytes));
+				}
 				bytes = DES.decryptThreeDESECB(bytes, encryptKey);
 				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
 					LOGGER.debug("After decryption, object raw bytes --> {}", ByteUtil.bytesAsHexString(bytes, dumpBytes));

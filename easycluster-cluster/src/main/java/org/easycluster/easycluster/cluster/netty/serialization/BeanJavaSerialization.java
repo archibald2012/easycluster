@@ -1,44 +1,42 @@
 package org.easycluster.easycluster.cluster.netty.serialization;
 
-import java.io.UnsupportedEncodingException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
+import org.easycluster.easycluster.cluster.exception.SerializeException;
 import org.easycluster.easycluster.core.ByteUtil;
 import org.easycluster.easycluster.core.DES;
-import org.easycluster.easycluster.serialization.kv.codec.DefaultKVCodec;
-import org.easycluster.easycluster.serialization.kv.codec.KVCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class KvBeanSerialization implements Serialization {
+public class BeanJavaSerialization implements Serialization {
 
-	private static final Logger	LOGGER			= LoggerFactory.getLogger(KvBeanSerialization.class);
+	private static final Logger	LOGGER			= LoggerFactory.getLogger(BeanJavaSerialization.class);
 
-	private static final String	ENCODING		= "UTF-8";
-
-	private KVCodec				kvCodec			= new DefaultKVCodec();
 	private int					dumpBytes		= 256;
 	private boolean				isDebugEnabled	= false;
 	private byte[]				encryptKey		= null;
 
 	@Override
 	public <T> byte[] serialize(T object) {
-		if (object instanceof byte[]) {
-			return (byte[]) object;
-		}
 
-		String text = kvCodec.encode(kvCodec.getEncContextFactory().createEncContext(object, object.getClass()));
-
-		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("Serialize object {}, and object as KV --> {}", ToStringBuilder.reflectionToString(object), text);
-		}
-
-		byte[] bytes = null;
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		try {
-			bytes = text.getBytes(ENCODING);
-		} catch (UnsupportedEncodingException ignore) {
+			ObjectOutputStream out = new ObjectOutputStream(outputStream);
+			out.writeObject(object);
+			out.close();
+		} catch (IOException e) {
+			String errorMsg = "Failed to serialize the object with error: " + e.getMessage();
+			LOGGER.error(errorMsg);
+			throw new SerializeException(errorMsg, e);
 		}
+
+		byte[] bytes = outputStream.toByteArray();
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
 			LOGGER.debug("Serialize object {}, and object raw bytes --> {}", ToStringBuilder.reflectionToString(object),
@@ -64,9 +62,12 @@ public class KvBeanSerialization implements Serialization {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T deserialize(byte[] bytes, Class<T> type) {
+	public <T> T deserialize(byte[] bytes, Class<T> clazz) {
 		if (bytes.length > 0 && encryptKey != null) {
 			try {
+				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+					LOGGER.debug("Before decryption, object raw bytes --> {}", ByteUtil.bytesAsHexString(bytes, dumpBytes));
+				}
 				bytes = DES.decryptThreeDESECB(bytes, encryptKey);
 				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
 					LOGGER.debug("After decryption, object raw bytes --> {}", ByteUtil.bytesAsHexString(bytes, dumpBytes));
@@ -78,13 +79,23 @@ public class KvBeanSerialization implements Serialization {
 			}
 		}
 
-		String text = null;
-		try {
-			text = new String(bytes, ENCODING);
-		} catch (UnsupportedEncodingException ingore) {
-		}
+		T object = null;
 
-		T object = (T) kvCodec.decode(kvCodec.getDecContextFactory().createDecContext(text, type, null));
+		ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+
+		try {
+			ObjectInputStream in = new ObjectInputStream(inputStream);
+			object = (T) in.readObject();
+			in.close();
+		} catch (IOException e) {
+			String errorMsg = "Failed to deserialize the object with io error: " + e.getMessage();
+			LOGGER.error(errorMsg);
+			throw new SerializeException(errorMsg, e);
+		} catch (ClassNotFoundException e) {
+			String errorMsg = "Failed to deserialize the object with class not found error: " + e.getMessage();
+			LOGGER.error(errorMsg);
+			throw new SerializeException(errorMsg, e);
+		}
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
 			LOGGER.debug("Deserialize object raw bytes --> {}, deserialized object:{}", ByteUtil.bytesAsHexString(bytes, dumpBytes),
@@ -92,10 +103,6 @@ public class KvBeanSerialization implements Serialization {
 		}
 
 		return object;
-	}
-
-	public void setKvCodec(KVCodec kvCodec) {
-		this.kvCodec = kvCodec;
 	}
 
 	public void setDumpBytes(int dumpBytes) {
@@ -111,4 +118,5 @@ public class KvBeanSerialization implements Serialization {
 			this.encryptKey = encryptKey.getBytes();
 		}
 	}
+
 }

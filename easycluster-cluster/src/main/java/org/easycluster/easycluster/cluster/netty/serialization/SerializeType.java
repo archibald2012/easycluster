@@ -1,8 +1,14 @@
 package org.easycluster.easycluster.cluster.netty.serialization;
 
+/**
+ * 一般情况下，序列化后的字节数 BYTE_BEAN < TLV < KV < JSON < JAVA < XML
+ * 
+ * @author wangqi
+ * 
+ */
 public enum SerializeType {
 
-	BINARY,
+	BYTE_BEAN,
 
 	/**
 	 * TLV(Tag,Length,Value)三元组，在数据通讯协议里，可选信息可以编码为type-length-value格式。T、
@@ -15,11 +21,6 @@ public enum SerializeType {
 	JSON,
 
 	XML,
-
-	/**
-	 * Google Protocol Buffers
-	 */
-	PROTOBUF,
 
 	JAVA,
 

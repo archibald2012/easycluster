@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 
-public class JsonBeanSerialization implements Serialization {
+public class BeanJsonSerialization implements Serialization {
 
-	private static final Logger	LOGGER			= LoggerFactory.getLogger(JsonBeanSerialization.class);
+	private static final Logger	LOGGER			= LoggerFactory.getLogger(BeanJsonSerialization.class);
 
 	private static final String	ENCODING		= "UTF-8";
 
@@ -64,9 +64,12 @@ public class JsonBeanSerialization implements Serialization {
 	public <T> T deserialize(byte[] bytes, Class<T> type) {
 		if (bytes.length > 0 && encryptKey != null) {
 			try {
+				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+					LOGGER.debug("Before decryption, object raw bytes --> {}", ByteUtil.bytesAsHexString(bytes, dumpBytes));
+				}
 				bytes = DES.decryptThreeDESECB(bytes, encryptKey);
 				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-					LOGGER.debug("Deserialize type -> {}, object raw bytes --> {}", type.getName(), ByteUtil.bytesAsHexString(bytes, dumpBytes));
+					LOGGER.debug("After decryption, object raw bytes --> {}", ByteUtil.bytesAsHexString(bytes, dumpBytes));
 				}
 			} catch (Exception e) {
 				String error = "Failed to decrypt the bytes due to error " + e.getMessage();

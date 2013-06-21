@@ -8,7 +8,7 @@ public class SerializationConfig {
 	/**
 	 * The serialize type, binary as default.
 	 */
-	private SerializeType		serializeType			= SerializeType.BINARY;
+	private SerializeType		serializeType			= SerializeType.BYTE_BEAN;
 
 	/**
 	 * The type meta info mapping.

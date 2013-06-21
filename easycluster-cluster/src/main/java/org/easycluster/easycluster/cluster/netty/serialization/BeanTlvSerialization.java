@@ -37,9 +37,9 @@ import org.easycluster.easycluster.serialization.tlv.encode.encoders.StringTLVEn
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TlvBeanSerialization implements Serialization {
+public class BeanTlvSerialization implements Serialization {
 
-	private static final Logger	LOGGER			= LoggerFactory.getLogger(TlvBeanSerialization.class);
+	private static final Logger	LOGGER			= LoggerFactory.getLogger(BeanTlvSerialization.class);
 
 	private TLVEncoderOfBean	tlvBeanEncoder	= null;
 	private TLVDecoderOfBean	tlvBeanDecoder	= null;
@@ -83,6 +83,9 @@ public class TlvBeanSerialization implements Serialization {
 	public <T> T deserialize(byte[] bytes, Class<T> type) {
 		if (bytes.length > 0 && encryptKey != null) {
 			try {
+				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+					LOGGER.debug("Before decryption, object raw bytes --> {}", ByteUtil.bytesAsHexString(bytes, dumpBytes));
+				}
 				bytes = DES.decryptThreeDESECB(bytes, encryptKey);
 				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
 					LOGGER.debug("After decryption, object raw bytes --> {}", ByteUtil.bytesAsHexString(bytes, dumpBytes));

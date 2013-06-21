@@ -6,26 +6,38 @@ public class DefaultSerializationFactory implements SerializationFactory {
 
 	public DefaultSerializationFactory(SerializationConfig config) {
 
-		if (SerializeType.BINARY == config.getSerializeType()) {
-			ByteBeanSerialization serializable = new ByteBeanSerialization();
+		if (SerializeType.BYTE_BEAN == config.getSerializeType()) {
+			BeanBinarySerialization serializable = new BeanBinarySerialization();
 			serializable.setDebugEnabled(config.isEncodeBytesDebugEnabled());
 			serializable.setDumpBytes(config.getDumpBytes());
 			serializable.setEncryptKey(config.getEncryptKey());
 			this.serializable = serializable;
 		} else if (SerializeType.JSON == config.getSerializeType()) {
-			JsonBeanSerialization serializable = new JsonBeanSerialization();
+			BeanJsonSerialization serializable = new BeanJsonSerialization();
+			serializable.setDebugEnabled(config.isEncodeBytesDebugEnabled());
+			serializable.setDumpBytes(config.getDumpBytes());
+			serializable.setEncryptKey(config.getEncryptKey());
+			this.serializable = serializable;
+		} else if (SerializeType.XML == config.getSerializeType()) {
+			BeanXmlSerialization serializable = new BeanXmlSerialization();
 			serializable.setDebugEnabled(config.isEncodeBytesDebugEnabled());
 			serializable.setDumpBytes(config.getDumpBytes());
 			serializable.setEncryptKey(config.getEncryptKey());
 			this.serializable = serializable;
 		} else if (SerializeType.TLV == config.getSerializeType()) {
-			TlvBeanSerialization serializable = new TlvBeanSerialization();
+			BeanTlvSerialization serializable = new BeanTlvSerialization();
 			serializable.setDebugEnabled(config.isEncodeBytesDebugEnabled());
 			serializable.setDumpBytes(config.getDumpBytes());
 			serializable.setEncryptKey(config.getEncryptKey());
 			this.serializable = serializable;
 		} else if (SerializeType.KV == config.getSerializeType()) {
-			KvBeanSerialization serializable = new KvBeanSerialization();
+			BeanKvSerialization serializable = new BeanKvSerialization();
+			serializable.setDebugEnabled(config.isEncodeBytesDebugEnabled());
+			serializable.setDumpBytes(config.getDumpBytes());
+			serializable.setEncryptKey(config.getEncryptKey());
+			this.serializable = serializable;
+		} else if (SerializeType.JAVA == config.getSerializeType()) {
+			BeanJavaSerialization serializable = new BeanJavaSerialization();
 			serializable.setDebugEnabled(config.isEncodeBytesDebugEnabled());
 			serializable.setDumpBytes(config.getDumpBytes());
 			serializable.setEncryptKey(config.getEncryptKey());
