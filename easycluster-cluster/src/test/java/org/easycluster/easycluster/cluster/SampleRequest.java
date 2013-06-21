@@ -27,7 +27,7 @@ import org.easycluster.easycluster.serialization.tlv.annotation.TLVAttribute;
 @SignalCode(messageCode = 0x121)
 @XmlRootElement(name = "node")
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Node", propOrder = { "intField", "byteField", "stringField", "byteArrayField", "shortField", "longField" })
+@XmlType(name = "Node", propOrder = { "intField", "byteField", "stringField", "byteArrayField", "shortField", "longField", "nanoTime" })
 public class SampleRequest extends AbstractXipSignal implements XipRequest, Serializable {
 
 	/**
@@ -70,6 +70,12 @@ public class SampleRequest extends AbstractXipSignal implements XipRequest, Seri
 	@KeyValueAttribute
 	@XmlElement(name = "longField", required = true)
 	private long				longField;
+
+	@ByteField(index = 6)
+	@TLVAttribute(tag = 6)
+	@KeyValueAttribute
+	@XmlElement(name = "nanoTime", required = true)
+	private long				nanoTime			= System.nanoTime();
 
 	public int getIntField() {
 		return intField;
@@ -117,6 +123,14 @@ public class SampleRequest extends AbstractXipSignal implements XipRequest, Seri
 
 	public void setByteArrayField(byte[] byteArrayField) {
 		this.byteArrayField = byteArrayField;
+	}
+
+	public long getNanoTime() {
+		return nanoTime;
+	}
+
+	public void setNanoTime(long nanoTime) {
+		this.nanoTime = nanoTime;
 	}
 
 	@Override

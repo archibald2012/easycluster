@@ -59,7 +59,7 @@ public class WebsocketServer extends NetworkServer {
 				config.getService())));
 		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("websocket-server-group-%s", config.getService()));
 
-		final ServerChannelHandler requestHandler = new ServerChannelHandler(channelGroup, messageClosureRegistry, messageExecutor);
+		final ServerChannelHandler requestHandler = new ServerChannelHandler(config.getService(), channelGroup, messageClosureRegistry, messageExecutor);
 		requestHandler.setEndpointListener(config.getEndpointListener());
 
 		ServerBootstrap bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(workerExecutor, workerExecutor));

@@ -1,6 +1,14 @@
 package org.easycluster.easycluster.cluster.netty.tcp;
 
+import java.lang.management.ManagementFactory;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.StandardMBean;
+
+import org.easycluster.easycluster.cluster.common.RequestsTracker;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
+import org.easycluster.easycluster.cluster.netty.NetworkServerStatisticsMBean;
 import org.easycluster.easycluster.cluster.netty.endpoint.DefaultEndpointFactory;
 import org.easycluster.easycluster.cluster.netty.endpoint.Endpoint;
 import org.easycluster.easycluster.cluster.netty.endpoint.EndpointFactory;
@@ -34,10 +42,59 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	private EndpointFactory					endpointFactory			= new DefaultEndpointFactory();
 	private final ChannelLocal<Endpoint>	endpoints				= new ChannelLocal<Endpoint>();
 
-	public ServerChannelHandler(ChannelGroup channelGroup, MessageClosureRegistry messageHandlerRegistry, MessageExecutor messageExecutor) {
+	private String							mbeanObjectName			= "Application:name=NetworkServerStatistics[%s]";
+	private RequestsTracker					rt						= new RequestsTracker();
+
+	public ServerChannelHandler(final String service, final ChannelGroup channelGroup, final MessageClosureRegistry messageHandlerRegistry,
+			final MessageExecutor messageExecutor) {
 		this.channelGroup = channelGroup;
 		this.messageHandlerRegistry = messageHandlerRegistry;
 		this.messageExecutor = messageExecutor;
+
+		rt.start();
+
+		MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
+		try {
+			ObjectName measurementName = new ObjectName(String.format(mbeanObjectName, service));
+			if (mbeanServer.isRegistered(measurementName)) {
+				mbeanServer.unregisterMBean(measurementName);
+			}
+			StandardMBean networkStatisticsMBean = new StandardMBean(new NetworkServerStatisticsMBean() {
+
+				public int getChannels() {
+					return channelGroup.size();
+				}
+
+				public long getRequestCount() {
+					return rt.getHandledTransaction();
+				}
+
+				@Override
+				public long getFinishedCount() {
+					return rt.getFinishedTransaction();
+				}
+
+				@Override
+				public int getFinishedPerSecond() {
+					return rt.getFinishedThroughput();
+				}
+
+				@Override
+				public int getRequestsPerSecond() {
+					return rt.getHandledThroughput();
+				}
+
+			}, NetworkServerStatisticsMBean.class);
+
+			mbeanServer.registerMBean(networkStatisticsMBean, measurementName);
+
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("Registering with JMX server as MBean [" + measurementName + "]");
+			}
+		} catch (Exception e) {
+			String message = "Unable to register MBeans with error " + e.getMessage();
+			LOGGER.error(message, e);
+		}
 	}
 
 	@Override
@@ -56,7 +113,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-		LOGGER.error("channel: [" + e.getChannel().getRemoteAddress() + "], exceptionCaught:", e.getCause());
+		LOGGER.error("channel: [" + e.getChannel().getRemoteAddress() + "], exceptionCaught: ", e.getCause());
 		// ctx.getChannel().close();
 	}
 
@@ -86,6 +143,8 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 			LOGGER.trace("message received: {}", e.getMessage());
 		}
 
+		rt.increaseRequested();
+
 		Channel channel = e.getChannel();
 		Object request = e.getMessage();
 
@@ -94,8 +153,8 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 		if (endpoint == null) {
 			try {
 				Thread.sleep(1000);
-			} catch (InterruptedException e1) {
-				LOGGER.error("", e1);
+			} catch (InterruptedException ex) {
+				LOGGER.error("", ex);
 			}
 			endpoint = getEndpointOfSession(channel);
 		}
@@ -110,6 +169,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 				LOGGER.warn(error);
 				responseHandler.execute(new InvalidMessageException(error));
 			} else {
+
 				messageExecutor.execute(request, responseHandler);
 			}
 
@@ -173,10 +233,12 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 			if (message != null) {
 
 				if (message instanceof Identifiable) {
-					((Identifiable) message).setIdentification((Long)requestId);
+					((Identifiable) message).setIdentification((Long) requestId);
 				}
 
 				endpoint.send(message);
+
+				rt.increaseFinished();
 			}
 		}
 	}

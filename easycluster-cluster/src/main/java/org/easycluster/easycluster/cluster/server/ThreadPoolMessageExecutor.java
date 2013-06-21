@@ -1,9 +1,14 @@
 package org.easycluster.easycluster.cluster.server;
 
+import java.lang.management.ManagementFactory;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.easycluster.easycluster.cluster.common.AverageTimeTracker;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
@@ -19,6 +24,7 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 	private MessageClosureRegistry	messageHandlerRegistry	= null;
 	private ThreadPoolExecutor		threadPool				= null;
 
+	private String					mbeanObjectName			= "Application:name=RequestProcessor[%s]";
 	private AverageTimeTracker		waitTime				= new AverageTimeTracker(100);
 	private AverageTimeTracker		processingTime			= new AverageTimeTracker(100);
 	private AtomicLong				requestCount			= new AtomicLong(0);
@@ -35,10 +41,7 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 				RequestRunner rr = (RequestRunner) r;
 				rr.startedAt = System.currentTimeMillis();
 				waitTime.addTime(rr.startedAt - rr.queuedAt);
-				long requests = requestCount.incrementAndGet();
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("requestCount: {}", requests);
-				}
+				requestCount.incrementAndGet();
 			}
 
 			@Override
@@ -47,7 +50,39 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 			}
 		};
 
-		// TODO register jmx
+		MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
+		try {
+			ObjectName measurementName = new ObjectName(String.format(mbeanObjectName, name));
+			if (mbeanServer.isRegistered(measurementName)) {
+				mbeanServer.unregisterMBean(measurementName);
+			}
+			StandardMBean requestProcessorMBean = new StandardMBean(new ThreadPoolMessageExecutorMBean() {
+				public int getQueueSize() {
+					return threadPool.getQueue().size();
+				}
+
+				public long getAverageWaitTime() {
+					return waitTime.average();
+				}
+
+				public long getAverageProcessingTime() {
+					return processingTime.average();
+				}
+
+				public long getRequestCount() {
+					return requestCount.get();
+				}
+			}, ThreadPoolMessageExecutorMBean.class);
+
+			mbeanServer.registerMBean(requestProcessorMBean, measurementName);
+
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("Registering with JMX server as MBean [" + measurementName + "]");
+			}
+		} catch (Exception e) {
+			String message = "Unable to register MBeans with error " + e.getMessage();
+			LOGGER.error(message, e);
+		}
 	}
 
 	@Override
@@ -58,7 +93,6 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 	@Override
 	public void shutdown() {
 		threadPool.shutdown();
-		// unregister jmx
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("MessageExecutor shut down");
 		}
@@ -102,25 +136,6 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 				closure.execute(ex);
 			}
 
-		}
-	}
-
-	class RequestProcessorMBean {
-
-		public int getQueueSize() {
-			return threadPool.getQueue().size();
-		}
-
-		public long getAverageWaitTime() {
-			return waitTime.average();
-		}
-
-		public long getAverageProcessingTime() {
-			return processingTime.average();
-		}
-
-		public long getRequestCount() {
-			return requestCount.get();
 		}
 	}
 

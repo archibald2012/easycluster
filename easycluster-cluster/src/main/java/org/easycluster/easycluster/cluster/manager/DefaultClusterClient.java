@@ -1,11 +1,16 @@
 package org.easycluster.easycluster.cluster.manager;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.easycluster.easycluster.cluster.Node;
 import org.easycluster.easycluster.cluster.exception.ClusterDisconnectedException;
@@ -22,17 +27,48 @@ public class DefaultClusterClient implements ClusterClient {
 	private ClusterNotification		clusterNotification	= null;
 	private ClusterManager			clusterManager		= null;
 	private String					serviceGroup		= null;
-	private String					service			= null;
+	private String					service				= null;
 	private AtomicBoolean			shutdownSwitch		= new AtomicBoolean(false);
 	private AtomicBoolean			startedSwitch		= new AtomicBoolean(false);
 	private ClusterEventHandler		clusterEventHandler	= null;
-
 	private volatile CountDownLatch	connectedLatch		= new CountDownLatch(1);
+	private String					mbeanObjectName		= "Application:name=ClusterClientMBean[%s]";
 
 	public DefaultClusterClient(String serviceGroup, String service) {
 		this.serviceGroup = serviceGroup;
 		this.service = service;
 		this.clusterNotification = new ClusterNotification(service);
+
+		MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
+		try {
+			ObjectName measurementName = new ObjectName(String.format(mbeanObjectName, service));
+			if (mbeanServer.isRegistered(measurementName)) {
+				mbeanServer.unregisterMBean(measurementName);
+			}
+			StandardMBean clusterClientMBean = new StandardMBean(new ClusterClientMBean() {
+				public String[] getClusterNodes() {
+					Set<Node> nodes = getNodes();
+					List<String> ret = new ArrayList<String>();
+					for (Node node : nodes) {
+						ret.add(node.toString());
+					}
+					return ret.toArray(new String[] {});
+				}
+
+				public boolean isCusterConnected() {
+					return isConnected();
+				}
+			}, ClusterClientMBean.class);
+
+			mbeanServer.registerMBean(clusterClientMBean, measurementName);
+
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("Registering with JMX server as MBean [" + measurementName + "]");
+			}
+		} catch (Exception e) {
+			String message = "Unable to register MBeans with error " + e.getMessage();
+			LOGGER.error(message, e);
+		}
 	}
 
 	@Override
@@ -307,20 +343,4 @@ public class DefaultClusterClient implements ClusterClient {
 		return clusterNotification;
 	}
 
-	class ClusterClientMBean {
-		private ClusterClient	clusterClient;
-
-		public String[] getNodes() {
-			Set<Node> nodes = clusterClient.getNodes();
-			List<String> ret = new ArrayList<String>();
-			for (Node node : nodes) {
-				ret.add(node.toString());
-			}
-			return ret.toArray(new String[] {});
-		}
-
-		public boolean isConnected() {
-			return clusterClient.isConnected();
-		}
-	}
 }

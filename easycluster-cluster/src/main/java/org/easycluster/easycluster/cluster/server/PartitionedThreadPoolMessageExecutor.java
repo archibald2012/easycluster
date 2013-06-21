@@ -24,7 +24,8 @@ public class PartitionedThreadPoolMessageExecutor implements MessageExecutor {
 
 		int index;
 		if (message instanceof AbstractXipSignal) {
-			index = (int) (((AbstractXipSignal) message).getClient() % messageExecutors.size());
+			long client = Math.abs(((AbstractXipSignal) message).getClient());
+			index = (int) (client % messageExecutors.size());
 		} else {
 			index = message.hashCode() % messageExecutors.size();
 		}

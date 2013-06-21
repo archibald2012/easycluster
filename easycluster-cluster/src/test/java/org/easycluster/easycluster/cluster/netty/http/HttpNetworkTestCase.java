@@ -2,6 +2,7 @@ package org.easycluster.easycluster.cluster.netty.http;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -138,7 +139,7 @@ public class HttpNetworkTestCase {
 			request.setByteField((byte) 1);
 			request.setLongField(1L);
 			request.setStringField("test");
-
+			request.setClient(UUID.randomUUID().getMostSignificantBits());
 			request.setByteArrayField(new byte[] { 127 });
 
 			client1Requests.add(request);
@@ -220,6 +221,7 @@ public class HttpNetworkTestCase {
 			request.setByteField((byte) 1);
 			request.setLongField(1L);
 			request.setStringField("test");
+			request.setClient(UUID.randomUUID().getMostSignificantBits());
 			request.setByteArrayField(new byte[] { 127 });
 
 			client1Requests.add(request);
@@ -501,7 +503,7 @@ public class HttpNetworkTestCase {
 			request.setByteField((byte) 1);
 			request.setLongField(1L);
 			request.setStringField("test");
-
+			request.setClient(UUID.randomUUID().getMostSignificantBits());
 			request.setByteArrayField(new byte[] { 127 });
 
 			client1Requests.add(request);
@@ -587,7 +589,7 @@ public class HttpNetworkTestCase {
 			request.setByteField((byte) 1);
 			request.setLongField(1L);
 			request.setStringField("test");
-
+			request.setClient(UUID.randomUUID().getMostSignificantBits());
 			request.setByteArrayField(new byte[] { 127 });
 
 			client1Requests.add(request);

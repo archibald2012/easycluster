@@ -39,7 +39,7 @@ public class TcpServer extends NetworkServer {
 		final SerializationConfig serializationConfig = config.getSerializationConfig();
 		final SerializationFactory serializationFactory = new DefaultSerializationFactory(serializationConfig);
 
-		final ServerChannelHandler requestHandler = new ServerChannelHandler(channelGroup, messageClosureRegistry, messageExecutor);
+		final ServerChannelHandler requestHandler = new ServerChannelHandler(config.getService(), channelGroup, messageClosureRegistry, messageExecutor);
 		requestHandler.setEndpointListener(config.getEndpointListener());
 
 		ServerBootstrap bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(workerExecutor, workerExecutor));

@@ -1,5 +1,6 @@
 package org.easycluster.easycluster.cluster.netty;
 
+import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -7,6 +8,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.easycluster.easycluster.cluster.common.MessageContext;
 import org.easycluster.easycluster.cluster.exception.ChannelPoolClosedException;
@@ -25,21 +30,23 @@ import org.slf4j.LoggerFactory;
  */
 public class ChannelPool {
 
-	private static final Logger				LOGGER			= LoggerFactory.getLogger(ChannelPool.class);
+	private static final Logger				LOGGER				= LoggerFactory.getLogger(ChannelPool.class);
 
-	private InetSocketAddress				address;
-	private int								maxConnections;
-	private int								writeTimeoutMillis;
-	private ClientBootstrap					bootstrap;
-	private ChannelGroup					channelGroup;
+	private InetSocketAddress				address				= null;
+	private ClientBootstrap					bootstrap			= null;
+	private ChannelGroup					channelGroup		= null;
+	private int								maxConnections		= -1;
+	private int								writeTimeoutMillis	= -1;
+	private BlockingQueue<Channel>			pool				= null;
+	private BlockingQueue<MessageContext>	pendingWrites		= null;
+	private AtomicInteger					poolSize			= new AtomicInteger(0);
+	private AtomicBoolean					closed				= new AtomicBoolean(false);
+	private AtomicInteger					requestsSent		= new AtomicInteger(0);
 
-	private BlockingQueue<Channel>			pool			= null;
-	private BlockingQueue<MessageContext>	pendingWrites	= null;
-	private AtomicInteger					poolSize		= new AtomicInteger(0);
-	private AtomicBoolean					closed			= new AtomicBoolean(false);
-	private AtomicInteger					requestsSent	= new AtomicInteger(0);
+	private String							mbeanObjectName		= "Application:name=ChannelPool[%s:%d]";
 
-	public ChannelPool(InetSocketAddress address, int maxConnections, int writeTimeoutMillis, ClientBootstrap bootstrap, ChannelGroup channelGroup) {
+	public ChannelPool(final InetSocketAddress address, final int maxConnections, final int writeTimeoutMillis, final ClientBootstrap bootstrap,
+			final ChannelGroup channelGroup) {
 		this.address = address;
 		this.maxConnections = maxConnections;
 		this.writeTimeoutMillis = writeTimeoutMillis;
@@ -48,6 +55,40 @@ public class ChannelPool {
 
 		pool = new ArrayBlockingQueue<Channel>(maxConnections);
 		pendingWrites = new LinkedBlockingQueue<MessageContext>();
+
+		MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
+		try {
+			ObjectName measurementName = new ObjectName(String.format(mbeanObjectName, address.getHostName(), address.getPort()));
+			if (mbeanServer.isRegistered(measurementName)) {
+				mbeanServer.unregisterMBean(measurementName);
+			}
+			StandardMBean channelPoolMBean = new StandardMBean(new ChannelPoolMBean() {
+				public int getOpenChannels() {
+					return poolSize.get();
+				}
+
+				public int getMaxChannels() {
+					return maxConnections;
+				}
+
+				public int getWriteQueueSize() {
+					return pendingWrites.size();
+				}
+
+				public int getNumberRequestsSent() {
+					return requestsSent.get();
+				}
+			}, ChannelPoolMBean.class);
+
+			mbeanServer.registerMBean(channelPoolMBean, measurementName);
+
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("Registering with JMX server as MBean [" + measurementName + "]");
+			}
+		} catch (Exception e) {
+			String message = "Unable to register MBeans with error " + e.getMessage();
+			LOGGER.error(message, e);
+		}
 	}
 
 	public void sendRequest(MessageContext request) {
@@ -136,10 +177,10 @@ public class ChannelPool {
 		}
 
 		int requestSent = requestsSent.incrementAndGet();
-		if(LOGGER.isDebugEnabled()){
+		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("requestSent: " + requestSent);
 		}
-		
+
 		channel.write(request).addListener(new ChannelFutureListener() {
 			public void operationComplete(ChannelFuture writeFuture) {
 				if (!writeFuture.isSuccess()) {
@@ -153,25 +194,6 @@ public class ChannelPool {
 	public void close() {
 		if (closed.compareAndSet(false, true)) {
 			channelGroup.close().awaitUninterruptibly();
-		}
-	}
-
-	class ChannelPoolMBean {
-
-		public int getOpenChannels() {
-			return poolSize.get();
-		}
-
-		public int getMaxChannels() {
-			return maxConnections;
-		}
-
-		public int getWriteQueueSize() {
-			return pendingWrites.size();
-		}
-
-		public int getNumberRequestsSent() {
-			return requestsSent.get();
 		}
 	}
 }

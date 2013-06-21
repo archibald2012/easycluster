@@ -2,6 +2,8 @@ package org.easycluster.easycluster.cluster;
 
 import java.io.Serializable;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
@@ -23,32 +25,44 @@ public class SampleResponse extends AbstractXipSignal implements XipResponse, Se
 	@ByteField(index = 0)
 	@TLVAttribute(tag = 0)
 	@KeyValueAttribute
+	@XmlElement(name = "intField", required = true)
 	private int					intField;
 
 	@ByteField(index = 1)
 	@TLVAttribute(tag = 1)
 	@KeyValueAttribute
+	@XmlElement(name = "byteField", required = true)
 	private byte				byteField;
 
 	@ByteField(index = 2)
 	@TLVAttribute(tag = 2)
 	@KeyValueAttribute
+	@XmlElement(name = "stringField", required = true)
 	private String				stringField			= "";
 
 	@ByteField(index = 3)
 	@TLVAttribute(tag = 3)
 	@KeyValueAttribute
+	@XmlElement(name = "byteArrayField", required = true)
 	private byte[]				byteArrayField		= new byte[0];
 
 	@ByteField(index = 4)
 	@TLVAttribute(tag = 4)
 	@KeyValueAttribute
+	@XmlElement(name = "shortField", required = true)
 	private short				shortField;
 
 	@ByteField(index = 5)
 	@TLVAttribute(tag = 5)
 	@KeyValueAttribute
+	@XmlElement(name = "longField", required = true)
 	private long				longField;
+
+	@ByteField(index = 6)
+	@TLVAttribute(tag = 6)
+	@KeyValueAttribute
+	@XmlElement(name = "nanoTime", required = true)
+	private long				nanoTime;
 
 	public int getIntField() {
 		return intField;
@@ -96,6 +110,14 @@ public class SampleResponse extends AbstractXipSignal implements XipResponse, Se
 
 	public void setByteArrayField(byte[] byteArrayField) {
 		this.byteArrayField = byteArrayField;
+	}
+
+	public long getNanoTime() {
+		return nanoTime;
+	}
+
+	public void setNanoTime(long nanoTime) {
+		this.nanoTime = nanoTime;
 	}
 
 	@Override

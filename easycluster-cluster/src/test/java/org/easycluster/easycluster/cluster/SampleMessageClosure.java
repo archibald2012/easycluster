@@ -19,6 +19,7 @@ public class SampleMessageClosure implements MessageClosure<SampleRequest, Sampl
 		response.setStringField(input.getStringField());
 		response.setShortField(input.getShortField());
 		response.setByteArrayField(input.getByteArrayField());
+		response.setNanoTime(input.getNanoTime());
 		return response;
 	}
 

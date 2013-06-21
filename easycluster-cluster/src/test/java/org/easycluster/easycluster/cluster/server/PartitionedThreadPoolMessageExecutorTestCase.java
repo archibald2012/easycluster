@@ -1,8 +1,18 @@
 package org.easycluster.easycluster.cluster.server;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+
+import javax.management.MBeanServer;
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
+import javax.management.remote.JMXConnector;
+import javax.management.remote.JMXConnectorFactory;
+import javax.management.remote.JMXConnectorServer;
+import javax.management.remote.JMXConnectorServerFactory;
+import javax.management.remote.JMXServiceURL;
 
 import junit.framework.Assert;
 
@@ -10,9 +20,41 @@ import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.core.Closure;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 public class PartitionedThreadPoolMessageExecutorTestCase {
+
+	private JMXConnectorServer		cs;
+	private JMXConnector			cc;
+	private MBeanServerConnection	mbsc;
+
+	@Before
+	public void setUp() throws Exception {
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		JMXServiceURL url = new JMXServiceURL("service:jmx:rmi://");
+		cs = JMXConnectorServerFactory.newJMXConnectorServer(url, null, mbs);
+		cs.start();
+
+		JMXServiceURL addr = cs.getAddress();
+
+		// Now make a connector client using the server's address
+		cc = JMXConnectorFactory.connect(addr);
+		mbsc = cc.getMBeanServerConnection();
+
+		// HtmlAdaptorServer html = new HtmlAdaptorServer();
+		// ObjectName html_name = new ObjectName("Adaptor:name=html,port=8082");
+		// mbs.registerMBean(html, html_name);
+		//
+		// html.start();
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		cc.close();
+		cs.stop();
+	}
 
 	@Test
 	public void test() throws Exception {
@@ -22,7 +64,7 @@ public class PartitionedThreadPoolMessageExecutorTestCase {
 
 		MessageExecutor messageExecutor = new PartitionedThreadPoolMessageExecutor(messageClosureRegistry, 5, 10, 10, 5);
 
-		int num = 10000;
+		int num = 5000;
 
 		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
@@ -92,12 +134,26 @@ public class PartitionedThreadPoolMessageExecutorTestCase {
 
 		Assert.assertEquals(num, client1Responses.size());
 		Assert.assertEquals(num, client2Responses.size());
-		for (int i = 0; i < num - 1; i++) {
-			Assert.assertTrue(client1Responses.get(i).getIdentification() < client1Responses.get(i + 1).getIdentification());
-		}
-		for (int i = 0; i < num - 1; i++) {
-			Assert.assertTrue(client2Responses.get(i).getIdentification() < client2Responses.get(i + 1).getIdentification());
-		}
+//		for (int i = 0; i < num - 1; i++) {
+//			Assert.assertTrue(client1Responses.get(i).getNanoTime() <= client1Responses.get(i + 1).getNanoTime());
+//		}
+//		for (int i = 0; i < num - 1; i++) {
+//			Assert.assertTrue(client2Responses.get(i).getNanoTime() <= client2Responses.get(i + 1).getNanoTime());
+//		}
+		
+		ObjectName objectName1 = new ObjectName("Application:name=RequestProcessor[threadpool-message-executor-1]");
+
+		System.out.println("AverageProcessingTime:" + mbsc.getAttribute(objectName1, "AverageProcessingTime") + " ms");
+		System.out.println("AverageWaitTime:" + mbsc.getAttribute(objectName1, "AverageWaitTime") + " ms");
+		System.out.println("QueueSize:" + mbsc.getAttribute(objectName1, "QueueSize"));
+		Assert.assertEquals(5000, ((Long) mbsc.getAttribute(objectName1, "RequestCount")).intValue());
+
+		ObjectName objectName2 = new ObjectName("Application:name=RequestProcessor[threadpool-message-executor-2]");
+
+		System.out.println("AverageProcessingTime:" + mbsc.getAttribute(objectName2, "AverageProcessingTime") + " ms");
+		System.out.println("AverageWaitTime:" + mbsc.getAttribute(objectName2, "AverageWaitTime") + " ms");
+		System.out.println("QueueSize:" + mbsc.getAttribute(objectName2, "QueueSize"));
+		Assert.assertEquals(5000, ((Long) mbsc.getAttribute(objectName2, "RequestCount")).intValue());
 	}
 
 }

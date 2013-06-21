@@ -19,7 +19,7 @@ public class BeanXmlSerializationTestCase {
 		request.setShortField((byte) 1);
 		request.setByteField((byte) 1);
 		request.setLongField(1L);
-		request.setStringField("test");
+		request.setStringField("中文");
 		request.setByteArrayField(new byte[] { 127, (byte) 128 });
 
 		byte[] bytes = encoder.serialize(request);
