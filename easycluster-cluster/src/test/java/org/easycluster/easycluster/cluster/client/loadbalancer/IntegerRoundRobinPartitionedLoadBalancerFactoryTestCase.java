@@ -1,5 +1,6 @@
 package org.easycluster.easycluster.cluster.client.loadbalancer;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -24,16 +25,16 @@ public class IntegerRoundRobinPartitionedLoadBalancerFactoryTestCase {
 	@Test
 	public void testNextNode() {
 		Set<Node> nodes = new HashSet<Node>();
-		nodes.add(new Node("localhost", 1111, new Integer[] { 0, 1 }));
-		nodes.add(new Node("localhost", 1112, new Integer[] { 1, 2 }));
-		nodes.add(new Node("localhost", 1113, new Integer[] { 2, 3 }));
-		nodes.add(new Node("localhost", 1114, new Integer[] { 3, 4 }));
-		nodes.add(new Node("localhost", 1115, new Integer[] { 4, 0 }));
+		nodes.add(new Node("localhost", 1111, Arrays.asList(new Integer[] { 0, 1 })));
+		nodes.add(new Node("localhost", 1112, Arrays.asList(new Integer[] { 1, 2 })));
+		nodes.add(new Node("localhost", 1113, Arrays.asList(new Integer[] { 2, 3 })));
+		nodes.add(new Node("localhost", 1114, Arrays.asList(new Integer[] { 3, 4 })));
+		nodes.add(new Node("localhost", 1115, Arrays.asList(new Integer[] { 4, 0 })));
 		PartitionedLoadBalancer<Integer> lb = loadBalancerFactory.newLoadBalancer(nodes);
 
 		Set<Node> expected = new HashSet<Node>();
-		expected.add(new Node("localhost", 1111, new Integer[] { 0, 1 }));
-		expected.add(new Node("localhost", 1112, new Integer[] { 1, 2 }));
+		expected.add(new Node("localhost", 1111, Arrays.asList(new Integer[] { 0, 1 })));
+		expected.add(new Node("localhost", 1112, Arrays.asList(new Integer[] { 1, 2 })));
 
 		Node node = lb.nextNode(1);
 		System.out.println("nextNode: " + node);

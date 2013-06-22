@@ -12,7 +12,7 @@ public abstract class RoundRobinPartitionedLoadBalancerFactory<PartitionedId> im
 
 	public PartitionedLoadBalancer<PartitionedId> newLoadBalancer(Set<Node> nodes) {
 		for (Node node : nodes) {
-			if (node.getPartitions() == null || node.getPartitions().length == 0) {
+			if (node.getPartitions() == null || node.getPartitions().size() == 0) {
 				throw new InvalidNodeException("No partitioned id(s) found. node=[" + node + "]");
 			}
 		}

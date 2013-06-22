@@ -1,11 +1,11 @@
 package org.easycluster.easycluster.cluster;
 
-import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
 
 public class Node implements Comparable<Node> {
 
@@ -19,7 +19,7 @@ public class Node implements Comparable<Node> {
 
 	private String				version		= "1.0.0";
 
-	private Integer[]			partitions	= new Integer[0];
+	private List<Integer>		partitions	= new ArrayList<Integer>();
 
 	private String				url;
 
@@ -27,20 +27,12 @@ public class Node implements Comparable<Node> {
 
 	public Node() {
 	}
-
-	public Node(InetSocketAddress address) {
-		this(address, new Integer[0]);
+	
+	public Node(String hostName, int port){
+		this(hostName, port, new ArrayList<Integer>());
 	}
 
-	public Node(InetSocketAddress address, Integer[] partitions) {
-		this(address.getHostName(), address.getPort(), partitions);
-	}
-
-	public Node(String hostName, int port) {
-		this(hostName, port, new Integer[0]);
-	}
-
-	public Node(String hostName, int port, Integer[] partitions) {
+	public Node(String hostName, int port, List<Integer> partitions) {
 		this.hostName = hostName;
 		this.port = port;
 		this.partitions = partitions;
@@ -54,7 +46,7 @@ public class Node implements Comparable<Node> {
 		return url;
 	}
 
-	public Integer[] getPartitions() {
+	public List<Integer> getPartitions() {
 		return partitions;
 	}
 
@@ -98,6 +90,10 @@ public class Node implements Comparable<Node> {
 		this.hostName = hostName;
 	}
 
+	public void setPartitions(List<Integer> partitions) {
+		this.partitions = partitions;
+	}
+
 	public void setPort(int port) {
 		this.port = port;
 	}
@@ -139,6 +135,16 @@ public class Node implements Comparable<Node> {
 
 	@Override
 	public String toString() {
-		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+		StringBuilder sb = new StringBuilder("Node[");
+		sb.append("serviceGroup=[").append(serviceGroup).append("],");
+		sb.append("service=[").append(service).append("],");
+		sb.append("hostName=[").append(hostName).append("],");
+		sb.append("port=[").append(port).append("],");
+		sb.append("version=[").append(version).append("],");
+		sb.append("partitions=").append(ArrayUtils.toString(partitions)).append(",");
+		sb.append("url=[").append(url).append("],");
+		sb.append("available=[").append(available).append("]");
+		sb.append("]");
+		return sb.toString();
 	}
 }
