@@ -26,7 +26,7 @@ public class ClientChannelHandler extends SimpleChannelHandler {
 	private MessageContextHolder	messageContextHolder	= null;
 	private KeyTransformer			keyTransformer			= new KeyTransformer();
 
-	private String					mbeanObjectName			= "Application:name=NetworkClientStatistics";
+	private String					mbeanObjectName			= "org.easycluster:type=NetworkClientStatistics,service=%s";
 	private AverageTimeTracker		processingTime			= new AverageTimeTracker(100);
 	private RequestsTracker			rt						= new RequestsTracker();
 

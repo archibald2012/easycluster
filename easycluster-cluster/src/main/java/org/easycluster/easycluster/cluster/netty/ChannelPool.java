@@ -43,7 +43,7 @@ public class ChannelPool {
 	private AtomicBoolean					closed				= new AtomicBoolean(false);
 	private AtomicInteger					requestsSent		= new AtomicInteger(0);
 
-	private String							mbeanObjectName		= "Application:name=ChannelPool[%s:%d]";
+	private String							mbeanObjectName		= "org.easycluster:type=ChannelPool,hostName=%s,port=%s";
 
 	public ChannelPool(final InetSocketAddress address, final int maxConnections, final int writeTimeoutMillis, final ClientBootstrap bootstrap,
 			final ChannelGroup channelGroup) {

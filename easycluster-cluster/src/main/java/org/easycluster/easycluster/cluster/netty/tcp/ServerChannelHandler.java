@@ -42,7 +42,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	private EndpointFactory					endpointFactory			= new DefaultEndpointFactory();
 	private final ChannelLocal<Endpoint>	endpoints				= new ChannelLocal<Endpoint>();
 
-	private String							mbeanObjectName			= "Application:name=NetworkServerStatistics[%s]";
+	private String							mbeanObjectName			= "org.easycluster:type=NetworkServerStatistics,service=%s";
 	private RequestsTracker					rt						= new RequestsTracker();
 
 	public ServerChannelHandler(final String service, final ChannelGroup channelGroup, final MessageClosureRegistry messageHandlerRegistry,

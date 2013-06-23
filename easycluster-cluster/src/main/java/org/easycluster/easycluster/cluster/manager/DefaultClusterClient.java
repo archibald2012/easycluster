@@ -32,7 +32,7 @@ public class DefaultClusterClient implements ClusterClient {
 	private AtomicBoolean			startedSwitch		= new AtomicBoolean(false);
 	private ClusterEventHandler		clusterEventHandler	= null;
 	private volatile CountDownLatch	connectedLatch		= new CountDownLatch(1);
-	private String					mbeanObjectName		= "Application:name=ClusterClientMBean[%s]";
+	private String					mbeanObjectName		= "org.easycluster:type=DefaultClusterClient,service=%s";
 
 	public DefaultClusterClient(String serviceGroup, String service) {
 		this.serviceGroup = serviceGroup;

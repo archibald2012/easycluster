@@ -24,7 +24,7 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 	private MessageClosureRegistry	messageHandlerRegistry	= null;
 	private ThreadPoolExecutor		threadPool				= null;
 
-	private String					mbeanObjectName			= "Application:name=RequestProcessor[%s]";
+	private String					mbeanObjectName			= "org.easycluster:type=ThreadPoolMessageExecutor,name=%s";
 	private AverageTimeTracker		waitTime				= new AverageTimeTracker(100);
 	private AverageTimeTracker		processingTime			= new AverageTimeTracker(100);
 	private AtomicLong				requestCount			= new AtomicLong(0);
