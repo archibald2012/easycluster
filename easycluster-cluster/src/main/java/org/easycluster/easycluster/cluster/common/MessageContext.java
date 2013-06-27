@@ -10,13 +10,13 @@ public class MessageContext {
 
 	public MessageContext(Object message) {
 		this.message = message;
-		this.timestamp = System.currentTimeMillis();
+		this.timestamp = System.nanoTime();
 	}
 
 	public MessageContext(Object message, Closure closure) {
 		this.message = message;
 		this.closure = closure;
-		this.timestamp = System.currentTimeMillis();
+		this.timestamp = System.nanoTime();
 	}
 
 	public Object getMessage() {

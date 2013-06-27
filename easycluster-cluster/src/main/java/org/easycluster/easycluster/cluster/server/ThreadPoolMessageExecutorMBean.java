@@ -4,9 +4,23 @@ public interface ThreadPoolMessageExecutorMBean {
 
 	int getQueueSize();
 
-	long getAverageWaitTime();
+	int getCorePoolSize();
 
-	long getAverageProcessingTime();
+	int getMaxPoolSize();
+
+	int getLargestPoolSize();
+
+	int getPoolSize();
+
+	int getActiveCount();
+
+	double getAverageWaitTime();
+
+	long getKeepAliveTime();
+
+	double getAverageProcessingTime();
 
 	long getRequestCount();
+
+	long getCompletedTaskCount();
 }

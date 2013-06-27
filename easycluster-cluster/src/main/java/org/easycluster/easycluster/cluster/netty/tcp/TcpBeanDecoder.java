@@ -43,8 +43,7 @@ public class TcpBeanDecoder extends FrameDecoder {
 	private int					dumpBytes			= 256;
 	private boolean				isDebugEnabled		= true;
 	private int					maxMessageLength	= -1;
-
-	private Serialization		serialization;
+	private Serialization		serialization		= null;
 
 	@Override
 	protected Object decode(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
@@ -61,6 +60,7 @@ public class TcpBeanDecoder extends FrameDecoder {
 			if (buffer.readableBytes() < headerSize) {
 				return null;
 			} else {
+
 				byte[] headerBytes = new byte[headerSize];
 				buffer.readBytes(headerBytes);
 
@@ -91,6 +91,7 @@ public class TcpBeanDecoder extends FrameDecoder {
 		if (buffer.readableBytes() < bodySize) {
 			return null;
 		} else {
+
 			channel.setAttachment(null);
 
 			byte[] bodyBytes = new byte[bodySize];

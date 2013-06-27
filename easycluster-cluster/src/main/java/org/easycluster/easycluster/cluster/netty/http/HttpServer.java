@@ -12,6 +12,7 @@ import org.easycluster.easycluster.cluster.netty.serialization.SerializationFact
 import org.easycluster.easycluster.cluster.server.MessageExecutor;
 import org.easycluster.easycluster.cluster.server.NetworkServer;
 import org.easycluster.easycluster.cluster.server.PartitionedThreadPoolMessageExecutor;
+import org.easycluster.easycluster.cluster.server.ThreadPoolMessageExecutor;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -30,11 +31,16 @@ public class HttpServer extends NetworkServer {
 	public HttpServer(final NetworkServerConfig config) {
 		super(config);
 
-		MessageExecutor messageExecutor = new PartitionedThreadPoolMessageExecutor(messageClosureRegistry, 1, 1, config.getRequestThreadKeepAliveTimeSecs(),
-				config.getRequestThreadCorePoolSize());
+		MessageExecutor messageExecutor = null;
+		if (config.isRequestThreadPartitioned()) {
+			messageExecutor = new PartitionedThreadPoolMessageExecutor(messageClosureRegistry, 1, 1, config.getRequestThreadKeepAliveTimeSecs(),
+					config.getRequestThreadCorePoolSize());
+		} else {
+			messageExecutor = new ThreadPoolMessageExecutor("threadpool-message-executor", config.getRequestThreadCorePoolSize(),
+					config.getRequestThreadMaxPoolSize(), config.getRequestThreadKeepAliveTimeSecs(), messageClosureRegistry);
+		}
 
-		ExecutorService workerExecutor = Executors
-				.newCachedThreadPool(new NamedPoolThreadFactory(String.format("http-server-pool-%s", config.getService())));
+		ExecutorService workerExecutor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("http-server-pool-%s", config.getService())));
 		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("http-server-group-%s", config.getService()));
 
 		final HttpServerChannelHandler requestHandler = new HttpServerChannelHandler(channelGroup, messageClosureRegistry, messageExecutor);
@@ -61,7 +67,8 @@ public class HttpServer extends NetworkServer {
 
 		bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
 
-			private LoggingHandler	loggingHandler	= new LoggingHandler();
+			private LoggingHandler		loggingHandler		= new LoggingHandler();
+			private IdleStateHandler	idleStateHandler	= new IdleStateHandler(new HashedWheelTimer(), 0, 0, config.getIdleTime(), TimeUnit.SECONDS);
 
 			@Override
 			public ChannelPipeline getPipeline() throws Exception {
@@ -78,7 +85,7 @@ public class HttpServer extends NetworkServer {
 				// HttpServerCodec是非线程安全的,不能所有Channel使用同一个
 				p.addLast("codec", new HttpServerCodec());
 				p.addLast("aggregator", new HttpChunkAggregator(config.getSerializationConfig().getMaxContentLength()));
-				p.addLast("idleHandler", new IdleStateHandler(new HashedWheelTimer(), 0, 0, config.getIdleTime(), TimeUnit.SECONDS));
+				p.addLast("idleHandler", idleStateHandler);
 				p.addLast("handler", requestHandler);
 				return p;
 			}
@@ -86,5 +93,4 @@ public class HttpServer extends NetworkServer {
 
 		clusterIoServer = new NettyIoServer(bootstrap, channelGroup);
 	}
-
 }

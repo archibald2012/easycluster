@@ -6,9 +6,8 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
-import org.easycluster.easycluster.cluster.common.AverageTimeTracker;
+import org.easycluster.easycluster.cluster.common.AverageTracker;
 import org.easycluster.easycluster.cluster.common.MessageContext;
-import org.easycluster.easycluster.cluster.common.RequestsTracker;
 import org.easycluster.easycluster.cluster.netty.MessageContextHolder;
 import org.easycluster.easycluster.cluster.netty.NetworkClientStatisticsMBean;
 import org.easycluster.easycluster.core.KeyTransformer;
@@ -27,13 +26,11 @@ public class ClientChannelHandler extends SimpleChannelHandler {
 	private KeyTransformer			keyTransformer			= new KeyTransformer();
 
 	private String					mbeanObjectName			= "org.easycluster:type=NetworkClientStatistics,service=%s";
-	private AverageTimeTracker		processingTime			= new AverageTimeTracker(100);
-	private RequestsTracker			rt						= new RequestsTracker();
+	private AverageTracker			processingTime			= new AverageTracker();
+	private AverageTracker			finishedTracker			= new AverageTracker();
 
 	public ClientChannelHandler(MessageContextHolder messageContextHolder) {
 		this.messageContextHolder = messageContextHolder;
-
-		rt.start();
 
 		MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
 		try {
@@ -42,12 +39,13 @@ public class ClientChannelHandler extends SimpleChannelHandler {
 				mbeanServer.unregisterMBean(measurementName);
 			}
 			StandardMBean networkStatisticsMBean = new StandardMBean(new NetworkClientStatisticsMBean() {
-				public int getRequestsPerSecond() {
-					return rt.getHandledThroughput();
+				public double getRequestsPerSecond() {
+					return finishedTracker.getThroughput();
 				}
 
-				public long getAverageRequestProcessingTime() {
-					return processingTime.average();
+				public double getAverageRequestProcessingTime() {
+					// 返回毫秒
+					return processingTime.getAverage() / 1000000;
 				}
 			}, NetworkClientStatisticsMBean.class);
 			mbeanServer.registerMBean(networkStatisticsMBean, measurementName);
@@ -71,7 +69,7 @@ public class ClientChannelHandler extends SimpleChannelHandler {
 			MessageContext requestContext = (MessageContext) e.getMessage();
 			Object requestId = keyTransformer.transform(requestContext.getMessage());
 			messageContextHolder.add(requestId, requestContext);
-			rt.increaseRequested();
+			finishedTracker.increase(1);
 		}
 		super.writeRequested(ctx, e);
 	}
@@ -82,11 +80,11 @@ public class ClientChannelHandler extends SimpleChannelHandler {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Received message: {}", message);
 		}
-		rt.increaseFinished();
+		finishedTracker.increase(1);
 		Object requestId = keyTransformer.transform(message);
 		MessageContext requestContext = messageContextHolder.remove(requestId, message);
 		if (requestContext != null) {
-			processingTime.add(System.currentTimeMillis() - requestContext.getTimestamp());
+			processingTime.increase(System.nanoTime() - requestContext.getTimestamp());
 			requestContext.getClosure().execute(message);
 		}
 	}

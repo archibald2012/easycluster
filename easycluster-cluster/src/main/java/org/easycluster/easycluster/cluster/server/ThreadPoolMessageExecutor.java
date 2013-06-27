@@ -10,7 +10,7 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
-import org.easycluster.easycluster.cluster.common.AverageTimeTracker;
+import org.easycluster.easycluster.cluster.common.AverageTracker;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.core.Closure;
@@ -25,28 +25,29 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 	private ThreadPoolExecutor		threadPool				= null;
 
 	private String					mbeanObjectName			= "org.easycluster:type=ThreadPoolMessageExecutor,name=%s";
-	private AverageTimeTracker		waitTime				= new AverageTimeTracker(100);
-	private AverageTimeTracker		processingTime			= new AverageTimeTracker(100);
+	private AverageTracker			waitTime				= new AverageTracker();
+	private AverageTracker			processingTime			= new AverageTracker();
 	private AtomicLong				requestCount			= new AtomicLong(0);
 
 	public ThreadPoolMessageExecutor(String name, int corePoolSize, int maxPoolSize, int keepAliveTime, MessageClosureRegistry messageHandlerRegistry) {
 
 		this.messageHandlerRegistry = messageHandlerRegistry;
 
+		// 无界队列,在所有 corePoolSize 线程都忙时新任务在队列中等待,创建的线程不会超过 corePoolSize
 		this.threadPool = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
 				new NamedPoolThreadFactory(name)) {
 
 			@Override
 			public void beforeExecute(Thread t, Runnable r) {
 				RequestRunner rr = (RequestRunner) r;
-				rr.startedAt = System.currentTimeMillis();
-				waitTime.addTime(rr.startedAt - rr.queuedAt);
+				rr.startedAt = System.nanoTime();
+				waitTime.increase(rr.startedAt - rr.queuedAt);
 				requestCount.incrementAndGet();
 			}
 
 			@Override
 			public void afterExecute(Runnable r, Throwable t) {
-				processingTime.add((System.currentTimeMillis() - ((RequestRunner) r).startedAt));
+				processingTime.increase((System.nanoTime() - ((RequestRunner) r).startedAt));
 			}
 		};
 
@@ -61,12 +62,42 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 					return threadPool.getQueue().size();
 				}
 
-				public long getAverageWaitTime() {
-					return waitTime.average();
+				public int getPoolSize() {
+					return threadPool.getPoolSize();
 				}
 
-				public long getAverageProcessingTime() {
-					return processingTime.average();
+				public int getCorePoolSize() {
+					return threadPool.getCorePoolSize();
+				}
+
+				public int getMaxPoolSize() {
+					return threadPool.getMaximumPoolSize();
+				}
+
+				public int getLargestPoolSize() {
+					return threadPool.getLargestPoolSize();
+				}
+
+				public long getKeepAliveTime() {
+					return threadPool.getKeepAliveTime(TimeUnit.MILLISECONDS);
+				}
+
+				public int getActiveCount() {
+					return threadPool.getActiveCount();
+				}
+
+				public long getCompletedTaskCount() {
+					return threadPool.getCompletedTaskCount();
+				}
+
+				public double getAverageWaitTime() {
+					// 返回毫秒
+					return waitTime.getAverage() / 1000000;
+				}
+
+				public double getAverageProcessingTime() {
+					// 返回毫秒
+					return processingTime.getAverage() / 1000000;
 				}
 
 				public long getRequestCount() {
@@ -87,7 +118,7 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 
 	@Override
 	public void execute(Object message, Closure closure) {
-		threadPool.execute(new RequestRunner(message, closure, System.currentTimeMillis()));
+		threadPool.execute(new RequestRunner(message, closure, System.nanoTime()));
 	}
 
 	@Override

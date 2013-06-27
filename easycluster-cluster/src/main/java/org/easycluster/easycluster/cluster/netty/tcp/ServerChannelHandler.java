@@ -6,7 +6,7 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
-import org.easycluster.easycluster.cluster.common.RequestsTracker;
+import org.easycluster.easycluster.cluster.common.AverageTracker;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.cluster.netty.NetworkServerStatisticsMBean;
 import org.easycluster.easycluster.cluster.netty.endpoint.DefaultEndpointFactory;
@@ -43,15 +43,14 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	private final ChannelLocal<Endpoint>	endpoints				= new ChannelLocal<Endpoint>();
 
 	private String							mbeanObjectName			= "org.easycluster:type=NetworkServerStatistics,service=%s";
-	private RequestsTracker					rt						= new RequestsTracker();
+	private AverageTracker					requestTracker			= new AverageTracker();
+	private AverageTracker					finishedTracker			= new AverageTracker();
 
 	public ServerChannelHandler(final String service, final ChannelGroup channelGroup, final MessageClosureRegistry messageHandlerRegistry,
 			final MessageExecutor messageExecutor) {
 		this.channelGroup = channelGroup;
 		this.messageHandlerRegistry = messageHandlerRegistry;
 		this.messageExecutor = messageExecutor;
-
-		rt.start();
 
 		MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
 		try {
@@ -61,27 +60,29 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 			}
 			StandardMBean networkStatisticsMBean = new StandardMBean(new NetworkServerStatisticsMBean() {
 
+				@Override
 				public int getChannels() {
 					return channelGroup.size();
 				}
 
-				public long getRequestCount() {
-					return rt.getHandledTransaction();
+				@Override
+				public double getRequestCount() {
+					return requestTracker.getTotal();
 				}
 
 				@Override
-				public long getFinishedCount() {
-					return rt.getFinishedTransaction();
+				public double getFinishedCount() {
+					return finishedTracker.getTotal();
 				}
 
 				@Override
-				public int getFinishedPerSecond() {
-					return rt.getFinishedThroughput();
+				public double getFinishedPerSecond() {
+					return finishedTracker.getThroughput();
 				}
 
 				@Override
-				public int getRequestsPerSecond() {
-					return rt.getHandledThroughput();
+				public double getRequestsPerSecond() {
+					return requestTracker.getThroughput();
 				}
 
 			}, NetworkServerStatisticsMBean.class);
@@ -143,7 +144,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 			LOGGER.trace("message received: {}", e.getMessage());
 		}
 
-		rt.increaseRequested();
+		requestTracker.increase(1);
 
 		Channel channel = e.getChannel();
 		Object request = e.getMessage();
@@ -238,7 +239,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 
 				endpoint.send(message);
 
-				rt.increaseFinished();
+				finishedTracker.increase(1);
 			}
 		}
 	}

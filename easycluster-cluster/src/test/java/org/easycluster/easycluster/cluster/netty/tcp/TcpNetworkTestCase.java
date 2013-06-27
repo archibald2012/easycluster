@@ -69,6 +69,15 @@ public class TcpNetworkTestCase {
 		cs.stop();
 	}
 
+	@Test
+	public void testLong() {
+		long test = Long.MAX_VALUE;
+		System.out.println(test);
+		for (int i = 0; i < 10; i++) {
+			System.out.println(test++);
+		}
+	}
+
 	@Test(expected = InvalidMessageException.class)
 	public void testInvalidMessage() throws Exception {
 
@@ -140,8 +149,8 @@ public class TcpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		ObjectName objectName2 = new ObjectName("Application:name=NetworkServerStatistics[test]");
-		
+		ObjectName objectName2 = new ObjectName("org.easycluster:type=NetworkServerStatistics,service=test");
+
 		System.out.println("Channels: " + mbsc.getAttribute(objectName2, "Channels"));
 		System.out.println("RequestsPerSecond: " + mbsc.getAttribute(objectName2, "RequestsPerSecond"));
 		Assert.assertEquals(1000, ((Long) mbsc.getAttribute(objectName2, "RequestCount")).intValue());
@@ -172,7 +181,9 @@ public class TcpNetworkTestCase {
 		serverConfig.setSerializationConfig(codecConfig);
 
 		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
-		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
+		ArrayList<MessageClosure<?, ?>> handlers = new ArrayList<MessageClosure<?, ?>>();
+		handlers.add(new SampleMessageClosure());
+		nettyNetworkServer.setHandlers(handlers);
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
@@ -396,7 +407,7 @@ public class TcpNetworkTestCase {
 		nettyNetworkServer.stop();
 	}
 
-	//@Test
+	// @Test
 	public void testSend_xml() throws Exception {
 
 		List<String> packages = new ArrayList<String>();
@@ -541,7 +552,7 @@ public class TcpNetworkTestCase {
 		clientConfig.setServiceGroup("app");
 		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		clientConfig.setWriteTimeoutMillis(1000);
+		clientConfig.setWriteTimeoutMillis(10000);
 		clientConfig.setStaleRequestTimeoutMins(30);
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
@@ -598,15 +609,13 @@ public class TcpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		for (int i = 0; i < serverConfig.getRequestThreadCorePoolSize(); i++) {
-			ObjectName objectName = new ObjectName("Application:name=RequestProcessor[threadpool-message-executor-" + i + "]");
-			System.out.println("RequestCount:" + mbsc.getAttribute(objectName, "RequestCount"));
-			System.out.println("AverageProcessingTime:" + mbsc.getAttribute(objectName, "AverageProcessingTime") + " ms");
-			System.out.println("AverageWaitTime:" + mbsc.getAttribute(objectName, "AverageWaitTime") + " ms");
-			System.out.println("QueueSize:" + mbsc.getAttribute(objectName, "QueueSize"));
-		}
+		ObjectName objectName = new ObjectName("org.easycluster:type=ThreadPoolMessageExecutor,name=threadpool-message-executor");
+		System.out.println("RequestCount:" + mbsc.getAttribute(objectName, "RequestCount"));
+		System.out.println("AverageProcessingTime:" + mbsc.getAttribute(objectName, "AverageProcessingTime") + " ms");
+		System.out.println("AverageWaitTime:" + mbsc.getAttribute(objectName, "AverageWaitTime") + " ms");
+		System.out.println("QueueSize:" + mbsc.getAttribute(objectName, "QueueSize"));
 
-		ObjectName objectName2 = new ObjectName("Application:name=NetworkServerStatistics[test]");
+		ObjectName objectName2 = new ObjectName("org.easycluster:type=NetworkServerStatistics,service=test");
 		System.out.println("Channels: " + mbsc.getAttribute(objectName2, "Channels"));
 		System.out.println("RequestsPerSecond: " + mbsc.getAttribute(objectName2, "RequestsPerSecond"));
 		Assert.assertEquals(50000, ((Long) mbsc.getAttribute(objectName2, "RequestCount")).intValue());
@@ -699,15 +708,13 @@ public class TcpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		for (int i = 0; i < serverConfig.getRequestThreadCorePoolSize(); i++) {
-			ObjectName objectName = new ObjectName("Application:name=RequestProcessor[threadpool-message-executor-" + i + "]");
-			System.out.println("RequestCount:" + mbsc.getAttribute(objectName, "RequestCount"));
-			System.out.println("AverageProcessingTime:" + mbsc.getAttribute(objectName, "AverageProcessingTime") + " ms");
-			System.out.println("AverageWaitTime:" + mbsc.getAttribute(objectName, "AverageWaitTime") + " ms");
-			System.out.println("QueueSize:" + mbsc.getAttribute(objectName, "QueueSize"));
-		}
+		ObjectName objectName = new ObjectName("org.easycluster:type=ThreadPoolMessageExecutor,name=threadpool-message-executor");
+		System.out.println("RequestCount:" + mbsc.getAttribute(objectName, "RequestCount"));
+		System.out.println("AverageProcessingTime:" + mbsc.getAttribute(objectName, "AverageProcessingTime") + " ms");
+		System.out.println("AverageWaitTime:" + mbsc.getAttribute(objectName, "AverageWaitTime") + " ms");
+		System.out.println("QueueSize:" + mbsc.getAttribute(objectName, "QueueSize"));
 
-		ObjectName objectName2 = new ObjectName("Application:name=NetworkServerStatistics[test]");
+		ObjectName objectName2 = new ObjectName("org.easycluster:type=NetworkServerStatistics,service=test");
 		System.out.println("Channels: " + mbsc.getAttribute(objectName2, "Channels"));
 		System.out.println("RequestsPerSecond: " + mbsc.getAttribute(objectName2, "RequestsPerSecond"));
 		Assert.assertEquals(5000, ((Long) mbsc.getAttribute(objectName2, "RequestCount")).intValue());
@@ -798,15 +805,13 @@ public class TcpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		for (int i = 0; i < serverConfig.getRequestThreadCorePoolSize(); i++) {
-			ObjectName objectName = new ObjectName("Application:name=RequestProcessor[threadpool-message-executor-" + i + "]");
-			System.out.println("RequestCount:" + mbsc.getAttribute(objectName, "RequestCount"));
-			System.out.println("AverageProcessingTime:" + mbsc.getAttribute(objectName, "AverageProcessingTime") + " ms");
-			System.out.println("AverageWaitTime:" + mbsc.getAttribute(objectName, "AverageWaitTime") + " ms");
-			System.out.println("QueueSize:" + mbsc.getAttribute(objectName, "QueueSize"));
-		}
+		ObjectName objectName = new ObjectName("org.easycluster:type=ThreadPoolMessageExecutor,name=threadpool-message-executor");
+		System.out.println("RequestCount:" + mbsc.getAttribute(objectName, "RequestCount"));
+		System.out.println("AverageProcessingTime:" + mbsc.getAttribute(objectName, "AverageProcessingTime") + " ms");
+		System.out.println("AverageWaitTime:" + mbsc.getAttribute(objectName, "AverageWaitTime") + " ms");
+		System.out.println("QueueSize:" + mbsc.getAttribute(objectName, "QueueSize"));
 
-		ObjectName objectName2 = new ObjectName("Application:name=NetworkServerStatistics[test]");
+		ObjectName objectName2 = new ObjectName("org.easycluster:type=NetworkServerStatistics,service=test");
 		System.out.println("Channels: " + mbsc.getAttribute(objectName2, "Channels"));
 		System.out.println("RequestsPerSecond: " + mbsc.getAttribute(objectName2, "RequestsPerSecond"));
 		Assert.assertEquals(5000, ((Long) mbsc.getAttribute(objectName2, "RequestCount")).intValue());
@@ -899,15 +904,13 @@ public class TcpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		for (int i = 0; i < serverConfig.getRequestThreadCorePoolSize(); i++) {
-			ObjectName objectName = new ObjectName("Application:name=RequestProcessor[threadpool-message-executor-" + i + "]");
-			System.out.println("RequestCount:" + mbsc.getAttribute(objectName, "RequestCount"));
-			System.out.println("AverageProcessingTime:" + mbsc.getAttribute(objectName, "AverageProcessingTime") + " ms");
-			System.out.println("AverageWaitTime:" + mbsc.getAttribute(objectName, "AverageWaitTime") + " ms");
-			System.out.println("QueueSize:" + mbsc.getAttribute(objectName, "QueueSize"));
-		}
+		ObjectName objectName = new ObjectName("org.easycluster:type=ThreadPoolMessageExecutor,name=threadpool-message-executor");
+		System.out.println("RequestCount:" + mbsc.getAttribute(objectName, "RequestCount"));
+		System.out.println("AverageProcessingTime:" + mbsc.getAttribute(objectName, "AverageProcessingTime") + " ms");
+		System.out.println("AverageWaitTime:" + mbsc.getAttribute(objectName, "AverageWaitTime") + " ms");
+		System.out.println("QueueSize:" + mbsc.getAttribute(objectName, "QueueSize"));
 
-		ObjectName objectName2 = new ObjectName("Application:name=NetworkServerStatistics[test]");
+		ObjectName objectName2 = new ObjectName("org.easycluster:type=NetworkServerStatistics,service=test");
 		System.out.println("Channels: " + mbsc.getAttribute(objectName2, "Channels"));
 		System.out.println("RequestsPerSecond: " + mbsc.getAttribute(objectName2, "RequestsPerSecond"));
 		Assert.assertEquals(5000, ((Long) mbsc.getAttribute(objectName2, "RequestCount")).intValue());
@@ -1000,15 +1003,13 @@ public class TcpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		for (int i = 0; i < serverConfig.getRequestThreadCorePoolSize(); i++) {
-			ObjectName objectName = new ObjectName("Application:name=RequestProcessor[threadpool-message-executor-" + i + "]");
-			System.out.println("RequestCount:" + mbsc.getAttribute(objectName, "RequestCount"));
-			System.out.println("AverageProcessingTime:" + mbsc.getAttribute(objectName, "AverageProcessingTime") + " ms");
-			System.out.println("AverageWaitTime:" + mbsc.getAttribute(objectName, "AverageWaitTime") + " ms");
-			System.out.println("QueueSize:" + mbsc.getAttribute(objectName, "QueueSize"));
-		}
+		ObjectName objectName = new ObjectName("org.easycluster:type=ThreadPoolMessageExecutor,name=threadpool-message-executor");
+		System.out.println("RequestCount:" + mbsc.getAttribute(objectName, "RequestCount"));
+		System.out.println("AverageProcessingTime:" + mbsc.getAttribute(objectName, "AverageProcessingTime") + " ms");
+		System.out.println("AverageWaitTime:" + mbsc.getAttribute(objectName, "AverageWaitTime") + " ms");
+		System.out.println("QueueSize:" + mbsc.getAttribute(objectName, "QueueSize"));
 
-		ObjectName objectName2 = new ObjectName("Application:name=NetworkServerStatistics[test]");
+		ObjectName objectName2 = new ObjectName("org.easycluster:type=NetworkServerStatistics,service=test");
 		System.out.println("Channels: " + mbsc.getAttribute(objectName2, "Channels"));
 		System.out.println("RequestsPerSecond: " + mbsc.getAttribute(objectName2, "RequestsPerSecond"));
 		Assert.assertEquals(5000, ((Long) mbsc.getAttribute(objectName2, "RequestCount")).intValue());

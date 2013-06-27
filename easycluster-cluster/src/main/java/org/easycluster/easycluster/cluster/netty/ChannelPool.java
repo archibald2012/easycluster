@@ -160,7 +160,7 @@ public class ChannelPool {
 			if (request == null) {
 				// do nothing
 			} else {
-				if ((System.currentTimeMillis() - request.getTimestamp()) < writeTimeoutMillis)
+				if (((System.nanoTime() - request.getTimestamp()) / 1000000) < writeTimeoutMillis)
 					writeRequestToChannel(request, channel);
 				else {
 					request.getClosure().execute(new TimeoutException("Timed out while waiting to write"));

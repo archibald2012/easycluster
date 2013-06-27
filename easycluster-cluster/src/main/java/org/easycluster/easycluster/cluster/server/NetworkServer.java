@@ -1,14 +1,14 @@
 package org.easycluster.easycluster.cluster.server;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.Node;
-import org.easycluster.easycluster.cluster.common.ClassUtil;
 import org.easycluster.easycluster.cluster.exception.ClusterException;
 import org.easycluster.easycluster.cluster.exception.ClusterShutdownException;
 import org.easycluster.easycluster.cluster.exception.InvalidNodeException;
@@ -39,7 +39,7 @@ public class NetworkServer {
 		node.setService(config.getService());
 		node.setVersion(config.getVersion());
 		node.setUrl(config.getUrl());
-		
+
 		this.clusterClient = new ZooKeeperClusterClient(config.getServiceGroup(), config.getService(), config.getZooKeeperConnectString(),
 				config.getZooKeeperSessionTimeoutMillis());
 	}
@@ -175,9 +175,9 @@ public class NetworkServer {
 		}
 	}
 
-	public void setHandlers(ArrayList<MessageClosure<?, ?>> handlers) {
+	public void setHandlers(List<MessageClosure<?, ?>> handlers) {
 		for (MessageClosure<?, ?> handler : handlers) {
-			Method[] methods = ClassUtil.getAllMethodOf(handler.getClass());
+			Method[] methods = getAllMethodOf(handler.getClass());
 			for (Method method : methods) {
 				if (method.getName().equals("execute")) {
 					Class<?>[] params = method.getParameterTypes();
@@ -193,6 +193,18 @@ public class NetworkServer {
 				}
 			}
 		}
+	}
+
+	private Method[] getAllMethodOf(final Class<?> clazz) {
+		Method[] methods = null;
+
+		Class<?> itr = clazz;
+		while (!itr.equals(Object.class) && !itr.isInterface()) {
+			methods = (Method[]) ArrayUtils.addAll(itr.getDeclaredMethods(), methods);
+			itr = itr.getSuperclass();
+		}
+
+		return methods;
 	}
 
 }

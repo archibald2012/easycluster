@@ -46,6 +46,8 @@ public class NetworkServerConfig {
 	 */
 	private int					requestThreadKeepAliveTimeSecs	= NetworkDefaults.REQUEST_THREAD_KEEP_ALIVE_TIME_SECS;
 
+	private boolean				requestThreadPartitioned		= false;
+
 	/**
 	 * The serialization configuration.
 	 */
@@ -117,6 +119,14 @@ public class NetworkServerConfig {
 
 	public void setRequestThreadKeepAliveTimeSecs(int requestThreadKeepAliveTimeSecs) {
 		this.requestThreadKeepAliveTimeSecs = requestThreadKeepAliveTimeSecs;
+	}
+
+	public boolean isRequestThreadPartitioned() {
+		return requestThreadPartitioned;
+	}
+
+	public void setRequestThreadPartitioned(boolean requestThreadPartitioned) {
+		this.requestThreadPartitioned = requestThreadPartitioned;
 	}
 
 	public EndpointListener getEndpointListener() {

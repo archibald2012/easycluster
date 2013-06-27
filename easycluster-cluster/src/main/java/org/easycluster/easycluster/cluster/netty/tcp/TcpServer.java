@@ -13,6 +13,7 @@ import org.easycluster.easycluster.cluster.netty.serialization.SerializationFact
 import org.easycluster.easycluster.cluster.server.MessageExecutor;
 import org.easycluster.easycluster.cluster.server.NetworkServer;
 import org.easycluster.easycluster.cluster.server.PartitionedThreadPoolMessageExecutor;
+import org.easycluster.easycluster.cluster.server.ThreadPoolMessageExecutor;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -29,11 +30,16 @@ public class TcpServer extends NetworkServer {
 	public TcpServer(final NetworkServerConfig config) {
 		super(config);
 
-		MessageExecutor messageExecutor = new PartitionedThreadPoolMessageExecutor(messageClosureRegistry, 1, 1, config.getRequestThreadKeepAliveTimeSecs(),
-				config.getRequestThreadCorePoolSize());
+		MessageExecutor messageExecutor = null;
+		if (config.isRequestThreadPartitioned()) {
+			messageExecutor = new PartitionedThreadPoolMessageExecutor(messageClosureRegistry, 1, 1, config.getRequestThreadKeepAliveTimeSecs(),
+					config.getRequestThreadCorePoolSize());
+		} else {
+			messageExecutor = new ThreadPoolMessageExecutor("threadpool-message-executor", config.getRequestThreadCorePoolSize(),
+					config.getRequestThreadMaxPoolSize(), config.getRequestThreadKeepAliveTimeSecs(), messageClosureRegistry);
+		}
 
-		ExecutorService workerExecutor = Executors
-				.newCachedThreadPool(new NamedPoolThreadFactory(String.format("tcp-server-pool-%s", config.getService())));
+		ExecutorService workerExecutor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("tcp-server-pool-%s", config.getService())));
 		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("netty-server-group-%s", config.getService()));
 
 		final SerializationConfig serializationConfig = config.getSerializationConfig();
@@ -52,14 +58,15 @@ public class TcpServer extends NetworkServer {
 
 		bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
 
-			private LoggingHandler	loggingHandler	= new LoggingHandler();
+			private LoggingHandler		loggingHandler		= new LoggingHandler();
+			private IdleStateHandler	idleStateHandler	= new IdleStateHandler(new HashedWheelTimer(), 0, 0, config.getIdleTime(), TimeUnit.SECONDS);
 
 			@Override
 			public ChannelPipeline getPipeline() throws Exception {
 				ChannelPipeline p = Channels.pipeline();
 
 				p.addFirst("logging", loggingHandler);
-				p.addLast("idleHandler", new IdleStateHandler(new HashedWheelTimer(), 0, 0, config.getIdleTime(), TimeUnit.SECONDS));
+				p.addLast("idleHandler", idleStateHandler);
 
 				TcpBeanEncoder encoder = new TcpBeanEncoder();
 				encoder.setDebugEnabled(serializationConfig.isEncodeBytesDebugEnabled());

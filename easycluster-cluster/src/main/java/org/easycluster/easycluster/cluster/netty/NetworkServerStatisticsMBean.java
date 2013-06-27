@@ -2,13 +2,13 @@ package org.easycluster.easycluster.cluster.netty;
 
 public interface NetworkServerStatisticsMBean {
 
-	long getRequestCount();
+	double getRequestCount();
 
-	int getRequestsPerSecond();
+	double getRequestsPerSecond();
 
-	long getFinishedCount();
+	double getFinishedCount();
 
-	int getFinishedPerSecond();
+	double getFinishedPerSecond();
 
 	int getChannels();
 }

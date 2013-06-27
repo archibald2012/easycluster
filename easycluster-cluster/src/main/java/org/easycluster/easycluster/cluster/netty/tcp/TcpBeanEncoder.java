@@ -45,8 +45,7 @@ public class TcpBeanEncoder extends OneToOneEncoder {
 	private BeanFieldCodec		beanFieldCodec	= null;
 	private int					dumpBytes		= 256;
 	private boolean				isDebugEnabled	= true;
-
-	private Serialization		serialization;
+	private Serialization		serialization	= null;
 
 	@Override
 	protected Object encode(ChannelHandlerContext ctx, Channel channel, Object message) throws Exception {

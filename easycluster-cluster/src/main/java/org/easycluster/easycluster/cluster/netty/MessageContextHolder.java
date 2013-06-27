@@ -33,7 +33,7 @@ public class MessageContextHolder {
 
 					for (Object key : requestMap.keySet()) {
 						MessageContext request = requestMap.get(key);
-						if ((System.currentTimeMillis() - request.getTimestamp()) > staleRequestTimeoutMillis) {
+						if ((System.nanoTime() - request.getTimestamp()) / 1000 * 1000 > staleRequestTimeoutMillis) {
 							LOGGER.warn("Remove timeout message context. key=[{}], timeoutMillis=[{}]", key, staleRequestTimeoutMillis);
 							requestMap.remove(key);
 						}
