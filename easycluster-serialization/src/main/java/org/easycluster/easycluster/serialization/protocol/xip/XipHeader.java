@@ -12,7 +12,7 @@ import org.easycluster.easycluster.serialization.bytebean.annotation.ByteField;
  */
 public class XipHeader {
 
-	public static final int	HEADER_LENGTH	= 24;
+	public static final int	HEADER_LENGTH	= 28;
 
 	public static final int	XIP_REQUEST		= 1;
 	public static final int	XIP_RESPONSE	= 2;
@@ -35,6 +35,9 @@ public class XipHeader {
 
 	@ByteField(index = 5, bytes = 2)
 	private int				reserved		= 0;
+
+	@ByteField(index = 6)
+	private int				messageCode		= 0;
 
 	public int getBasicVer() {
 		return basicVer;
@@ -74,6 +77,14 @@ public class XipHeader {
 
 	public void setSequence(long sequence) {
 		this.sequence = sequence;
+	}
+
+	public int getMessageCode() {
+		return messageCode;
+	}
+
+	public void setMessageCode(int messageCode) {
+		this.messageCode = messageCode;
 	}
 
 	public void setTypeForClass(Class<?> cls) {

@@ -48,7 +48,7 @@ public class BeanCodecTestCase {
 				.addCodec(new LenByteArrayCodec()).addCodec(new LenListCodec())
 				.addCodec(new LenArrayCodec()).addCodec(new BooleanCodec());
 
-		// 对象解码器需要指定字段注释读取方泄1�7
+		// 对象解码器需要指定字段注释读取
 		beanCodec = new EarlyStopBeanCodec(new DefaultField2Desc());
 		codecProvider.addCodec(beanCodec);
 
@@ -116,7 +116,7 @@ public class BeanCodecTestCase {
 		bean.setShortField((byte) 1);
 		bean.setByteField((byte) 1);
 		bean.setLongField(1L);
-		bean.setStringField("中文");
+		bean.setStringField("{\"loginTime\":1371725974306,\"nickName\":\"奋斗\",\"playerId\":20833}");
 
 		bean.setByteArrayField(new byte[] { 127 });
 

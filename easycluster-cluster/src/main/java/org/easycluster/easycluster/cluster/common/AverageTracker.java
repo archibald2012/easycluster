@@ -8,6 +8,7 @@ public class AverageTracker {
 	private long			count			= 0L;
 	private double			lastTotal		= 0;
 	private long			lastTimestamp	= 0;
+	// per second
 	private double			throughput		= 0;
 	private ReentrantLock	lock			= new ReentrantLock();
 

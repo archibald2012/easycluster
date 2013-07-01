@@ -257,7 +257,6 @@
 				<groupId>com.alibaba</groupId>
 				<artifactId>fastjson</artifactId>
 				<version>1.1.17</version>
-				<scope>provided</scope>
 				<optional>true</optional>
 			</dependency>
 			<dependency>

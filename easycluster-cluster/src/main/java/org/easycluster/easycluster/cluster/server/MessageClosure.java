@@ -1,5 +1,7 @@
 package org.easycluster.easycluster.cluster.server;
 
-public interface MessageClosure<Request, Response> {
+import org.easymetrics.easymetrics.model.Measurable;
+
+public interface MessageClosure<Request, Response> extends Measurable {
 	Response execute(Request message);
 }
