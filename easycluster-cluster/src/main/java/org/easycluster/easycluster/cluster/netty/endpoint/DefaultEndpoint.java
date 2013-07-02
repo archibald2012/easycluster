@@ -7,6 +7,8 @@ import org.apache.commons.lang.builder.ToStringStyle;
 import org.easycluster.easycluster.cluster.common.MessageContext;
 import org.easycluster.easycluster.core.IpPortPair;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,12 +38,28 @@ public class DefaultEndpoint implements Endpoint {
 	}
 
 	@Override
-	public void send(Object message) {
+	public void send(final Object message) {
 		if (message != null) {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("send - [{}]", message);
 			}
-			channel.write(new MessageContext(message));
+			ChannelFuture future = channel.write(new MessageContext(message));
+			future.addListener(new ChannelFutureListener() {
+
+				@Override
+				public void operationComplete(ChannelFuture future) throws Exception {
+					if (!future.isDone()) {
+						if (null != future.getCause()) {
+							LOGGER.error("Send message failed, message [" + message + "], channel: [" + future.getChannel().getRemoteAddress() + "], cause: ",
+									future.getCause());
+						} else {
+							LOGGER.error("Send message failed without reason, message: [" + message + "], channel: [" + future.getChannel().getRemoteAddress()
+									+ "]");
+						}
+
+					}
+				}
+			});
 		}
 	}
 
@@ -50,11 +68,30 @@ public class DefaultEndpoint implements Endpoint {
 		InetSocketAddress addr = (InetSocketAddress) channel.getRemoteAddress();
 		return new IpPortPair(addr.getHostName(), addr.getPort());
 	}
-	
+
 	@Override
 	public void close() {
 		if (this.channel != null) {
-			this.channel.close();
+
+			ChannelFuture future = this.channel.close();
+			future.addListener(new ChannelFutureListener() {
+
+				@Override
+				public void operationComplete(ChannelFuture future) throws Exception {
+					if (!future.isDone()) {
+						if (null != future.getCause()) {
+							if (LOGGER.isWarnEnabled()) {
+								LOGGER.warn("Close channel failed, channel: [" + future.getChannel().getRemoteAddress() + "], cause: ", future.getCause());
+							}
+						} else {
+							if (LOGGER.isWarnEnabled()) {
+								LOGGER.warn("Close channel failed without reason, channel: [" + future.getChannel().getRemoteAddress() + "]");
+							}
+						}
+					}
+				}
+			});
+
 		}
 	}
 

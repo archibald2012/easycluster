@@ -8,6 +8,7 @@ import javax.management.StandardMBean;
 
 import org.easycluster.easycluster.cluster.common.AverageTracker;
 import org.easycluster.easycluster.cluster.common.MessageContext;
+import org.easycluster.easycluster.cluster.common.RequestsTracker;
 import org.easycluster.easycluster.cluster.netty.MessageContextHolder;
 import org.easycluster.easycluster.cluster.netty.NetworkClientStatisticsMBean;
 import org.easycluster.easycluster.core.KeyTransformer;
@@ -26,21 +27,21 @@ public class ClientChannelHandler extends SimpleChannelHandler {
 	private KeyTransformer			keyTransformer			= new KeyTransformer();
 
 	private String					mbeanObjectName			= "org.easycluster:type=NetworkClientStatistics,service=%s";
-	private AverageTracker			processingTime			= new AverageTracker();
-	private AverageTracker			finishedTracker			= new AverageTracker();
+	private AverageTracker			processingTime			= new AverageTracker(100);
+	private RequestsTracker			finishedTracker			= new RequestsTracker();
 
-	public ClientChannelHandler(MessageContextHolder messageContextHolder) {
+	public ClientChannelHandler(String service, MessageContextHolder messageContextHolder) {
 		this.messageContextHolder = messageContextHolder;
-
+		this.finishedTracker.start();
 		MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
 		try {
-			ObjectName measurementName = new ObjectName(mbeanObjectName);
+			ObjectName measurementName = new ObjectName(String.format(mbeanObjectName, service));
 			if (mbeanServer.isRegistered(measurementName)) {
 				mbeanServer.unregisterMBean(measurementName);
 			}
 			StandardMBean networkStatisticsMBean = new StandardMBean(new NetworkClientStatisticsMBean() {
-				public double getRequestsPerSecond() {
-					return finishedTracker.getThroughput();
+				public double getFinishedPerSecond() {
+					return finishedTracker.getFinishedThroughput();
 				}
 
 				public double getAverageRequestProcessingTime() {
@@ -69,8 +70,7 @@ public class ClientChannelHandler extends SimpleChannelHandler {
 			MessageContext requestContext = (MessageContext) e.getMessage();
 			Object requestId = keyTransformer.transform(requestContext.getMessage());
 			messageContextHolder.add(requestId, requestContext);
-			finishedTracker.increase(1);
-		}
+			}
 		super.writeRequested(ctx, e);
 	}
 
@@ -80,11 +80,11 @@ public class ClientChannelHandler extends SimpleChannelHandler {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Received message: {}", message);
 		}
-		finishedTracker.increase(1);
+		finishedTracker.increaseFinished();
 		Object requestId = keyTransformer.transform(message);
 		MessageContext requestContext = messageContextHolder.remove(requestId, message);
 		if (requestContext != null) {
-			processingTime.increase(System.nanoTime() - requestContext.getTimestamp());
+			processingTime.add(System.nanoTime() - requestContext.getTimestamp());
 			requestContext.getClosure().execute(message);
 		}
 	}

@@ -25,8 +25,8 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 	private ThreadPoolExecutor		threadPool				= null;
 
 	private String					mbeanObjectName			= "org.easycluster:type=ThreadPoolMessageExecutor,name=%s";
-	private AverageTracker			waitTime				= new AverageTracker();
-	private AverageTracker			processingTime			= new AverageTracker();
+	private AverageTracker			waitTime				= new AverageTracker(100);
+	private AverageTracker			processingTime			= new AverageTracker(100);
 	private AtomicLong				requestCount			= new AtomicLong(0);
 
 	public ThreadPoolMessageExecutor(String name, int corePoolSize, int maxPoolSize, int keepAliveTime, MessageClosureRegistry messageHandlerRegistry) {
@@ -41,13 +41,13 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 			public void beforeExecute(Thread t, Runnable r) {
 				RequestRunner rr = (RequestRunner) r;
 				rr.startedAt = System.nanoTime();
-				waitTime.increase(rr.startedAt - rr.queuedAt);
+				waitTime.add(rr.startedAt - rr.queuedAt);
 				requestCount.incrementAndGet();
 			}
 
 			@Override
 			public void afterExecute(Runnable r, Throwable t) {
-				processingTime.increase((System.nanoTime() - ((RequestRunner) r).startedAt));
+				processingTime.add((System.nanoTime() - ((RequestRunner) r).startedAt));
 			}
 		};
 

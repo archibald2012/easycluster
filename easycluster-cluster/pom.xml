@@ -49,7 +49,6 @@
 		<dependency>
 			<groupId>com.alibaba</groupId>
 			<artifactId>fastjson</artifactId>
-			<optional>true</optional>
 		</dependency>
 	</dependencies>
 
