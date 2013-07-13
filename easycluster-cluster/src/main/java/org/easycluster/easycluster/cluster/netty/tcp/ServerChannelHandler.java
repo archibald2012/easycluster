@@ -1,14 +1,9 @@
 package org.easycluster.easycluster.cluster.netty.tcp;
 
-import java.lang.management.ManagementFactory;
+import java.net.SocketAddress;
+import java.nio.channels.ClosedChannelException;
 
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-import javax.management.StandardMBean;
-
-import org.easycluster.easycluster.cluster.common.RequestsTracker;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
-import org.easycluster.easycluster.cluster.netty.NetworkServerStatisticsMBean;
 import org.easycluster.easycluster.cluster.netty.endpoint.DefaultEndpointFactory;
 import org.easycluster.easycluster.cluster.netty.endpoint.Endpoint;
 import org.easycluster.easycluster.cluster.netty.endpoint.EndpointFactory;
@@ -19,6 +14,9 @@ import org.easycluster.easycluster.core.Closure;
 import org.easycluster.easycluster.core.Identifiable;
 import org.easycluster.easycluster.core.KeyTransformer;
 import org.easycluster.easycluster.core.TransportUtil;
+import org.easymetrics.easymetrics.MetricsCollectorFactory;
+import org.easymetrics.easymetrics.engine.MetricsCollector;
+import org.easymetrics.easymetrics.engine.MetricsTimer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelLocal;
@@ -34,6 +32,7 @@ import org.slf4j.LoggerFactory;
 public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 
 	private static final Logger				LOGGER					= LoggerFactory.getLogger(ServerChannelHandler.class);
+	private static final MetricsCollector	COLLECTOR				= MetricsCollectorFactory.getMetricsCollector(ServerChannelHandler.class);
 
 	private ChannelGroup					channelGroup			= null;
 	private MessageClosureRegistry			messageHandlerRegistry	= null;
@@ -42,59 +41,11 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	private EndpointFactory					endpointFactory			= new DefaultEndpointFactory();
 	private final ChannelLocal<Endpoint>	endpoints				= new ChannelLocal<Endpoint>();
 
-	private String							mbeanObjectName			= "org.easycluster:type=NetworkServerStatistics,service=%s";
-	private RequestsTracker					finishedTracker			= new RequestsTracker();
-
 	public ServerChannelHandler(final String service, final ChannelGroup channelGroup, final MessageClosureRegistry messageHandlerRegistry,
 			final MessageExecutor messageExecutor) {
 		this.channelGroup = channelGroup;
 		this.messageHandlerRegistry = messageHandlerRegistry;
 		this.messageExecutor = messageExecutor;
-		this.finishedTracker.start();
-		MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
-		try {
-			ObjectName measurementName = new ObjectName(String.format(mbeanObjectName, service));
-			if (mbeanServer.isRegistered(measurementName)) {
-				mbeanServer.unregisterMBean(measurementName);
-			}
-			StandardMBean networkStatisticsMBean = new StandardMBean(new NetworkServerStatisticsMBean() {
-
-				@Override
-				public int getChannels() {
-					return channelGroup.size();
-				}
-
-				@Override
-				public long getRequestCount() {
-					return finishedTracker.getHandledTransaction();
-				}
-
-				@Override
-				public long getFinishedCount() {
-					return finishedTracker.getFinishedTransaction();
-				}
-
-				@Override
-				public double getFinishedPerSecond() {
-					return finishedTracker.getFinishedThroughput();
-				}
-
-				@Override
-				public double getRequestsPerSecond() {
-					return finishedTracker.getHandledThroughput();
-				}
-
-			}, NetworkServerStatisticsMBean.class);
-
-			mbeanServer.registerMBean(networkStatisticsMBean, measurementName);
-
-			if (LOGGER.isInfoEnabled()) {
-				LOGGER.info("Registering with JMX server as MBean [" + measurementName + "]");
-			}
-		} catch (Exception e) {
-			String message = "Unable to register MBeans with error " + e.getMessage();
-			LOGGER.error(message, e);
-		}
 	}
 
 	@Override
@@ -103,31 +54,51 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("channelOpen: " + channel);
 		}
-		Endpoint endpoint = endpointFactory.createEndpoint(e.getChannel());
-		if (null != endpoint) {
-			attachEndpointToSession(e.getChannel(), endpoint);
+		Exception exception = null;
+		MetricsTimer metricsTimer = COLLECTOR.startMetricsTimer("channelOpen");
+		metricsTimer.addMetrics(channel);
+		try {
+			Endpoint endpoint = endpointFactory.createEndpoint(e.getChannel());
+			if (null != endpoint) {
+				attachEndpointToSession(e.getChannel(), endpoint);
+			}
+			channelGroup.add(channel);
+			metricsTimer.addMetrics(channelGroup.size());
+		} catch (RuntimeException ex) {
+			exception = ex;
+			throw ex;
+		} finally {
+			metricsTimer.stop(exception);
 		}
-		channelGroup.add(channel);
-
 	}
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("channel: [" + e.getChannel().getRemoteAddress() + "], exceptionCaught: ", e.getCause());
-			// ctx.getChannel().close();
+		SocketAddress remoteAddress = e.getChannel().getRemoteAddress();
+		Throwable cause = e.getCause();
+		if (cause instanceof ClosedChannelException) {
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("channel: [" + remoteAddress + "], exceptionCaught: ", cause);
+			}
+		} else {
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("channel: [" + remoteAddress + "], exceptionCaught: ", cause);
+				// ctx.getChannel().close();
+			}
 		}
 	}
 
 	@Override
 	public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+		Channel channel = e.getChannel();
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("channelClosed: [" + e.getChannel().getRemoteAddress() + "]");
+			LOGGER.debug("channelClosed: [" + channel.getRemoteAddress() + "]");
 		}
 		Endpoint endpoint = removeEndpointOfSession(e.getChannel());
 		if (null != endpoint) {
 			endpoint.stop();
 		}
+		channelGroup.remove(channel);
 	}
 
 	@Override
@@ -145,10 +116,12 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 			LOGGER.trace("message received: {}", e.getMessage());
 		}
 
-		finishedTracker.increaseRequested();
-
 		Channel channel = e.getChannel();
 		Object request = e.getMessage();
+
+		MetricsTimer metricsTimer = COLLECTOR.startMetricsTimer("messageReceived");
+		metricsTimer.addMetrics(channel);
+		metricsTimer.addMetrics(request);
 
 		Endpoint endpoint = getEndpointOfSession(channel);
 
@@ -164,20 +137,18 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 		if (null != endpoint) {
 			TransportUtil.attachSender(request, endpoint);
 
-			ResponseHandler responseHandler = new ResponseHandler(endpoint, request);
+			ResponseHandler responseHandler = new ResponseHandler(endpoint, request, metricsTimer);
 
 			if (!messageHandlerRegistry.messageRegistered(request.getClass())) {
 				String error = String.format("No such message of type %s registered", request.getClass().getName());
 				LOGGER.warn(error);
 				responseHandler.execute(new InvalidMessageException(error));
 			} else {
-
 				messageExecutor.execute(request, responseHandler);
 			}
 
 		} else {
-			LOGGER.warn("missing endpoint, ignore incoming msg:", request);
-			// error reactor
+			LOGGER.error("missing endpoint, ignore incoming msg:", request);
 		}
 
 	}
@@ -195,24 +166,30 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	}
 
 	class ResponseHandler implements Closure {
-		private Endpoint	endpoint;
-		private Object		request;
-		private Object		requestId;
+		private Endpoint		endpoint;
+		private Object			request;
+		private Object			requestId;
+		private MetricsTimer	metricsTimer;
 
-		public ResponseHandler(Endpoint endpoint, Object request) {
+		public ResponseHandler(Endpoint endpoint, Object request, MetricsTimer metricsTimer) {
 			this.endpoint = endpoint;
 			this.request = request;
 			this.requestId = keyTransformer.transform(request);
+			this.metricsTimer = metricsTimer;
 		}
 
 		@Override
 		public void execute(Object message) {
+			Exception ex = null;
 			if (message instanceof Exception) {
-				Exception ex = (Exception) message;
+				ex = (Exception) message;
 				message = buildErrorResponse(ex);
 			}
 
 			doSend(message);
+
+			metricsTimer.addMetrics(message);
+			metricsTimer.stop(ex);
 		}
 
 		private Object buildErrorResponse(Exception ex) {
@@ -239,8 +216,6 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 				}
 
 				endpoint.send(message);
-
-				finishedTracker.increaseFinished();
 			}
 		}
 	}

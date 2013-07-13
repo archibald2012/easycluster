@@ -27,6 +27,9 @@ import org.easycluster.easycluster.serialization.bytebean.field.DefaultField2Des
 import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
 import org.easycluster.easycluster.serialization.protocol.xip.XipHeader;
+import org.easymetrics.easymetrics.MetricsCollectorFactory;
+import org.easymetrics.easymetrics.engine.MetricsCollector;
+import org.easymetrics.easymetrics.engine.MetricsTimer;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -36,14 +39,15 @@ import org.slf4j.LoggerFactory;
 
 public class TcpBeanDecoder extends FrameDecoder {
 
-	private static final Logger	LOGGER				= LoggerFactory.getLogger(TcpBeanDecoder.class);
+	private static final Logger				LOGGER				= LoggerFactory.getLogger(TcpBeanDecoder.class);
+	private static final MetricsCollector	COLLECTOR			= MetricsCollectorFactory.getMetricsCollector(TcpBeanDecoder.class);
 
-	private BeanFieldCodec		beanFieldCodec		= null;
-	private Int2TypeMetainfo	typeMetaInfo		= null;
-	private int					dumpBytes			= 256;
-	private boolean				isDebugEnabled		= true;
-	private int					maxMessageLength	= -1;
-	private Serialization		serialization		= null;
+	private BeanFieldCodec					beanFieldCodec		= null;
+	private Int2TypeMetainfo				typeMetaInfo		= null;
+	private int								dumpBytes			= 256;
+	private boolean							isDebugEnabled		= true;
+	private int								maxMessageLength	= -1;
+	private Serialization					serialization		= null;
 
 	@Override
 	protected Object decode(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
@@ -94,22 +98,32 @@ public class TcpBeanDecoder extends FrameDecoder {
 
 			channel.setAttachment(null);
 
-			byte[] bodyBytes = new byte[bodySize];
-			buffer.readBytes(bodyBytes);
+			Exception exception = null;
+			MetricsTimer metricsTimer = COLLECTOR.startMetricsTimer("decode");
+			metricsTimer.addMetrics(header.getLength());
+			try {
+				byte[] bodyBytes = new byte[bodySize];
+				buffer.readBytes(bodyBytes);
 
-			Class<?> type = typeMetaInfo.find(header.getMessageCode());
-			if (null == type) {
-				throw new InvalidMessageException("unknown message code:" + header.getMessageCode());
+				Class<?> type = typeMetaInfo.find(header.getMessageCode());
+				if (null == type) {
+					throw new InvalidMessageException("unknown message code:" + header.getMessageCode());
+				}
+
+				AbstractXipSignal signal = (AbstractXipSignal) serialization.deserialize(bodyBytes, type);
+
+				if (null != signal) {
+					signal.setIdentification(header.getSequence());
+					signal.setClient(header.getClientId());
+				}
+
+				return signal;
+			} catch (RuntimeException ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				metricsTimer.stop(exception);
 			}
-
-			AbstractXipSignal signal = (AbstractXipSignal) serialization.deserialize(bodyBytes, type);
-
-			if (null != signal) {
-				signal.setIdentification(header.getSequence());
-				signal.setClient(header.getClientId());
-			}
-
-			return signal;
 		}
 
 	}

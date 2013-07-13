@@ -2,6 +2,7 @@ package org.easycluster.easycluster.cluster.netty;
 
 import java.net.InetSocketAddress;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.easycluster.easycluster.cluster.Node;
@@ -9,6 +10,7 @@ import org.easycluster.easycluster.cluster.client.ClusterIoClient;
 import org.easycluster.easycluster.cluster.common.MessageContext;
 import org.easycluster.easycluster.cluster.exception.ChannelPoolClosedException;
 import org.easycluster.easycluster.core.Closure;
+import org.easycluster.easycluster.core.Identifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +46,10 @@ public class NettyIoClient implements ClusterIoClient {
 		}
 
 		try {
+			//create sequence for each message
+			if (message instanceof Identifiable) {
+				((Identifiable) message).setIdentification(UUID.randomUUID().getLeastSignificantBits());
+			}
 			pool.sendRequest(new MessageContext(message, closure));
 		} catch (ChannelPoolClosedException ex) {
 			LOGGER.error("Failed to send message.", ex);

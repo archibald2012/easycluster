@@ -29,6 +29,9 @@ import org.easycluster.easycluster.serialization.protocol.annotation.SignalCode;
 import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
 import org.easycluster.easycluster.serialization.protocol.xip.XipHeader;
 import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
+import org.easymetrics.easymetrics.MetricsCollectorFactory;
+import org.easymetrics.easymetrics.engine.MetricsCollector;
+import org.easymetrics.easymetrics.engine.MetricsTimer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -38,45 +41,57 @@ import org.slf4j.LoggerFactory;
 
 public class TcpBeanEncoder extends OneToOneEncoder {
 
-	private static final Logger	LOGGER			= LoggerFactory.getLogger(TcpBeanEncoder.class);
+	private static final Logger				LOGGER			= LoggerFactory.getLogger(TcpBeanEncoder.class);
+	private static final MetricsCollector	COLLECTOR		= MetricsCollectorFactory.getMetricsCollector(TcpBeanDecoder.class);
 
-	private static final byte	BASIC_VER		= (byte) 1;
+	private static final byte				BASIC_VER		= (byte) 1;
 
-	private BeanFieldCodec		beanFieldCodec	= null;
-	private int					dumpBytes		= 256;
-	private boolean				isDebugEnabled	= true;
-	private Serialization		serialization	= null;
+	private BeanFieldCodec					beanFieldCodec	= null;
+	private int								dumpBytes		= 256;
+	private boolean							isDebugEnabled	= true;
+	private Serialization					serialization	= null;
 
 	@Override
 	protected Object encode(ChannelHandlerContext ctx, Channel channel, Object message) throws Exception {
 		MessageContext context = (MessageContext) message;
 		Object request = context.getMessage();
 
-		if (request instanceof XipSignal) {
-			XipSignal signal = (XipSignal) request;
+		Exception exception = null;
+		MetricsTimer metricsTimer = COLLECTOR.startMetricsTimer("encode");
+		try {
+			if (request instanceof XipSignal) {
+				XipSignal signal = (XipSignal) request;
 
-			byte[] bytes = serialization.serialize(signal);
+				byte[] bytes = serialization.serialize(signal);
 
-			SignalCode attr = signal.getClass().getAnnotation(SignalCode.class);
-			if (null == attr) {
-				throw new InvalidMessageException("invalid signal, no messageCode defined.");
+				SignalCode attr = signal.getClass().getAnnotation(SignalCode.class);
+				if (null == attr) {
+					throw new InvalidMessageException("invalid signal, no messageCode defined.");
+				}
+				XipHeader header = createHeader(BASIC_VER, signal.getIdentification(), bytes.length, attr.messageCode());
+
+				header.setClientId(((AbstractXipSignal) signal).getClient());
+				header.setTypeForClass(signal.getClass());
+
+				bytes = ArrayUtils.addAll(getBeanFieldCodec()
+						.encode(getBeanFieldCodec().getEncContextFactory().createEncContext(header, XipHeader.class, null)), bytes);
+
+				if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+					LOGGER.debug("encode signal {}, and signal raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
+							ByteUtil.bytesAsHexString(bytes, dumpBytes));
+				}
+
+				metricsTimer.addMetrics(bytes.length);
+				
+				return ChannelBuffers.wrappedBuffer(bytes);
 			}
-			XipHeader header = createHeader(BASIC_VER, signal.getIdentification(), bytes.length, attr.messageCode());
-
-			header.setClientId(((AbstractXipSignal) signal).getClient());
-			header.setTypeForClass(signal.getClass());
-
-			bytes = ArrayUtils.addAll(getBeanFieldCodec().encode(getBeanFieldCodec().getEncContextFactory().createEncContext(header, XipHeader.class, null)),
-					bytes);
-
-			if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-				LOGGER.debug("encode signal {}, and signal raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
-						ByteUtil.bytesAsHexString(bytes, dumpBytes));
-			}
-
-			return ChannelBuffers.wrappedBuffer(bytes);
+			return request;
+		} catch (RuntimeException ex) {
+			exception = ex;
+			throw ex;
+		} finally {
+			metricsTimer.stop(exception);
 		}
-		return request;
 	}
 
 	private XipHeader createHeader(byte basicVer, long sequence, int messageLen, int messageCode) {
