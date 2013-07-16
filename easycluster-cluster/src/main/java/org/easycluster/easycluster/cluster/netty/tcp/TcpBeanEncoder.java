@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 public class TcpBeanEncoder extends OneToOneEncoder {
 
 	private static final Logger				LOGGER			= LoggerFactory.getLogger(TcpBeanEncoder.class);
-	private static final MetricsCollector	COLLECTOR		= MetricsCollectorFactory.getMetricsCollector(TcpBeanDecoder.class);
+	private static final MetricsCollector	COLLECTOR		= MetricsCollectorFactory.getMetricsCollector(TcpBeanEncoder.class);
 
 	private static final byte				BASIC_VER		= (byte) 1;
 
@@ -57,7 +57,7 @@ public class TcpBeanEncoder extends OneToOneEncoder {
 		Object request = context.getMessage();
 
 		Exception exception = null;
-		MetricsTimer metricsTimer = COLLECTOR.startMetricsTimer("encode");
+		MetricsTimer metricsTimer = COLLECTOR.startInitialTimer("encode");
 		try {
 			if (request instanceof XipSignal) {
 				XipSignal signal = (XipSignal) request;

@@ -55,7 +55,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 			LOGGER.trace("channelOpen: " + channel);
 		}
 		Exception exception = null;
-		MetricsTimer metricsTimer = COLLECTOR.startMetricsTimer("channelOpen");
+		MetricsTimer metricsTimer = COLLECTOR.startInitialTimer("channelOpen");
 		metricsTimer.addMetrics(channel);
 		try {
 			Endpoint endpoint = endpointFactory.createEndpoint(e.getChannel());
@@ -119,7 +119,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 		Channel channel = e.getChannel();
 		Object request = e.getMessage();
 
-		MetricsTimer metricsTimer = COLLECTOR.startMetricsTimer("messageReceived");
+		MetricsTimer metricsTimer = COLLECTOR.startInitialTimer("messageReceived");
 		metricsTimer.addMetrics(channel);
 		metricsTimer.addMetrics(request);
 
@@ -181,15 +181,16 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 		@Override
 		public void execute(Object message) {
 			Exception ex = null;
-			if (message instanceof Exception) {
-				ex = (Exception) message;
-				message = buildErrorResponse(ex);
+			try {
+				if (message instanceof Exception) {
+					ex = (Exception) message;
+					message = buildErrorResponse(ex);
+				}
+				doSend(message);
+			} finally {
+				metricsTimer.addMetrics(message);
+				metricsTimer.stop(ex);
 			}
-
-			doSend(message);
-
-			metricsTimer.addMetrics(message);
-			metricsTimer.stop(ex);
 		}
 
 		private Object buildErrorResponse(Exception ex) {

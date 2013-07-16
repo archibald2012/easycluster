@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<bean id="metricDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		abstract="false" lazy-init="default" autowire="default"
+		destroy-method="close">
+		<property name="driverClass" value="com.mysql.jdbc.Driver" />
+		<property name="jdbcUrl" value="jdbc:mysql://www.51zhile.mobi:3306/metrics?characterEncoding=utf-8" />
+		<property name="user" value="metrics" />
+		<property name="password" value="metrics" />
+	</bean>
+
+	<bean id="metricsDao" class="org.easymetrics.easymetrics.publish.dao.DefaultMetricsDao">
+		<property name="dataSource" ref="metricDataSource" />
+	</bean>
+
+	<bean id="metricsCollectorFactory" class="org.easymetrics.easymetrics.MetricsCollectorFactory">
+		<property name="metricsEngine" ref="metricsEngine" />
+	</bean>
+
+	<bean id="metricsEngine" class="org.easymetrics.easymetrics.engine.DefaultMetricsEngine">
+		<property name="metricsMeasureWorker" ref="metricsMeasureWorker" />
+		<property name="collectMetrics" value="${metrics.collect.enabled}" />
+	</bean>
+
+	<bean id="metricsMeasureWorker"
+		class="org.easymetrics.easymetrics.measure.DefaultMeasureWorker"
+		init-method="start" destroy-method="destroy">
+		<property name="metricsAggregateWorker" ref="metricsAggregateWorker" />
+		<property name="metricsPublishWorker" ref="metricsPublishWorker" />
+		<property name="checkInterval" value="${metrics.measurement.check.interval}" />
+	</bean>
+
+	<bean id="metricsAggregateWorker"
+		class="org.easymetrics.easymetrics.aggregate.DefaultAggregateWorker"
+		init-method="start" destroy-method="destroy">
+		<property name="aggregationRanges"
+			value="0,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000" />
+		<property name="aggregationInterval" value="${metrics.aggregation.check.interval}" />
+		<property name="aggregationFilter" value="${metrics.aggregation.filter}" />
+		<property name="metricsPublishWorker" ref="metricsPublishWorker" />
+	</bean>
+
+	<bean id="metricsRuntimeWorker"
+		class="org.easymetrics.easymetrics.runtime.DefaultRuntimeWorker"
+		init-method="start" destroy-method="destroy">
+		<property name="detailGc" value="${metrics.runtime.detailGc.enabled}" />
+		<property name="detailThread" value="${metrics.runtime.detailThread.enabled}" />
+		<property name="detailHeap" value="${metrics.runtime.detailHeap.enabled}" />
+		<property name="checkInterval" value="${metrics.runtime.check.interval}" />
+		<property name="metricsPublishWorker" ref="metricsPublishWorker" />
+	</bean>
+
+	<bean id="metricsPublishWorker"
+		class="org.easymetrics.easymetrics.publish.DefaultPublishWorker"
+		init-method="start" destroy-method="destroy">
+		<property name="domain" value="${service.group}" />
+		<property name="serviceGroup" value="${service.group}" />
+		<property name="service" value="${service.name}" />
+		<property name="host" value="${export.server.ip}" />
+		<property name="version" value="1.0.0" />
+		<property name="metricsPublisherList">
+			<list>
+				<ref bean="metricsDaoPublisher" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="metricsDaoPublisher" class="org.easymetrics.easymetrics.publish.MetricsDaoPublisher">
+		<property name="metricsDao" ref="metricsDao" />
+	</bean>
+
+	<bean id="metricsProxyProcessor" class="org.easymetrics.easymetrics.cglib.MetricsProxyProcessor" />
+</beans>

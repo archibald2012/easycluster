@@ -38,14 +38,15 @@ import org.junit.Test;
 
 public class TcpNetworkTestCase {
 
-	private TcpClient				nettyNetworkClient;
+	private TcpClient					nettyNetworkClient;
 
-	private JMXConnectorServer		cs;
-	private JMXConnector			cc;
-	private MBeanServerConnection	mbsc;
+	private JMXConnectorServer			cs;
+	private JMXConnector				cc;
+	private MBeanServerConnection		mbsc;
 
 	@Before
 	public void setUp() throws Exception {
+
 		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 		JMXServiceURL url = new JMXServiceURL("service:jmx:rmi://");
 		cs = JMXConnectorServerFactory.newJMXConnectorServer(url, null, mbs);
@@ -288,7 +289,7 @@ public class TcpNetworkTestCase {
 
 		ResponseIterator ri = nettyNetworkClient.broadcastMessage(request);
 
-		while(ri.hasNext()){
+		while (ri.hasNext()) {
 			SampleResponse assertobj = (SampleResponse) ri.next(1800L, TimeUnit.SECONDS);
 			Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 			Assert.assertEquals(request.getShortField(), assertobj.getShortField());
@@ -296,7 +297,7 @@ public class TcpNetworkTestCase {
 			Assert.assertEquals(request.getByteField(), assertobj.getByteField());
 			Assert.assertEquals(request.getStringField(), assertobj.getStringField());
 		}
-		
+
 		nettyNetworkClient.stop();
 		nettyNetworkServer.stop();
 	}

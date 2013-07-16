@@ -99,7 +99,7 @@ public class TcpBeanDecoder extends FrameDecoder {
 			channel.setAttachment(null);
 
 			Exception exception = null;
-			MetricsTimer metricsTimer = COLLECTOR.startMetricsTimer("decode");
+			MetricsTimer metricsTimer = COLLECTOR.startInitialTimer("decode");
 			metricsTimer.addMetrics(header.getLength());
 			try {
 				byte[] bodyBytes = new byte[bodySize];
