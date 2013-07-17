@@ -82,7 +82,7 @@ public class TcpBeanEncoder extends OneToOneEncoder {
 				}
 
 				metricsTimer.addMetrics(bytes.length);
-				
+
 				return ChannelBuffers.wrappedBuffer(bytes);
 			}
 			return request;
