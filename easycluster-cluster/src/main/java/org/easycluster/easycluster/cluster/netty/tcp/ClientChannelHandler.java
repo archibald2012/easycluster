@@ -54,7 +54,9 @@ public class ClientChannelHandler extends SimpleChannelHandler {
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-		LOGGER.info("channel: [" + e.getChannel().getRemoteAddress() + "], caught exception in network layer", e.getCause());
+		if (LOGGER.isInfoEnabled()) {
+			LOGGER.info("channel: [" + e.getChannel().getRemoteAddress() + "], caught exception in network layer", e.getCause());
+		}
 	}
 
 	public void setKeyTransformer(KeyTransformer keyTransformer) {

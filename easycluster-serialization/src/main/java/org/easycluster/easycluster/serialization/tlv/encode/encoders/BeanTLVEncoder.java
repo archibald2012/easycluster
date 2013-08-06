@@ -34,7 +34,9 @@ public class BeanTLVEncoder implements TLVEncoderOfBean {
 
 		Field[] fields = TLVCodecUtils.getTLVFieldsOf(tlvBean.getClass());
 		if (fields == null) {
-			logger.warn("No TVL fields defined in class {}.", tlvBean.getClass().getName());
+			if (logger.isWarnEnabled()) {
+				logger.warn("No TVL fields defined in class {}.", tlvBean.getClass().getName());
+			}
 			return ret;
 		}
 

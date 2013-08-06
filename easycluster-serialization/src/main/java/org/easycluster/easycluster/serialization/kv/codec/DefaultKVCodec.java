@@ -48,7 +48,9 @@ public class DefaultKVCodec implements KVCodec {
 
 			Field[] fields = KVUtils.getKVFieldsOf(target.getClass());
 			if (fields == null) {
-				logger.warn("No KV fields defined in class {}.", target.getClass().getName());
+				if (logger.isWarnEnabled()) {
+					logger.warn("No KV fields defined in class {}.", target.getClass().getName());
+				}
 				return target;
 			}
 
@@ -90,9 +92,9 @@ public class DefaultKVCodec implements KVCodec {
 									Array.set(v, idx++, converter.transform(e));
 								}
 							}
-//							if (logger.isDebugEnabled()) {
-//								logger.debug(",and set value[" + v + "]");
-//							}
+							// if (logger.isDebugEnabled()) {
+							// logger.debug(",and set value[" + v + "]");
+							// }
 
 							field.setAccessible(true);
 							field.set(target, v);

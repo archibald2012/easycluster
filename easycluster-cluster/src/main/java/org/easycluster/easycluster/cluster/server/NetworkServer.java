@@ -46,7 +46,9 @@ public class NetworkServer {
 
 	public void start() {
 
-		LOGGER.info("Starting NetworkServer...");
+		if (LOGGER.isInfoEnabled()) {
+			LOGGER.info("Starting NetworkServer...");
+		}
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Ensuring ClusterClient is started");
@@ -104,8 +106,9 @@ public class NetworkServer {
 
 		});
 
-		LOGGER.info("NetworkServer started");
-
+		if (LOGGER.isInfoEnabled()) {
+			LOGGER.info("NetworkServer started");
+		}
 	}
 
 	public void stop() {
@@ -114,9 +117,10 @@ public class NetworkServer {
 
 	public void registerHandler(Class<?> requestMessage, Class<?> responseMessage, MessageClosure<?, ?> handler) {
 		String responseType = (responseMessage == null) ? null : responseMessage.getName();
-		LOGGER.info("registerHandler request=[{}], response=[{}], handler=[{}]", new Object[] { requestMessage.getName(), responseType,
-				handler.getClass().getName() });
-
+		if (LOGGER.isInfoEnabled()) {
+			LOGGER.info("registerHandler request=[{}], response=[{}], handler=[{}]", new Object[] { requestMessage.getName(), responseType,
+					handler.getClass().getName() });
+		}
 		messageClosureRegistry.registerHandler(requestMessage, responseMessage, handler);
 	}
 
@@ -139,7 +143,9 @@ public class NetworkServer {
 		if (shutdownSwitch.compareAndSet(false, true)) {
 
 			String nodeString = node.toString();
-			LOGGER.info("Shutting down NetworkServer for {}...", node);
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("Shutting down NetworkServer for {}...", node);
+			}
 
 			if (!fromCluster) {
 				if (listenerKey != null) {
@@ -171,25 +177,29 @@ public class NetworkServer {
 			}
 			clusterIoServer.shutdown();
 
-			LOGGER.info("NetworkServer shut down");
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("NetworkServer shut down");
+			}
 		}
 	}
 
 	public void setHandlers(List<MessageClosure<?, ?>> handlers) {
-		for (MessageClosure<?, ?> handler : handlers) {
-			Method[] methods = getAllMethodOf(handler.getClass());
-			for (Method method : methods) {
-				if (method.getName().equals("execute")) {
-					Class<?>[] params = method.getParameterTypes();
-					if (params.length < 1) {
-						continue;
+		if (handlers != null) {
+			for (MessageClosure<?, ?> handler : handlers) {
+				Method[] methods = getAllMethodOf(handler.getClass());
+				for (Method method : methods) {
+					if (method.getName().equals("execute")) {
+						Class<?>[] params = method.getParameterTypes();
+						if (params.length < 1) {
+							continue;
+						}
+
+						Class<?> requestType = params[0];
+						Class<?> responseType = method.getReturnType();
+						responseType = (Void.class.isAssignableFrom(responseType)) ? null : responseType;
+
+						registerHandler(requestType, responseType, handler);
 					}
-
-					Class<?> requestType = params[0];
-					Class<?> responseType = method.getReturnType();
-					responseType = (Void.class.isAssignableFrom(responseType)) ? null : responseType;
-
-					registerHandler(requestType, responseType, handler);
 				}
 			}
 		}

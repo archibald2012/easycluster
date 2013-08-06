@@ -85,73 +85,31 @@ public class DefaultFieldDesc extends ByteBeanUtil implements ByteFieldDesc {
 		return this;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldDesc#getIndex
-	 * ()
-	 */
 	@Override
 	public int getIndex() {
 		return this.index;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldDesc#getByteSize
-	 * ()
-	 */
 	@Override
 	public int getByteSize() {
 		return -1 == byteSize ? maxByteSize : Math.min(byteSize, maxByteSize);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldDesc#getField
-	 * ()
-	 */
 	@Override
 	public Field getField() {
 		return field;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldDesc#getFieldType
-	 * ()
-	 */
 	@Override
 	public Class<?> getFieldType() {
 		return field.getType();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldDesc#hasLength
-	 * ()
-	 */
 	@Override
 	public boolean hasLength() {
 		return null != lengthField;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldDesc#getLength
-	 * (java.lang.Object)
-	 */
 	@Override
 	public int getLength(Object owner) {
 		if (null == owner) {
@@ -186,46 +144,21 @@ public class DefaultFieldDesc extends ByteBeanUtil implements ByteFieldDesc {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.taotaosou.common.serialization.bytebean.field.ByteFieldDesc#
-	 * getStringLengthInBytes(java.lang.Object)
-	 */
 	@Override
 	public int getStringLengthInBytes(Object owner) {
 		return getLength(owner) * this.bytesPerChar;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldDesc#getCharset
-	 * ()
-	 */
 	@Override
 	public String getCharset() {
 		return charset;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.taotaosou.common.serialization.bytebean.field.ByteFieldDesc#
-	 * getDescription()
-	 */
 	@Override
 	public String getDescription() {
 		return description;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.taotaosou.common.serialization.bytebean.field.ByteFieldDesc#
-	 * getFixedLength()
-	 */
 	@Override
 	public int getFixedLength() {
 		return this.fixedLength;

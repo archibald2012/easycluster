@@ -192,6 +192,7 @@ public class PackageUtil {
 	}
 
 	private static boolean find(String name, List<String> list) {
+		
 		for (String regexpStr : list) {
 			if (Pattern.matches(regexpStr, name))
 				return true;

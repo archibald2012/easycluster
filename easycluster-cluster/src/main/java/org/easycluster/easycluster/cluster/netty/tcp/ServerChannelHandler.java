@@ -81,8 +81,8 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 				LOGGER.debug("channel: [" + remoteAddress + "], exceptionCaught: ", cause);
 			}
 		} else {
-			if (LOGGER.isInfoEnabled()) {
-				LOGGER.info("channel: [" + remoteAddress + "], exceptionCaught: ", cause);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("channel: [" + remoteAddress + "], exceptionCaught: ", cause);
 				// ctx.getChannel().close();
 			}
 		}
@@ -121,10 +121,8 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 
 		MetricsTimer metricsTimer = COLLECTOR.startInitialTimer("messageReceived");
 		metricsTimer.addMetrics(channel);
-		metricsTimer.addMetrics(request);
 
 		Endpoint endpoint = getEndpointOfSession(channel);
-
 		if (endpoint == null) {
 			try {
 				Thread.sleep(1000);
@@ -134,23 +132,29 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 			endpoint = getEndpointOfSession(channel);
 		}
 
-		if (null != endpoint) {
-			TransportUtil.attachSender(request, endpoint);
+		Exception ex = null;
+		try {
+			if (null != endpoint) {
+				TransportUtil.attachSender(request, endpoint);
+				ResponseHandler responseHandler = new ResponseHandler(endpoint, request);
 
-			ResponseHandler responseHandler = new ResponseHandler(endpoint, request, metricsTimer);
-
-			if (!messageHandlerRegistry.messageRegistered(request.getClass())) {
-				String error = String.format("No such message of type %s registered", request.getClass().getName());
-				LOGGER.warn(error);
-				responseHandler.execute(new InvalidMessageException(error));
+				if (!messageHandlerRegistry.messageRegistered(request.getClass())) {
+					String error = String.format("No such message of type %s registered", request.getClass().getName());
+					if (LOGGER.isWarnEnabled()) {
+						LOGGER.warn(error);
+					}
+					ex = new InvalidMessageException(error);
+					responseHandler.execute(ex);
+				} else {
+					messageExecutor.execute(request, responseHandler);
+				}
 			} else {
-				messageExecutor.execute(request, responseHandler);
+				LOGGER.error("missing endpoint, ignore incoming msg: [" + request + "]");
+				metricsTimer.addMetrics("No endpoint available.");
 			}
-
-		} else {
-			LOGGER.error("missing endpoint, ignore incoming msg:", request);
+		} finally {
+			metricsTimer.stop(ex);
 		}
-
 	}
 
 	public void attachEndpointToSession(Channel channel, Endpoint endpoint) {
@@ -166,31 +170,24 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	}
 
 	class ResponseHandler implements Closure {
-		private Endpoint		endpoint;
-		private Object			request;
-		private Object			requestId;
-		private MetricsTimer	metricsTimer;
+		private Endpoint	endpoint;
+		private Object		request;
+		private Object		requestId;
 
-		public ResponseHandler(Endpoint endpoint, Object request, MetricsTimer metricsTimer) {
+		public ResponseHandler(Endpoint endpoint, Object request) {
 			this.endpoint = endpoint;
 			this.request = request;
 			this.requestId = keyTransformer.transform(request);
-			this.metricsTimer = metricsTimer;
 		}
 
 		@Override
 		public void execute(Object message) {
 			Exception ex = null;
-			try {
-				if (message instanceof Exception) {
-					ex = (Exception) message;
-					message = buildErrorResponse(ex);
-				}
-				doSend(message);
-			} finally {
-				metricsTimer.addMetrics(message);
-				metricsTimer.stop(ex);
+			if (message instanceof Exception) {
+				ex = (Exception) message;
+				message = buildErrorResponse(ex);
 			}
+			doSend(message);
 		}
 
 		private Object buildErrorResponse(Exception ex) {
@@ -204,7 +201,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 				response = responseType.newInstance();
 				// TODO set exception message
 			} catch (Exception e) {
-				LOGGER.warn("Build default response with error " + e.getMessage(), e);
+				LOGGER.error("Build default response with error " + e.getMessage(), e);
 			}
 			return response;
 		}

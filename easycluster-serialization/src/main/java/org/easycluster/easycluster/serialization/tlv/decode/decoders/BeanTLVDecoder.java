@@ -49,7 +49,6 @@ public class BeanTLVDecoder implements TLVDecoderOfBean {
 			target = valueClazz.newInstance();
 		} catch (InstantiationException e) {
 			logger.error("BeanTLVDecoder:", e);
-			e.printStackTrace();
 		} catch (IllegalAccessException e) {
 			logger.error("BeanTLVDecoder:", e);
 		}
@@ -73,7 +72,9 @@ public class BeanTLVDecoder implements TLVDecoderOfBean {
 			Class<?> type = typeMetainfo.find(tag);
 			if (null == type) {
 				// unknow tag, just ignore
-				logger.info("unknow tag:" + tag + ", just ignore.");
+				if (logger.isInfoEnabled()) {
+					logger.info("unknow tag:" + tag + ", just ignore.");
+				}
 				offset += len;
 				continue;
 			}
@@ -81,7 +82,9 @@ public class BeanTLVDecoder implements TLVDecoderOfBean {
 			TLVDecoder decoder = ctx.getDecoderRepository().getDecoderOf(type);
 			if (null == decoder) {
 				// unknow tag, just ignore
-				logger.info("unknow decoder for [tag]:" + tag + ",[type]:" + type + " just ignore.");
+				if (logger.isInfoEnabled()) {
+					logger.info("unknow decoder for [tag]:" + tag + ",[type]:" + type + " just ignore.");
+				}
 				offset += len;
 				continue;
 			}
