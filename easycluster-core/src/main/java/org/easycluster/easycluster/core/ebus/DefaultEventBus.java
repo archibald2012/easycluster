@@ -1,5 +1,6 @@
 package org.easycluster.easycluster.core.ebus;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,20 +21,20 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultEventBus implements EventBus {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(DefaultEventBus.class);
-	private ExecutorService mainExecutor = null;
+	private static final Logger						logger			= LoggerFactory.getLogger(DefaultEventBus.class);
+	private ExecutorService							mainExecutor	= null;
 
 	/**
 	 * Map of event type to subscribers to the event type.
 	 */
-	private ConcurrentHashMap<String, Subscription> subscriptions = new ConcurrentHashMap<String, Subscription>();
+	private ConcurrentHashMap<String, Subscription>	subscriptions	= new ConcurrentHashMap<String, Subscription>();
 
 	public void start() {
 	}
 
 	public void destroy() {
-		for (Subscription sub : this.subscriptions.values()) {
+		Collection<Subscription> subs = this.subscriptions.values();
+		for (Subscription sub : subs) {
 			for (Closure closure : sub.getClosures()) {
 				if (null != closure) {
 					// TODO need set cancel flat to closure?
@@ -51,8 +52,7 @@ public class DefaultEventBus implements EventBus {
 	@Override
 	public void subscribe(final String event, final Closure closure) {
 		if (event == null || closure == null) {
-			throw new IllegalArgumentException("event [" + event
-					+ "], closure [" + closure + "]");
+			throw new IllegalArgumentException("event [" + event + "], closure [" + closure + "]");
 		}
 		getOrCreateSubscription(event).addClosure(closure);
 	}
@@ -60,8 +60,7 @@ public class DefaultEventBus implements EventBus {
 	@Override
 	public void unsubscribe(String event, Closure closure) {
 		if (event == null || closure == null) {
-			throw new IllegalArgumentException("event [" + event
-					+ "], closure [" + closure + "]");
+			throw new IllegalArgumentException("event [" + event + "], closure [" + closure + "]");
 		}
 
 		Subscription subscription = getSubscription(event);
@@ -122,22 +121,19 @@ public class DefaultEventBus implements EventBus {
 			return 0;
 		}
 		if (this.mainExecutor instanceof ThreadPoolExecutor) {
-			BlockingQueue<Runnable> queue = ((ThreadPoolExecutor) mainExecutor)
-					.getQueue();
+			BlockingQueue<Runnable> queue = ((ThreadPoolExecutor) mainExecutor).getQueue();
 			return queue.size();
 		} else {
-			throw new RuntimeException(
-					"Internal Erro : mainExecutor is !NOT! ThreadPoolExecutor class");
+			throw new RuntimeException("Internal Erro : mainExecutor is !NOT! ThreadPoolExecutor class");
 		}
 	}
 
 	public void setThreadSize(int nThreads) {
-		this.mainExecutor = Executors.newFixedThreadPool(nThreads,
-				new ThreadFactory() {
-					public Thread newThread(Runnable r) {
-						return new Thread(r, "ebus main threads");
-					}
-				});
+		this.mainExecutor = Executors.newFixedThreadPool(nThreads, new ThreadFactory() {
+			public Thread newThread(Runnable r) {
+				return new Thread(r, "ebus main threads");
+			}
+		});
 	}
 
 }

@@ -1,71 +1,32 @@
 package org.easycluster.easycluster.cluster.manager.event;
 
-import java.io.Serializable;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
-
 /**
  * The abstract event type for all events in the framework.
  * 
  */
+public abstract class CoreEvent {
 
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(propOrder = { "type", "hostName", "pid", "serviceName", "componentName", "componentType" })
-public abstract class CoreEvent implements Serializable {
-	@XmlTransient
-	private static final long	serialVersionUID	= 1L;
+	private String	type;
 
-	@XmlElement(name = "type", required = true)
-	@XmlSchemaType(name = "QName")
-	private String						type;
+	private String	hostName;
 
-	@XmlElement(name = "host", required = false)
-	@XmlSchemaType(name = "QName")
-	private String						hostName;
+	private String	pid;
 
-	@XmlElement(name = "pid", required = false)
-	@XmlSchemaType(name = "QName")
-	private String						pid;
+	private String	serviceName;
 
-	@XmlElement(name = "service", required = false)
-	@XmlSchemaType(name = "QName")
-	private String						serviceName;
+	private String	componentName;
 
-	@XmlElement(name = "component", required = false)
-	@XmlSchemaType(name = "QName")
-	private String						componentName;
+	private String	componentType;
 
-	@XmlElement(name = "componentType", required = false)
-	@XmlSchemaType(name = "QName")
-	private String						componentType;
-
-	/**
-	 * 
-	 */
 	public CoreEvent() {
 	}
 
-	/**
-	 * @param type
-	 */
-	public CoreEvent(String type) {
-		this.type = type;
+	public CoreEvent(EventType type) {
+		this.type = type.name();
 	}
 
-	/**
-	 * Construct an event with basic type and source.
-	 * 
-	 * @param type
-	 * @param componentName
-	 * @param componentType
-	 */
-	public CoreEvent(String type, String componentName, String componentType) {
-		this.type = type;
+	public CoreEvent(EventType type, String componentName, String componentType) {
+		this.type = type.name();
 		this.componentName = componentName;
 		this.componentType = componentType;
 	}

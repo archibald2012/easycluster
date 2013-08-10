@@ -17,6 +17,7 @@ import org.easycluster.easycluster.cluster.exception.ClusterDisconnectedExceptio
 import org.easycluster.easycluster.cluster.exception.ClusterNotStartedException;
 import org.easycluster.easycluster.cluster.exception.ClusterShutdownException;
 import org.easycluster.easycluster.cluster.manager.event.ClusterEvent;
+import org.easycluster.easycluster.cluster.manager.event.handler.ClusterEventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,7 @@ public class DefaultClusterClient implements ClusterClient {
 	private String					service				= null;
 	private AtomicBoolean			shutdownSwitch		= new AtomicBoolean(false);
 	private AtomicBoolean			startedSwitch		= new AtomicBoolean(false);
-	private ClusterEventHandler		clusterEventHandler	= null;
+	private ClusterEventHandler		clusterEventHandler		= null;
 	private volatile CountDownLatch	connectedLatch		= new CountDownLatch(1);
 	private String					mbeanObjectName		= "org.easycluster:type=DefaultClusterClient,service=%s";
 

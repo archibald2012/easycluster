@@ -40,8 +40,10 @@ public class NetworkServer {
 		node.setVersion(config.getVersion());
 		node.setUrl(config.getUrl());
 
-		this.clusterClient = new ZooKeeperClusterClient(config.getServiceGroup(), config.getService(), config.getZooKeeperConnectString(),
+		ZooKeeperClusterClient clusterClient = new ZooKeeperClusterClient(config.getServiceGroup(), config.getService(), config.getZooKeeperConnectString(),
 				config.getZooKeeperSessionTimeoutMillis());
+		clusterClient.setClusterEventHandler(config.getClusterEventHandler());
+		this.clusterClient = clusterClient;
 	}
 
 	public void start() {

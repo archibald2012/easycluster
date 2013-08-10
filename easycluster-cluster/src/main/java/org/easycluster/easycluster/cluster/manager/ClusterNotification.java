@@ -3,7 +3,6 @@
  */
 package org.easycluster.easycluster.cluster.manager;
 
-import java.io.ByteArrayInputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,17 +10,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-
 import org.easycluster.easycluster.cluster.Node;
 import org.easycluster.easycluster.cluster.common.SystemUtil;
-import org.easycluster.easycluster.cluster.exception.SerializeException;
 import org.easycluster.easycluster.cluster.manager.event.ClusterEvent;
 import org.easycluster.easycluster.cluster.manager.event.CoreEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.alibaba.fastjson.JSON;
 
 /**
  *
@@ -36,18 +32,8 @@ public class ClusterNotification {
 	private boolean						connected			= false;
 	private Long						listenerId			= 0L;
 
-	private JAXBContext					clusterEventcontext	= null;
-
 	public ClusterNotification(String serviceName) {
 		this.serviceName = serviceName;
-
-		try {
-			clusterEventcontext = JAXBContext.newInstance(ClusterEvent.class);
-		} catch (JAXBException e) {
-			String error = "Failed to ininitialize JAXB with error " + e.getMessage();
-			LOGGER.error(error);
-			throw new RuntimeException(error, e);
-		}
 	}
 
 	public Long handleAddListener(ClusterListener listener) {
@@ -129,17 +115,9 @@ public class ClusterNotification {
 			LOGGER.debug("Handling cluster event ({})", clusterEvent);
 		}
 
-		Object request = null;
-		try {
-			Unmarshaller unmarshaller = clusterEventcontext.createUnmarshaller();
-			request = unmarshaller.unmarshal(new ByteArrayInputStream(clusterEvent.getBytes()));
-		} catch (JAXBException e) {
-			String error = "Ignored the request with JAXB error " + e.getMessage();
-			LOGGER.warn(error, e);
-			throw new SerializeException(error, e);
-		}
+		ClusterEvent request = JSON.parseObject(clusterEvent, ClusterEvent.class);
 
-		CoreEvent event = ((ClusterEvent) request).getEvent();
+		CoreEvent event = request.getEvent();
 
 		// check the destination of this event
 		boolean isTargeted = true;

@@ -1,6 +1,7 @@
 package org.easycluster.easycluster.cluster;
 
 import org.easycluster.easycluster.cluster.common.SystemUtil;
+import org.easycluster.easycluster.cluster.manager.event.handler.ClusterEventHandler;
 import org.easycluster.easycluster.cluster.netty.endpoint.EndpointListener;
 import org.easycluster.easycluster.cluster.netty.serialization.SerializationConfig;
 
@@ -64,6 +65,8 @@ public class NetworkServerConfig {
 	private int					port							= -1;
 
 	private String				url								= null;
+
+	private ClusterEventHandler	clusterEventHandler				= null;
 
 	public String getServiceGroup() {
 		return serviceGroup;
@@ -191,6 +194,14 @@ public class NetworkServerConfig {
 
 	public void setSerializationConfig(SerializationConfig serializationConfig) {
 		this.serializationConfig = serializationConfig;
+	}
+
+	public ClusterEventHandler getClusterEventHandler() {
+		return clusterEventHandler;
+	}
+
+	public void setClusterEventHandler(ClusterEventHandler clusterEventHandler) {
+		this.clusterEventHandler = clusterEventHandler;
 	}
 
 }

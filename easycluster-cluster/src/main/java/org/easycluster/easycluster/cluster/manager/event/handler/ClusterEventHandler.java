@@ -1,4 +1,4 @@
-package org.easycluster.easycluster.cluster.manager;
+package org.easycluster.easycluster.cluster.manager.event.handler;
 
 import org.easycluster.easycluster.cluster.manager.event.ClusterEvent;
 import org.easycluster.easycluster.core.ebus.EventBus;
@@ -16,8 +16,9 @@ public class ClusterEventHandler {
 	}
 
 	public void handleClusterEvent(ClusterEvent clusterEvent) {
-		LOGGER.info("Handling cluster event ({})", clusterEvent);
-
+		if (LOGGER.isInfoEnabled()) {
+			LOGGER.info("Handling cluster event ({})", clusterEvent);
+		}
 		eventBus.publish(clusterEvent.getEvent().getType(), clusterEvent);
 	}
 }
