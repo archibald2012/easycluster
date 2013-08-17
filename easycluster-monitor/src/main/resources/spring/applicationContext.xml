@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+	<context:property-placeholder location="classpath:config.properties" />
+
+	<bean id="serverStore" class="org.easycluster.easycluster.monitor.service.ServerStore" />
+
+	<bean id="clusterService"
+		class="org.easycluster.easycluster.monitor.service.ClusterServiceImpl"
+		init-method="start" destroy-method="stop">
+		<property name="serverStore" ref="serverStore" />
+		<property name="checkInterval" value="${service.check.interval}" />
+		<property name="serviceGroup" value="${service.group}" />
+		<property name="serviceNames" value="${service.names}" />
+		<property name="zooKeeperConnectString" value="${zookeeper.connect.string}" />
+	</bean>
+
+	<bean id="showTree" class="org.easycluster.easycluster.monitor.web.ShowTree">
+		<property name="serverStore" ref="serverStore"></property>
+	</bean>
+
+	<bean id="mailEngine"
+		class="org.easycluster.easycluster.monitor.service.MailServiceImpl">
+		<property name="mailSender">
+			<bean class="org.springframework.mail.javamail.JavaMailSenderImpl">
+				<property name="host" value="${mail.host}" />
+				<property name="port" value="${mail.port}" />
+				<property name="username" value="${mail.username}" />
+				<property name="password" value="${mail.password}" />
+				<property name="javaMailProperties">
+					<props>
+						<prop key="mail.smtp.starttls.enable">true</prop>
+						<prop key="mail.smtp.auth">true</prop>
+					</props>
+				</property>
+			</bean>
+		</property>
+		<property name="velocityEngine">
+			<bean class="org.springframework.ui.velocity.VelocityEngineFactoryBean">
+				<property name="velocityProperties">
+					<props>
+						<prop key="resource.loader">class</prop>
+						<prop key="class.resource.loader.class">
+							org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader
+						</prop>
+						<prop key="velocimacro.library"></prop>
+					</props>
+				</property>
+			</bean>
+		</property>
+		<property name="from" value="${mail.default.from}" />
+	</bean>
+</beans>

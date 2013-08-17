@@ -5,8 +5,8 @@ import org.easycluster.easycluster.cluster.manager.DefaultClusterClient;
 
 public class ZooKeeperClusterClient extends DefaultClusterClient {
 
-	public ZooKeeperClusterClient(String applicationName, String serviceName, String zooKeeperConnectString) {
-		this(applicationName, serviceName, zooKeeperConnectString, ClusterDefaults.ZOOKEEPER_SESSION_TIMEOUT_MILLIS);
+	public ZooKeeperClusterClient(String serviceGroup, String serviceName, String zooKeeperConnectString) {
+		this(serviceGroup, serviceName, zooKeeperConnectString, ClusterDefaults.ZOOKEEPER_SESSION_TIMEOUT_MILLIS);
 	}
 
 	public ZooKeeperClusterClient(String serviceGroup, String service, String zooKeeperConnectString, int zooKeeperSessionTimeoutMillis) {
