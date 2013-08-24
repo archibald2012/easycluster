@@ -3,8 +3,8 @@
  */
 package org.easycluster.easycluster.monitor.domain;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author wangqi
@@ -12,9 +12,9 @@ import java.util.Map;
  */
 public class ServerDomain {
 
-	private String						name;
+	private String name;
 
-	private Map<String, ServerGroup>	groups	= new HashMap<String, ServerGroup>();
+	private ConcurrentMap<String, ServerGroup> groups = new ConcurrentHashMap<String, ServerGroup>();
 
 	public ServerDomain(String name) {
 		this.name = name;
@@ -32,11 +32,11 @@ public class ServerDomain {
 		this.name = name;
 	}
 
-	public Map<String, ServerGroup> getGroups() {
+	public ConcurrentMap<String, ServerGroup> getGroups() {
 		return groups;
 	}
 
-	public void setGroups(Map<String, ServerGroup> groups) {
+	public void setGroups(ConcurrentMap<String, ServerGroup> groups) {
 		this.groups = groups;
 	}
 }

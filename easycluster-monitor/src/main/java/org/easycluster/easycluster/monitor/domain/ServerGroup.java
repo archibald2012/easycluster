@@ -1,7 +1,7 @@
 package org.easycluster.easycluster.monitor.domain;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.easycluster.easycluster.core.IpPortPair;
 
@@ -11,9 +11,10 @@ import org.easycluster.easycluster.core.IpPortPair;
  */
 public class ServerGroup {
 
-	private String							name;
+	private String																		name;
 
-	private Map<IpPortPair, ServerSnapshot>	servers	= new HashMap<IpPortPair, ServerSnapshot>();
+	// key is server instance id
+	private ConcurrentMap<IpPortPair, ServerStatus>	servers	= new ConcurrentHashMap<IpPortPair, ServerStatus>();
 
 	public ServerGroup(String name) {
 		this.name = name;
@@ -27,11 +28,11 @@ public class ServerGroup {
 		this.name = name;
 	}
 
-	public Map<IpPortPair, ServerSnapshot> getServers() {
+	public ConcurrentMap<IpPortPair, ServerStatus> getServers() {
 		return servers;
 	}
 
-	public void setServers(Map<IpPortPair, ServerSnapshot> servers) {
+	public void setServers(ConcurrentMap<IpPortPair, ServerStatus> servers) {
 		this.servers = servers;
 	}
 }

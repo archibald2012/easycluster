@@ -11,8 +11,9 @@ import org.easycluster.easycluster.cluster.Node;
 import org.easycluster.easycluster.cluster.manager.ClusterClient;
 import org.easycluster.easycluster.cluster.manager.zookeeper.ZooKeeperClusterClient;
 import org.easycluster.easycluster.monitor.domain.ServerStatus;
+import org.easycluster.easycluster.monitor.domain.ServerStore;
 
-public class ClusterServiceImpl {
+public class ClusterService {
 
 	private ServerStore					serverStore				= null;
 	private ScheduledExecutorService	exec					= Executors.newSingleThreadScheduledExecutor();
@@ -40,8 +41,8 @@ public class ClusterServiceImpl {
 
 					for (Node node : nodes) {
 						ServerStatus server = new ServerStatus();
-						server.setServiceGroup(node.getServiceGroup());
-						server.setService(node.getService());
+						server.setDomain(node.getServiceGroup());
+						server.setGroup(node.getService());
 						server.setIp(node.getHostName());
 						server.setPort(node.getPort());
 						server.setVersion(node.getVersion());

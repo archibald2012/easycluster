@@ -1,4 +1,4 @@
-package org.easycluster.easycluster.monitor.service;
+package org.easycluster.easycluster.monitor.domain;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,17 +8,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.easycluster.easycluster.core.IpPortPair;
-import org.easycluster.easycluster.monitor.domain.ServerDomain;
-import org.easycluster.easycluster.monitor.domain.ServerGroup;
-import org.easycluster.easycluster.monitor.domain.ServerSnapshot;
-import org.easycluster.easycluster.monitor.domain.ServerStatus;
 
 /**
  * @author wangqi
  * 
  */
 public class ServerStore {
-	
+
 	private ConcurrentMap<String, ServerDomain>	domains	= new ConcurrentHashMap<String, ServerDomain>();
 
 	public void refreshServers(String domainName, String groupName, ServerStatus server) {
@@ -35,83 +31,88 @@ public class ServerStore {
 			domain.getGroups().put(groupName, group);
 		}
 
-		ServerSnapshot snapshot = null;
 		IpPortPair key = new IpPortPair(server.getIp(), server.getPort());
-		if (group.getServers().containsKey(key)) {
-
-			snapshot = group.getServers().get(key);
-			long now = System.currentTimeMillis();
-			snapshot.setHeartbeatTime(now);
+		ServerStatus snapshot = group.getServers().get(key);
+		if (snapshot == null) {
+			snapshot = new ServerStatus();
 		} else {
-			snapshot = new ServerSnapshot();
+			// recover
+			if (!snapshot.isAvailable() && server.isAvailable()) {
+				snapshot = new ServerStatus();
+			}
 		}
 
-		snapshot.setServerStatus(server);
+		snapshot.setDomain(server.getDomain());
+		snapshot.setGroup(server.getGroup());
+		snapshot.setIp(server.getIp());
+		snapshot.setPort(server.getPort());
+		snapshot.setVersion(server.getVersion());
+		snapshot.setAvailable(server.isAvailable());
+		if (server.isAvailable()) {
+			snapshot.setHeartbeatTime(System.currentTimeMillis());
+		}
+
 		group.getServers().put(key, snapshot);
 	}
 
 	public ServerDomain[] getDomainByAll() {
 		return domains.values().toArray(new ServerDomain[] {});
 	}
-	
-	public ServerSnapshot[] getServerSnapshot(String domain, String groupName) {
-		List<ServerSnapshot> ret = new ArrayList<ServerSnapshot>();
+
+	public ServerStatus[] getServerSnapshot(String domain, String groupName) {
+		List<ServerStatus> ret = new ArrayList<ServerStatus>();
 		ServerDomain serverDomain = domains.get(domain);
 		if (serverDomain == null) {
-			return ret.toArray(new ServerSnapshot[0]);
+			return ret.toArray(new ServerStatus[0]);
 		}
 		ServerGroup group = serverDomain.getGroup(groupName);
 		if (group == null) {
-			return ret.toArray(new ServerSnapshot[0]);
+			return ret.toArray(new ServerStatus[0]);
 		} else {
 			ret.addAll(group.getServers().values());
 			Collections.sort(ret);
-			return ret.toArray(new ServerSnapshot[0]);
+			return ret.toArray(new ServerStatus[0]);
 		}
 	}
 
-	public ServerSnapshot getServerSnapshotByAddress(IpPortPair address) {
-		ServerSnapshot ret = null;
+	public ServerStatus getServerSnapshotByAddress(IpPortPair address) {
+		ServerStatus ret = null;
 
 		Collection<ServerDomain> domains = this.domains.values();
 		for (ServerDomain domain : domains) {
 			for (ServerGroup group : domain.getGroups().values()) {
-				for (ServerSnapshot snapshot : group.getServers().values()) {
-					IpPortPair server = new IpPortPair(snapshot.getServerStatus().getIp(), snapshot.getServerStatus().getPort());
-					if (server.equals(address)) {
-						ret = snapshot;
-						break;
-					}
+				if (group.getServers().containsKey(address)) {
+					return group.getServers().get(address);
 				}
 			}
 		}
 		return ret;
 	}
 
-	public ServerSnapshot[] getServerSnapshotByDomain(String domainName) {
-		List<ServerSnapshot> ret = new ArrayList<ServerSnapshot>();
+	public ServerStatus[] getServerSnapshotByDomain(String domainName) {
+		List<ServerStatus> ret = new ArrayList<ServerStatus>();
 
 		ServerDomain domain = domains.get(domainName);
 		for (ServerGroup group : domain.getGroups().values()) {
-			for (ServerSnapshot snapshot : group.getServers().values()) {
+			for (ServerStatus snapshot : group.getServers().values()) {
 				ret.add(snapshot);
 			}
 		}
 		Collections.sort(ret);
-		return ret.toArray(new ServerSnapshot[0]);
+		return ret.toArray(new ServerStatus[0]);
 	}
 
-	public ServerSnapshot[] getServerSnapshotByAll() {
-		List<ServerSnapshot> ret = new ArrayList<ServerSnapshot>();
+	public ServerStatus[] getServerSnapshotByAll() {
+		List<ServerStatus> ret = new ArrayList<ServerStatus>();
 
 		for (ServerDomain domain : domains.values()) {
 			for (ServerGroup group : domain.getGroups().values()) {
-				for (ServerSnapshot snapshot : group.getServers().values()) {
+				for (ServerStatus snapshot : group.getServers().values()) {
 					ret.add(snapshot);
 				}
 			}
 		}
 		Collections.sort(ret);
-		return ret.toArray(new ServerSnapshot[0]);
+		return ret.toArray(new ServerStatus[0]);
 	}
 }

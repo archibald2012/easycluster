@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+	<context:property-placeholder location="classpath:config.properties" />
+
+	<bean id="serverStore" class="org.easycluster.easycluster.monitor.domain.ServerStore" />
+
+	<bean id="clusterService"
+		class="org.easycluster.easycluster.monitor.service.ClusterService"
+		init-method="start" destroy-method="stop">
+		<property name="serverStore" ref="serverStore" />
+		<property name="serviceGroup" value="${service.group}" />
+		<property name="serviceNames" value="${service.names}" />
+		<property name="zooKeeperConnectString" value="${zookeeper.connect.string}" />
+	</bean>
+
+	<bean id="showTree" class="org.easycluster.easycluster.monitor.web.ShowTree">
+		<property name="serverStore" ref="serverStore"></property>
+	</bean>
+</beans>

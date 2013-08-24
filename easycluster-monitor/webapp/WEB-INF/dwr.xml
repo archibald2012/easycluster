@@ -3,9 +3,6 @@
 
 <dwr>
 	<allow>
-		<create creator="spring" javascript="serverStore">
-			<param name="beanName">serverStore</param>
-		</create>
 
 		<create creator="spring" javascript="showtree">
 			<param name="beanName" value="showTree" />
@@ -17,8 +14,6 @@
 			match="org.easycluster.easycluster.monitor.domain.ServerDomain" />
 		<convert converter="bean"
 			match="org.easycluster.easycluster.monitor.domain.ServerGroup" />
-		<convert converter="bean"
-			match="org.easycluster.easycluster.monitor.domain.ServerSnapshot" />
 		<convert converter="bean"
 			match="org.easycluster.easycluster.monitor.domain.ServerStatus" />
 	</allow>

@@ -20,15 +20,15 @@ org.easycluster.easycluster.monitor.index.main = function() {
 			});
 
 	var tree = new Ext.tree.TreePanel({
-				title : "Server Navigation",
+				title : "Navigation",
 				// frame : true,
 				border : false,
 				autoScroll : true,
 				root : new Ext.tree.TreeNode({
 							id : 'root',
 							text : 'Domains',
-							draggable : false, // false默认设置，不能被拖拽
-							expanded : true,// 设置菜单展开
+							draggable : false, 
+							expanded : true,
 							listeners : {
 								"click" : function() {
 									condition = {};
@@ -87,9 +87,9 @@ org.easycluster.easycluster.monitor.index.main = function() {
 										var b = a[s].servers[d];
 										var nodeServer = new Ext.tree.TreeNode(
 												{
-													text :  b.serverStatus.ip
+													text :  b.ip
 															+ ":"
-															+ b.serverStatus.port,
+															+ b.port,
 													listeners : {
 														"click" : function(e) {
 														}
@@ -117,24 +117,24 @@ org.easycluster.easycluster.monitor.index.main = function() {
 			});
 
 	var recordType = new Ext.data.Record.create([{
-				name : "serverStatus.service",
+				name : "group",
 				type : "String"
 			}, {
-				name : "running",
+				name : "available",
 				type : "bool"
 			}, {
-				name : 'serverStatus.ip',
+				name : 'ip',
 				type : "String"
 			}, {
-				name : "serverStatus.port",
+				name : "port",
 				type : "String"
 
 			}, {
-				name : 'serverStatus.version',
+				name : 'version',
 				type : "String"
 			}, {
-				name : 'starttime',
-				type : "date"
+				name : 'startTime',
+				type : "long"
 			}, {
 				name : 'heartbeatTime',
 				type : "long"
@@ -158,19 +158,19 @@ org.easycluster.easycluster.monitor.index.main = function() {
 	ds.load(condition);
 
 	var colModel = new Ext.grid.ColumnModel([new Ext.grid.RowNumberer({
-						header : "NO.",
+						header : "NO",
 						width : 40
 					}), {
-				name : "serverStatus.service",
+				name : "group",
 				header : "Service",
 				sortable : true,
-				dataIndex : "serverStatus.service",
-				width : 80
+				dataIndex : "group",
+				width : 50
 			}, {
-				name : "running",
-				header : "Running",
+				name : "available",
+				header : "available",
 				sortable : true,
-				dataIndex : "running",
+				dataIndex : "available",
 				width : 50,
 				renderer : function(value) {
 					if (value) {
@@ -180,31 +180,34 @@ org.easycluster.easycluster.monitor.index.main = function() {
 					}
 				}
 			}, {
-				name : 'serverStatus.ip',
+				name : 'ip',
 				header : "IP",
 				sortable : true,
-				dataIndex : "serverStatus.ip"
+				dataIndex : "ip"
 			}, {
-				name : 'serverStatus.port',
+				name : 'port',
 				header : "Port",
 				sortable : true,
-				width : 50,
-				dataIndex : "serverStatus.port"
+				width : 40,
+				dataIndex : "port"
 			}, {
-				name : 'serverStatus.version',
+				name : 'version',
 				header : "Version",
-				dataIndex : "serverStatus.version",
+				dataIndex : "version",
 				sortable : true,
 				width : 80
 			}, {
-				name : 'starttime',
-				header : "Startup",
-				dataIndex : "starttime",
+				name : 'startTime',
+				header : "StartTime",
+				dataIndex : "startTime",
 				sortable : true,
-				renderer : Ext.util.Format.dateRenderer('Y-m-d H:i:s')
+				renderer : function(v) {
+					var d = new Date(v);
+					return d.pattern("yyyy-MM-dd HH:mm:ss");
+				}
 			}, {
 				name : 'heartbeatTime',
-				header : "Last Heartbeat",
+				header : "Refresh At",
 				dataIndex : "heartbeatTime",
 				sortable : true,
 				renderer : function(v) {
@@ -213,11 +216,14 @@ org.easycluster.easycluster.monitor.index.main = function() {
 				}
 			}, {
 				name : 'runningTime',
-				header : "Running Time",
+				header : "RunningTime",
 				dataIndex : "runningTime",
 				sortable : true,
 				renderer : function(v) {
-					return v + " s";
+					day = parseInt(v / 86400);
+					min = parseInt(v % 86400 / 3600);
+					sec = v % 86400 % 3600;
+					return day + "d " + min + "h " + sec + "s";
 				}
 			}]);
 
@@ -268,7 +274,7 @@ org.easycluster.easycluster.monitor.index.main = function() {
 					forceFit : true
 				},
 				loadMask : {
-					msg : "Loading，please wait..."
+					msg : "Data loading, please wait..."
 				},
 				tbar : [new Ext.Toolbar.Fill(), timeLabel, space, timeComboBox,
 						space, new Ext.Button({
