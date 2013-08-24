@@ -22,6 +22,7 @@ import org.easycluster.easycluster.cluster.manager.ClusterListener;
 import org.easycluster.easycluster.cluster.manager.event.ClusterEvent;
 import org.easycluster.easycluster.cluster.manager.zookeeper.ZooKeeperClusterClient;
 import org.easycluster.easycluster.core.Closure;
+import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,7 @@ public class BaseNetworkClient {
 	protected volatile boolean		connected		= false;
 
 	public BaseNetworkClient(final NetworkClientConfig config) {
-		clusterClient = new ZooKeeperClusterClient(config.getServiceGroup(), config.getService(), config.getZooKeeperConnectString(),
+		this.clusterClient = new ZooKeeperClusterClient(config.getServiceGroup(), config.getService(), config.getZooKeeperConnectString(),
 				config.getZooKeeperSessionTimeoutMillis());
 	}
 
@@ -134,7 +135,17 @@ public class BaseNetworkClient {
 		final DefaultResponseIterator it = new DefaultResponseIterator(currentNodes.size());
 
 		for (Node node : currentNodes) {
-			doSendMessage(node, message, new Closure() {
+
+			Object obj = message;
+			if (message instanceof AbstractXipSignal) {
+				try {
+					obj = ((AbstractXipSignal) message).clone();
+				} catch (CloneNotSupportedException e) {
+					LOGGER.error("Clone operation not supported!", e);
+				}
+			}
+
+			doSendMessage(node, obj, new Closure() {
 
 				@Override
 				public void execute(Object message) {
@@ -207,30 +218,10 @@ public class BaseNetworkClient {
 
 	}
 
-	public void setMessageRegistry(MessageRegistry messageRegistry) {
-		this.messageRegistry = messageRegistry;
-	}
-
 	public void setMessages(Map<Class<?>, Class<?>> messages) {
 		for (Map.Entry<Class<?>, Class<?>> entry : messages.entrySet()) {
 			registerRequest(entry.getKey(), entry.getValue());
 		}
-	}
-
-	public void setClusterIoClient(ClusterIoClient clusterIoClient) {
-		this.clusterIoClient = clusterIoClient;
-	}
-
-	public void setClusterClient(ClusterClient clusterClient) {
-		this.clusterClient = clusterClient;
-	}
-
-	public ClusterClient getClusterClient() {
-		return clusterClient;
-	}
-
-	public ClusterIoClient getClusterIoClient() {
-		return clusterIoClient;
 	}
 
 }

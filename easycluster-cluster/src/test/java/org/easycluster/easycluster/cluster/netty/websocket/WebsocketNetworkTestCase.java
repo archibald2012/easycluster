@@ -74,6 +74,9 @@ public class WebsocketNetworkTestCase {
 		Future<Object> future = client.sendMessage(request);
 
 		System.out.println("Result: " + future.get(20000, TimeUnit.SECONDS));
+		
+		client.stop();
+		server.stop();
 	}
 
 }

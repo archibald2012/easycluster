@@ -209,6 +209,16 @@ public class TcpNetworkTestCase {
 		TcpServer nettyNetworkServer2 = new TcpServer(serverConfig2);
 		nettyNetworkServer2.setHandlers(handlers);
 		nettyNetworkServer2.start();
+		
+		NetworkServerConfig serverConfig3 = new NetworkServerConfig();
+		serverConfig3.setServiceGroup("app");
+		serverConfig3.setService("test");
+		serverConfig3.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig3.setPort(6002);
+		serverConfig3.setSerializationConfig(codecConfig);
+		TcpServer nettyNetworkServer3 = new TcpServer(serverConfig3);
+		nettyNetworkServer3.setHandlers(handlers);
+		nettyNetworkServer3.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
 		clientConfig.setServiceGroup("app");
@@ -226,28 +236,34 @@ public class TcpNetworkTestCase {
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
-		SampleRequest request = new SampleRequest();
-		request.setIntField(1);
-		request.setShortField((byte) 1);
-		request.setByteField((byte) 1);
-		request.setLongField(1L);
-		request.setStringField("test");
+		int num = 500;
 
-		request.setByteArrayField(new byte[] { 127 });
+		for (int i = 0; i < num; i++) {
+			SampleRequest request = new SampleRequest();
+			request.setIntField(1);
+			request.setShortField((byte) 1);
+			request.setByteField((byte) 1);
+			request.setLongField(1L);
+			request.setStringField("test");
 
-		ResponseIterator ri = nettyNetworkClient.broadcastMessage(request);
+			request.setByteArrayField(new byte[] { 127 });
 
-		while (ri.hasNext()) {
-			SampleResponse assertobj = (SampleResponse) ri.next(1800L, TimeUnit.SECONDS);
-			Assert.assertEquals(request.getIntField(), assertobj.getIntField());
-			Assert.assertEquals(request.getShortField(), assertobj.getShortField());
-			Assert.assertEquals(request.getLongField(), assertobj.getLongField());
-			Assert.assertEquals(request.getByteField(), assertobj.getByteField());
-			Assert.assertEquals(request.getStringField(), assertobj.getStringField());
+			ResponseIterator ri = nettyNetworkClient.broadcastMessage(request);
+
+			while (ri.hasNext()) {
+				SampleResponse assertobj = (SampleResponse) ri.next(1800L, TimeUnit.SECONDS);
+				Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+				Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+				Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+				Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+				Assert.assertEquals(request.getStringField(), assertobj.getStringField());
+			}
 		}
-
+		
 		nettyNetworkClient.stop();
 		nettyNetworkServer.stop();
+		nettyNetworkServer2.stop();
+		nettyNetworkServer3.stop();
 	}
 
 	@Test
@@ -527,7 +543,7 @@ public class TcpNetworkTestCase {
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
-		int num = 50000;
+		int num = 500;
 
 		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
 
@@ -613,7 +629,7 @@ public class TcpNetworkTestCase {
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
-		int num = 5000;
+		int num = 500;
 
 		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
 
@@ -697,7 +713,7 @@ public class TcpNetworkTestCase {
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
-		int num = 5000;
+		int num = 500;
 
 		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
 
@@ -783,7 +799,7 @@ public class TcpNetworkTestCase {
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
-		int num = 5000;
+		int num = 500;
 
 		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
 
@@ -869,7 +885,7 @@ public class TcpNetworkTestCase {
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
-		int num = 5000;
+		int num = 500;
 
 		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
 

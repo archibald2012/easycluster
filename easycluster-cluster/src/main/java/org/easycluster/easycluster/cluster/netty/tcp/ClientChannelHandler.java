@@ -32,7 +32,8 @@ public class ClientChannelHandler extends SimpleChannelHandler {
 
 		if (e.getMessage() instanceof MessageContext) {
 			MessageContext requestContext = (MessageContext) e.getMessage();
-			Object requestId = keyTransformer.transform(requestContext.getMessage());
+			Object message = requestContext.getMessage();
+			Object requestId = keyTransformer.transform(message);
 			messageContextHolder.add(requestId, requestContext);
 		}
 		super.writeRequested(ctx, e);

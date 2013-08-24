@@ -176,10 +176,7 @@ public class ChannelPool {
 			LOGGER.debug("Writing to {}: {}", channel, request);
 		}
 
-		int requestSent = requestsSent.incrementAndGet();
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("requestSent: " + requestSent);
-		}
+		requestsSent.incrementAndGet();
 
 		channel.write(request).addListener(new ChannelFutureListener() {
 			public void operationComplete(ChannelFuture writeFuture) {

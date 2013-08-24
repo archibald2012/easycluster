@@ -8,7 +8,7 @@ import java.io.ObjectOutputStream;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
-import org.easycluster.easycluster.cluster.exception.SerializeException;
+import org.easycluster.easycluster.cluster.exception.SerializationException;
 import org.easycluster.easycluster.core.ByteUtil;
 import org.easycluster.easycluster.core.DES;
 import org.slf4j.Logger;
@@ -33,7 +33,7 @@ public class BeanJavaSerialization implements Serialization {
 		} catch (IOException e) {
 			String errorMsg = "Failed to serialize the object with error: " + e.getMessage();
 			LOGGER.error(errorMsg);
-			throw new SerializeException(errorMsg, e);
+			throw new SerializationException(errorMsg, e);
 		}
 
 		byte[] bytes = outputStream.toByteArray();
@@ -90,11 +90,11 @@ public class BeanJavaSerialization implements Serialization {
 		} catch (IOException e) {
 			String errorMsg = "Failed to deserialize the object with io error: " + e.getMessage();
 			LOGGER.error(errorMsg);
-			throw new SerializeException(errorMsg, e);
+			throw new SerializationException(errorMsg, e);
 		} catch (ClassNotFoundException e) {
 			String errorMsg = "Failed to deserialize the object with class not found error: " + e.getMessage();
 			LOGGER.error(errorMsg);
-			throw new SerializeException(errorMsg, e);
+			throw new SerializationException(errorMsg, e);
 		}
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {

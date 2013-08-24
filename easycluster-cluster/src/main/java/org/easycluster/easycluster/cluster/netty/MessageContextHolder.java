@@ -61,7 +61,7 @@ public class MessageContextHolder {
 			return;
 		}
 		if (requestMap.containsKey(requestId)) {
-			LOGGER.warn("Duplicated request id found from request object {}. old=[{}]", message, requestMap.get(requestId));
+			LOGGER.warn("Duplicated request id found from request object {}.", message);
 			return;
 		}
 		requestMap.put(requestId, requestContext);
@@ -84,5 +84,9 @@ public class MessageContextHolder {
 			LOGGER.warn("No request id found from response object {}.", response);
 		}
 		return requestContext;
+	}
+
+	public boolean containsKey(Object requestId) {
+		return requestMap.containsKey(requestId);
 	}
 }

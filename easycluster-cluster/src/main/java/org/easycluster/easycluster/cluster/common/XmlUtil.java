@@ -9,7 +9,7 @@ import java.io.OutputStream;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
-import org.easycluster.easycluster.cluster.exception.SerializeException;
+import org.easycluster.easycluster.cluster.exception.SerializationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +33,7 @@ public class XmlUtil {
 		} catch (JAXBException e) {
 			String errorMsg = "Failed to parse the xml string with error: " + e.getMessage();
 			LOGGER.error(errorMsg);
-			throw new SerializeException(errorMsg, e);
+			throw new SerializationException(errorMsg, e);
 		} finally {
 			try {
 				is.close();
@@ -58,7 +58,7 @@ public class XmlUtil {
 		} catch (JAXBException e) {
 			String errorMsg = "Failed to parse the object to xml string with error: " + e.getMessage();
 			LOGGER.error(errorMsg);
-			throw new SerializeException(errorMsg, e);
+			throw new SerializationException(errorMsg, e);
 		} finally {
 			try {
 				os.close();
