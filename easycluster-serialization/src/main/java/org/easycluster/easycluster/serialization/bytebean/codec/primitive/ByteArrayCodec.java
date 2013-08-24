@@ -22,25 +22,11 @@ public class ByteArrayCodec extends AbstractPrimitiveCodec implements
 
 	private static final Logger logger = LoggerFactory.getLogger(ByteArrayCodec.class);
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#getFieldType
-	 * ()
-	 */
 	@Override
 	public Class<?>[] getFieldType() {
 		return new Class<?>[] { byte[].class };
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#decode
-	 * (com.taotaosou.common.serialization.bytebean.context.DecContext)
-	 */
 	@Override
 	public DecResult decode(DecContext ctx) {
 		byte[] bytes = ctx.getDecBytes();
@@ -73,13 +59,6 @@ public class ByteArrayCodec extends AbstractPrimitiveCodec implements
 				ArrayUtils.subarray(bytes, arrayLength, bytes.length));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#encode
-	 * (com.taotaosou.common.serialization.bytebean.context.EncContext)
-	 */
 	@Override
 	public byte[] encode(EncContext ctx) {
 		byte[] array = (byte[]) ctx.getEncObject();

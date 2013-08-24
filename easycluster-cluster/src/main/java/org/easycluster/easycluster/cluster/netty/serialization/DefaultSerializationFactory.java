@@ -18,12 +18,6 @@ public class DefaultSerializationFactory implements SerializationFactory {
 			serializable.setDumpBytes(config.getDumpBytes());
 			serializable.setEncryptKey(config.getEncryptKey());
 			this.serializable = serializable;
-		} else if (SerializeType.XML == config.getSerializeType()) {
-			BeanXmlSerialization serializable = new BeanXmlSerialization();
-			serializable.setDebugEnabled(config.isEncodeBytesDebugEnabled());
-			serializable.setDumpBytes(config.getDumpBytes());
-			serializable.setEncryptKey(config.getEncryptKey());
-			this.serializable = serializable;
 		} else if (SerializeType.TLV == config.getSerializeType()) {
 			BeanTlvSerialization serializable = new BeanTlvSerialization();
 			serializable.setDebugEnabled(config.isEncodeBytesDebugEnabled());

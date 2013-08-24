@@ -8,12 +8,11 @@ import org.apache.log4j.Level;
 import org.easycluster.easycluster.cluster.manager.event.ClusterEvent;
 import org.easycluster.easycluster.cluster.manager.event.EventType;
 import org.easycluster.easycluster.cluster.manager.event.LogUpdateEvent;
-import org.easycluster.easycluster.core.Closure;
 import org.easycluster.easycluster.core.ebus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LogUpdateHandler implements Closure {
+public class LogUpdateHandler {
 
 	private static final Logger	LOGGER			= LoggerFactory.getLogger(LogUpdateHandler.class);
 
@@ -22,16 +21,14 @@ public class LogUpdateHandler implements Closure {
 	public LogUpdateHandler(ContextManager contextManager, EventBus eventBus) {
 		this.contextManager = contextManager;
 
-		eventBus.subscribe(EventType.LOG_UPDATE.name(), this);
+		eventBus.subscribe(EventType.LOG_UPDATE.name(), this, "handleEvent");
 	}
 
-	@Override
-	public void execute(Object msg) {
+	public void handleEvent(ClusterEvent clusterEvent) {
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Handle log update event {}", msg);
+			LOGGER.debug("Handle log update event {}", clusterEvent);
 		}
 
-		ClusterEvent clusterEvent = (ClusterEvent) msg;
 		LogUpdateEvent event = (LogUpdateEvent) clusterEvent.getEvent();
 
 		String componentName = StringUtils.trim(event.getComponentName());
@@ -63,6 +60,7 @@ public class LogUpdateHandler implements Closure {
 				LOGGER.error("Class not found.", e);
 			}
 		}
+
 	}
 
 	private void handleLogUpdateEvent(Object component, LogUpdateEvent event) {

@@ -1,10 +1,7 @@
 package org.easycluster.easycluster.core.ebus;
 
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
 
-import org.easycluster.easycluster.core.Functor;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,12 +15,10 @@ public class EventBusTestCase {
 	@Before
 	public void setUp() throws Exception {
 		eventBus = new DefaultEventBus();
-		eventBus.start();
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		eventBus.destroy();
 		eventBus = null;
 	}
 
@@ -31,8 +26,7 @@ public class EventBusTestCase {
 	public void testSubscribe_duplicatedMethod() {
 		SampleEventUnit target = new SampleEventUnit();
 
-		Functor functor = new Functor(target, "increase");
-		eventBus.subscribe(INCREASE_EVENT, functor);
+		eventBus.subscribe(INCREASE_EVENT, target, "increase");
 
 		Map<String, Subscription> subscriptions = eventBus.getSubscriptions();
 
@@ -40,12 +34,8 @@ public class EventBusTestCase {
 		Subscription functors = subscriptions.get(INCREASE_EVENT);
 		Assert.assertNotNull(functors);
 		Assert.assertEquals(1, functors.size());
-		Assert.assertEquals(functor, functors.getClosures().get(0));
 
-		Functor functor2 = new Functor(target, "increase");
-		Assert.assertEquals(functor, functor2);
-
-		eventBus.subscribe(INCREASE_EVENT, functor2);
+		eventBus.subscribe(INCREASE_EVENT, target, "increase");
 
 		subscriptions = eventBus.getSubscriptions();
 
@@ -54,7 +44,6 @@ public class EventBusTestCase {
 		functors = subscriptions.get(INCREASE_EVENT);
 		Assert.assertNotNull(functors);
 		Assert.assertEquals(1, functors.size());
-		Assert.assertEquals(functor, functors.getClosures().get(0));
 
 	}
 
@@ -62,8 +51,7 @@ public class EventBusTestCase {
 	public void testSubscribe_oneEventMoreSubscriber() {
 		SampleEventUnit target = new SampleEventUnit();
 
-		Functor functor = new Functor(target, "increase");
-		eventBus.subscribe(INCREASE_EVENT, functor);
+		eventBus.subscribe(INCREASE_EVENT, target, "increase");
 
 		Map<String, Subscription> subscriptions = eventBus.getSubscriptions();
 
@@ -71,11 +59,8 @@ public class EventBusTestCase {
 		Subscription functors = subscriptions.get(INCREASE_EVENT);
 		Assert.assertNotNull(functors);
 		Assert.assertEquals(1, functors.size());
-		Assert.assertEquals(functor, functors.getClosures().get(0));
 
-		Functor functor2 = new Functor(target, "increase2");
-
-		eventBus.subscribe(INCREASE_EVENT, functor2);
+		eventBus.subscribe(INCREASE_EVENT, target, "increase2");
 
 		subscriptions = eventBus.getSubscriptions();
 
@@ -85,17 +70,16 @@ public class EventBusTestCase {
 		Assert.assertNotNull(functors);
 		Assert.assertEquals(2, functors.size());
 		// function in sequence
-		Assert.assertEquals(functor, functors.getClosures().get(0));
-		Assert.assertEquals(functor2, functors.getClosures().get(1));
+		Assert.assertEquals(new Functor(target, "increase"), functors.getClojures().get(0));
+		Assert.assertEquals(new Functor(target, "increase2"), functors.getClojures().get(1));
 	}
 
 	@Test
 	public void testSubscribe_moreEventOneSubscriber() {
 		SampleEventUnit target = new SampleEventUnit();
 
-		Functor functor = new Functor(target, "increase");
-		eventBus.subscribe(INCREASE_EVENT, functor);
-		eventBus.subscribe("increaseEvent2", functor);
+		eventBus.subscribe(INCREASE_EVENT, target, "increase");
+		eventBus.subscribe("increaseEvent2", target, "increase");
 
 		Map<String, Subscription> subscriptions = eventBus.getSubscriptions();
 		Assert.assertEquals(2, subscriptions.size());
@@ -103,20 +87,19 @@ public class EventBusTestCase {
 		Subscription functors = subscriptions.get(INCREASE_EVENT);
 		Assert.assertNotNull(functors);
 		Assert.assertEquals(1, functors.size());
-		Assert.assertEquals(functor, functors.getClosures().get(0));
+		Assert.assertEquals(new Functor(target, "increase"), functors.getClojures().get(0));
 
 		functors = subscriptions.get("increaseEvent2");
 		Assert.assertNotNull(functors);
 		Assert.assertEquals(1, functors.size());
-		Assert.assertEquals(functor, functors.getClosures().get(0));
+		Assert.assertEquals(new Functor(target, "increase"), functors.getClojures().get(0));
 	}
 
 	@Test
 	public void testSubscribe_Normal() {
 		SampleEventUnit target = new SampleEventUnit();
 
-		Functor functor = new Functor(target, "increase");
-		eventBus.subscribe(INCREASE_EVENT, functor);
+		eventBus.subscribe(INCREASE_EVENT, target, "increase");
 
 		Map<String, Subscription> subscriptions = eventBus.getSubscriptions();
 
@@ -124,10 +107,8 @@ public class EventBusTestCase {
 		Subscription functors = subscriptions.get(INCREASE_EVENT);
 		Assert.assertNotNull(functors);
 		Assert.assertEquals(1, functors.size());
-		Assert.assertEquals(functor, functors.getClosures().get(0));
 
-		Functor functor2 = new Functor(target, INCREASE_BY_STEP);
-		eventBus.subscribe(INCREASE_BY_STEP, functor2);
+		eventBus.subscribe(INCREASE_BY_STEP, target, INCREASE_BY_STEP);
 
 		subscriptions = eventBus.getSubscriptions();
 
@@ -136,33 +117,30 @@ public class EventBusTestCase {
 		functors = subscriptions.get(INCREASE_EVENT);
 		Assert.assertNotNull(functors);
 		Assert.assertEquals(1, functors.size());
-		Assert.assertEquals(functor, functors.getClosures().get(0));
+		Assert.assertEquals(new Functor(target, "increase"), functors.getClojures().get(0));
 
 		functors = subscriptions.get(INCREASE_BY_STEP);
 		Assert.assertNotNull(functors);
 		Assert.assertEquals(1, functors.size());
-		Assert.assertEquals(functor2, functors.getClosures().get(0));
+		Assert.assertEquals(new Functor(target, INCREASE_BY_STEP), functors.getClojures().get(0));
 	}
 
 	@Test
 	public void testUnsubscribe() {
 		SampleEventUnit target = new SampleEventUnit();
 
-		Functor functor = new Functor(target, "increase");
-		eventBus.subscribe(INCREASE_EVENT, functor);
-		Functor functor2 = new Functor(target, INCREASE_BY_STEP);
-		eventBus.subscribe(INCREASE_EVENT, functor2);
+		eventBus.subscribe(INCREASE_EVENT, target, "increase");
+		eventBus.subscribe(INCREASE_EVENT, target, INCREASE_BY_STEP);
 
-		eventBus.unsubscribe(INCREASE_EVENT, functor);
+		eventBus.unsubscribe(INCREASE_EVENT, target, "increase");
 
 		Map<String, Subscription> subscriptions = eventBus.getSubscriptions();
 		Assert.assertEquals(1, subscriptions.size());
 		Subscription functors = subscriptions.get(INCREASE_EVENT);
 		Assert.assertNotNull(functors);
 		Assert.assertEquals(1, functors.size());
-		Assert.assertEquals(functor2, functors.getClosures().get(0));
 
-		eventBus.unsubscribe(INCREASE_EVENT, functor2);
+		eventBus.unsubscribe(INCREASE_EVENT, target, INCREASE_BY_STEP);
 
 		subscriptions = eventBus.getSubscriptions();
 		Assert.assertEquals(1, subscriptions.size());
@@ -180,10 +158,10 @@ public class EventBusTestCase {
 		eventBus.subscribe(INCREASE_EVENT, new Functor(target, "increase2"));
 		eventBus.subscribe(INCREASE_BY_STEP, new Functor(target, INCREASE_BY_STEP));
 
-		eventBus.publish(INCREASE_EVENT, new Object[0]);
+		eventBus.publish(INCREASE_EVENT);
 		Assert.assertEquals(2, target.getCount().intValue());
 
-		eventBus.publish(INCREASE_BY_STEP, new Object[20]);
+		eventBus.publish(INCREASE_BY_STEP, 20);
 		Assert.assertEquals(22, target.getCount().intValue());
 	}
 
@@ -194,27 +172,4 @@ public class EventBusTestCase {
 		Thread.sleep(1000);
 	}
 
-	@Test
-	public void testGetPendingTaskCount() throws InterruptedException {
-
-		SampleEventUnit target = new SampleEventUnit();
-		eventBus.subscribe(INCREASE_EVENT, new Functor(target, "increase"));
-
-		final CountDownLatch count = new CountDownLatch(1000);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				while (count.getCount() > 0) {
-					eventBus.publish(INCREASE_EVENT, new Object[] {});
-					count.countDown();
-				}
-			}
-
-		});
-
-		while (count.getCount() > 0) {
-			System.out.println(eventBus.getPendingTaskCount());
-		}
-	}
 }

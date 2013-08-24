@@ -1,9 +1,4 @@
-/*******************************************************************************
- * CopyRight (c) 2005-2011 TAOTAOSOU Co, Ltd. All rights reserved.
- * Filename:    SampleBean.java
- * Creator:     wangqi
- * Create-Date: 2011-4-27 下午03:46:48
- *******************************************************************************/
+
 package org.easycluster.easycluster.serialization.bytebean;
 
 import java.util.ArrayList;

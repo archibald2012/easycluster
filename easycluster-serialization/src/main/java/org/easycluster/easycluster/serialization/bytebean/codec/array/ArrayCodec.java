@@ -21,25 +21,11 @@ import org.easycluster.easycluster.serialization.bytebean.field.ByteFieldDesc;
  */
 public class ArrayCodec extends AbstractCategoryCodec implements ByteFieldCodec {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#getCategory
-	 * ()
-	 */
 	@Override
 	public FieldCodecCategory getCategory() {
 		return FieldCodecCategory.ARRAY;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#decode
-	 * (com.taotaosou.common.serialization.bytebean.context.DecContext)
-	 */
 	@Override
 	public DecResult decode(DecContext ctx) {
 		byte[] bytes = ctx.getDecBytes();
@@ -73,13 +59,6 @@ public class ArrayCodec extends AbstractCategoryCodec implements ByteFieldCodec 
 		return new DecResult(array, bytes);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#encode
-	 * (com.taotaosou.common.serialization.bytebean.context.EncContext)
-	 */
 	@Override
 	public byte[] encode(EncContext ctx) {
 		Object array = ctx.getEncObject();
@@ -93,7 +72,7 @@ public class ArrayCodec extends AbstractCategoryCodec implements ByteFieldCodec 
 		if (null == desc || !desc.hasLength()) {
 			throw new RuntimeException("invalid array env.");
 		} else {
-			// 已经存在字段记录数组长度，不用自动写
+			// 
 		}
 		ByteFieldCodec anyCodec = ctx.getCodecOf(FieldCodecCategory.ANY);
 

@@ -4,12 +4,6 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
-/**
- * TODO
- * 
- * @author wangqi
- * @version $Id: SampleSignal.java 14 2012-01-10 11:54:14Z archie $
- */
 public class SampleSignal {
 
 	private int	intField;

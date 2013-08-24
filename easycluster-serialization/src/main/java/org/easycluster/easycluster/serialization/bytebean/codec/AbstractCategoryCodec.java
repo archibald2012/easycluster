@@ -10,13 +10,6 @@ package org.easycluster.easycluster.serialization.bytebean.codec;
  */
 public abstract class AbstractCategoryCodec implements ByteFieldCodec {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#getFieldType
-	 * ()
-	 */
 	@Override
 	public Class<?>[] getFieldType() {
 		return null;

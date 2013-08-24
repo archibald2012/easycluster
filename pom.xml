@@ -41,7 +41,6 @@
 		<module>easycluster-serialization</module>
 		<module>easycluster-core</module>
 		<module>easycluster-cluster</module>
-    <module>easycluster-monitor</module>
   </modules>
 
 	<dependencies>
@@ -295,6 +294,6 @@
 			<id>sonatype-nexus-staging</id>
 			<name>Nexus Release Repository</name>
 			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-		</repository>
+		</repository> 
 	</distributionManagement>
 </project>

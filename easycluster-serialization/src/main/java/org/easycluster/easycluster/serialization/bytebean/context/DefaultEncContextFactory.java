@@ -15,10 +15,6 @@ public class DefaultEncContextFactory implements EncContextFactory {
 	private	FieldCodecProvider	codecProvider;
 	private	NumberCodec			numberCodec;
 	
-
-	/* (non-Javadoc)
-	 * @see com.taotaosou.common.serialization.bytebean.context.EncContextFactory#createEncContext(java.lang.Object, java.lang.Class, com.taotaosou.common.serialization.bytebean.field.ByteFieldDesc)
-	 */
 	public EncContext createEncContext(Object encObject, Class<?> type,
 			ByteFieldDesc desc) {
 		return new DefaultEncContext()

@@ -160,6 +160,9 @@ public class TcpPartitionedNetworkTestCase {
 		Future<Object> future = nettyNetworkClient.sendMessage(partitionId, request);
 
 		System.out.println("Result: " + future.get(20, TimeUnit.SECONDS));
+		
+		nettyNetworkClient.stop();
+		nettyNetworkServer.stop();
 	}
 
 }

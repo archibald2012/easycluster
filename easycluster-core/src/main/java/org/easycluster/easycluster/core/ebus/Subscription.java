@@ -3,12 +3,10 @@ package org.easycluster.easycluster.core.ebus;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.easycluster.easycluster.core.Closure;
-
 public class Subscription {
 
-	private String event;
-	private List<Closure> closures = new ArrayList<Closure>();
+	private String			event;
+	private List<Clojure>	clojures	= new ArrayList<Clojure>();
 
 	public Subscription() {
 	}
@@ -25,41 +23,41 @@ public class Subscription {
 		this.event = event;
 	}
 
-	public void setClosures(List<Closure> closures) {
-		this.closures = closures;
+	public void setClojures(List<Clojure> clojures) {
+		this.clojures = clojures;
 	}
 
-	public void addClosure(Closure closure) {
-		if (!getClosures().contains(closure)) {
-			getClosures().add(closure);
+	public void addClojure(Clojure clojure) {
+		if (!getClojures().contains(clojure)) {
+			getClojures().add(clojure);
 		}
 	}
 
-	public void removeClosure(Closure closure) {
-		getClosures().remove(closure);
+	public void removeClojure(Clojure clojure) {
+		getClojures().remove(clojure);
 	}
 
 	public int size() {
-		return getClosures().size();
+		return getClojures().size();
 	}
 
-	public List<Closure> getClosures() {
-		if (closures == null) {
-			closures = new ArrayList<Closure>();
+	public List<Clojure> getClojures() {
+		if (clojures == null) {
+			clojures = new ArrayList<Clojure>();
 		}
-		return closures;
+		return clojures;
 	}
 
 	public void execute(Object... args) {
-		for (Closure closure : getClosures()) {
-			closure.execute(args);
+		for (Clojure clojure : getClojures()) {
+			clojure.execute(args);
 		}
 	}
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for (Closure closure : closures) {
-			sb.append(closure.toString());
+		for (Clojure clojure : clojures) {
+			sb.append(clojure.toString());
 			sb.append(";");
 		}
 		return sb.toString();

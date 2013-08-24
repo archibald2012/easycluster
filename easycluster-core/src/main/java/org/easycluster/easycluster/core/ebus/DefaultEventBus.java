@@ -1,6 +1,5 @@
 package org.easycluster.easycluster.core.ebus;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,7 +8,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import org.easycluster.easycluster.core.Closure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +19,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultEventBus implements EventBus {
 
-	private static final Logger						logger			= LoggerFactory.getLogger(DefaultEventBus.class);
+	private static final Logger						LOGGER			= LoggerFactory.getLogger(DefaultEventBus.class);
 	private ExecutorService							mainExecutor	= null;
 
 	/**
@@ -29,47 +27,37 @@ public class DefaultEventBus implements EventBus {
 	 */
 	private ConcurrentHashMap<String, Subscription>	subscriptions	= new ConcurrentHashMap<String, Subscription>();
 
-	public void start() {
-	}
-
-	public void destroy() {
-		Collection<Subscription> subs = this.subscriptions.values();
-		for (Subscription sub : subs) {
-			for (Closure closure : sub.getClosures()) {
-				if (null != closure) {
-					// TODO need set cancel flat to closure?
-					unsubscribe(sub.getEvent(), closure);
-				}
-			}
+	@Override
+	public void subscribe(final String event, final Clojure clojure) {
+		if (event == null || clojure == null) {
+			throw new IllegalArgumentException("event [" + event + "], closure [" + clojure + "]");
 		}
-		this.subscriptions.clear();
-
-		if (mainExecutor != null) {
-			mainExecutor.shutdownNow();
-		}
+		getOrCreateSubscription(event).addClojure(clojure);
 	}
 
 	@Override
-	public void subscribe(final String event, final Closure closure) {
-		if (event == null || closure == null) {
-			throw new IllegalArgumentException("event [" + event + "], closure [" + closure + "]");
-		}
-		getOrCreateSubscription(event).addClosure(closure);
+	public void subscribe(String event, Object target, String methodName) {
+		subscribe(event, new Functor(target, methodName));
 	}
 
 	@Override
-	public void unsubscribe(String event, Closure closure) {
-		if (event == null || closure == null) {
-			throw new IllegalArgumentException("event [" + event + "], closure [" + closure + "]");
+	public void unsubscribe(String event, Clojure clojure) {
+		if (event == null || clojure == null) {
+			throw new IllegalArgumentException("event [" + event + "], closure [" + clojure + "]");
 		}
 
 		Subscription subscription = getSubscription(event);
 		if (subscription == null) {
-			logger.info("no subscription for event {}", event);
+			LOGGER.info("no subscription for event {}", event);
 			return;
 		}
-		subscription.removeClosure(closure);
+		subscription.removeClojure(clojure);
 
+	}
+
+	@Override
+	public void unsubscribe(String event, Object target, String methodName) {
+		unsubscribe(event, new Functor(target, methodName));
 	}
 
 	@Override
@@ -112,7 +100,7 @@ public class DefaultEventBus implements EventBus {
 		if (null != subscription && subscription.size() > 0) {
 			subscription.execute(args);
 		} else {
-			logger.warn("no subscription for event [" + event + "]!");
+			LOGGER.warn("no subscription for event [" + event + "]!");
 		}
 	}
 

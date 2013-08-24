@@ -27,8 +27,8 @@ public class Node implements Comparable<Node> {
 
 	public Node() {
 	}
-	
-	public Node(String hostName, int port){
+
+	public Node(String hostName, int port) {
 		this(hostName, port, new ArrayList<Integer>());
 	}
 

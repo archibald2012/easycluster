@@ -68,36 +68,16 @@ public class DefaultEncContext extends AbstractCodecContext implements
 		return this;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.context.EncContext#getEncObject
-	 * ()
-	 */
 	@Override
 	public Object getEncObject() {
 		return encObject;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.context.EncContext#getEncClass
-	 * ()
-	 */
 	@Override
 	public Class<?> getEncClass() {
 		return this.targetType;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.taotaosou.common.serialization.bytebean.context.EncContext#
-	 * getEncContextFactory()
-	 */
 	@Override
 	public EncContextFactory getEncContextFactory() {
 		return encContextFactory;

@@ -1,8 +1,10 @@
-package org.easycluster.easycluster.core;
+package org.easycluster.easycluster.core.ebus;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.concurrent.Executor;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
@@ -14,13 +16,12 @@ import org.slf4j.LoggerFactory;
  * @author wangqi
  * @version $Id: Functor.java 211 2012-03-30 13:18:42Z archie $
  */
-public class Functor implements Closure {
+public class Functor implements Clojure {
 
-	private static final Logger logger = LoggerFactory.getLogger(Functor.class);
+	private static final Logger	LOGGER	= LoggerFactory.getLogger(Functor.class);
 
-	private Object target = null;
-	private Method method = null;
-	private boolean canceled = false;
+	private Object				target	= null;
+	private Method				method	= null;
 
 	public Functor(Object target, String methodName) {
 		this.target = target;
@@ -31,8 +32,7 @@ public class Functor implements Closure {
 		Method[] methods = null;
 		Class<?> itr = target.getClass();
 		while (!itr.equals(Object.class)) {
-			methods = (Method[]) ArrayUtils.addAll(itr.getDeclaredMethods(),
-					methods);
+			methods = (Method[]) ArrayUtils.addAll(itr.getDeclaredMethods(), methods);
 			itr = itr.getSuperclass();
 		}
 		for (Method methodItr : methods) {
@@ -42,8 +42,7 @@ public class Functor implements Closure {
 			}
 		}
 		if (null == this.method) {
-			throw new RuntimeException("method [" + target.getClass() + "."
-					+ methodName + "] !NOT! exist.");
+			throw new RuntimeException("method [" + target.getClass() + "." + methodName + "] !NOT! exist.");
 		}
 	}
 
@@ -58,34 +57,37 @@ public class Functor implements Closure {
 		}
 	}
 
+	@Override
 	public Object execute(Object... args) {
-		if (!canceled) {
-			try {
-				return method.invoke(target, args);
-			} catch (IllegalArgumentException e) {
-				logger.error("execute", e);
-			} catch (IllegalAccessException e) {
-				logger.error("execute", e);
-			} catch (InvocationTargetException e) {
-				logger.error("execute", e);
-			}
+		try {
+			return method.invoke(target, args);
+		} catch (IllegalArgumentException e) {
+			LOGGER.error("execute", e);
+		} catch (IllegalAccessException e) {
+			LOGGER.error("execute", e);
+		} catch (InvocationTargetException e) {
+			LOGGER.error("execute", e);
 		}
 		return null;
 	}
 
-	public void execute(Executor exec, final Object... args) {
-		if (!canceled) {
-			exec.execute(new Runnable() {
+	public Future<Object> execute(ExecutorService exec, final Object... args) {
+		return exec.submit(new Callable<Object>() {
 
-				public void run() {
-					try {
-						method.invoke(target, args);
-					} catch (Exception e) {
-						logger.error("execute:", e);
-					}
+			public Object call() {
+				try {
+					return method.invoke(target, args);
+				} catch (IllegalArgumentException e) {
+					LOGGER.error("execute", e);
+				} catch (IllegalAccessException e) {
+					LOGGER.error("execute", e);
+				} catch (InvocationTargetException e) {
+					LOGGER.error("execute", e);
 				}
-			});
-		}
+				return null;
+			}
+		});
+
 	}
 
 	public Object getTarget() {
@@ -94,21 +96,6 @@ public class Functor implements Closure {
 
 	public Method getMethod() {
 		return method;
-	}
-
-	/**
-	 * @return the canceled
-	 */
-	public boolean isCanceled() {
-		return canceled;
-	}
-
-	/**
-	 * @param canceled
-	 *            the canceled to set
-	 */
-	public void setCanceled(boolean canceled) {
-		this.canceled = canceled;
 	}
 
 	@Override
@@ -140,15 +127,7 @@ public class Functor implements Closure {
 		sb.append(this.target);
 		sb.append(".");
 		sb.append(this.method.getName());
-		if (this.canceled) {
-			sb.append("[canceled]");
-		}
 		return sb.toString();
-	}
-
-	@Override
-	public void execute(Object msg) {
-		execute(new Object[] { msg });
 	}
 
 }

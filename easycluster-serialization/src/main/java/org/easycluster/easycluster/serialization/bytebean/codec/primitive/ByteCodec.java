@@ -20,25 +20,11 @@ public class ByteCodec extends AbstractPrimitiveCodec implements ByteFieldCodec 
 
 	private static final Logger logger = LoggerFactory.getLogger(ByteCodec.class);
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#getFieldType
-	 * ()
-	 */
 	@Override
 	public Class<?>[] getFieldType() {
 		return new Class<?>[] { byte.class, Byte.class };
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#decode
-	 * (com.taotaosou.common.serialization.bytebean.context.DecContext)
-	 */
 	@Override
 	public DecResult decode(DecContext ctx) {
 		byte[] bytes = ctx.getDecBytes();
@@ -55,13 +41,6 @@ public class ByteCodec extends AbstractPrimitiveCodec implements ByteFieldCodec 
 				bytes.length));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#encode
-	 * (com.taotaosou.common.serialization.bytebean.context.EncContext)
-	 */
 	@Override
 	public byte[] encode(EncContext ctx) {
 		return new byte[] { ((Byte) ctx.getEncObject()).byteValue() };

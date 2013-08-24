@@ -1,7 +1,5 @@
 package org.easycluster.easycluster.core.ebus;
 
-import org.easycluster.easycluster.core.Closure;
-
 /**
  * This is the event bus that manages the broadcasted events. Subscribes can
  * subscribe for event types with the bus without being aware of who will
@@ -17,20 +15,43 @@ public interface EventBus {
 	 * 
 	 * @param event
 	 *            The event type
-	 * @param closure
+	 * @param clojure
 	 *            The callback function to be invoked when a event of type
 	 *            'etype' is published onto the bus.
 	 * @return
 	 */
-	void subscribe(final String event, final Closure closure);
+	void subscribe(final String event, final Clojure clojure);
 
 	/**
 	 * Unsubscribe from the bus for the event type.
 	 * 
 	 * @param event
-	 * @param closure
+	 * @param clojure
 	 */
-	void unsubscribe(final String event, final Closure closure);
+	void unsubscribe(final String event, final Clojure clojure);
+
+	/**
+	 * Subscribe to an event.
+	 * 
+	 * @param event
+	 *            The event type
+	 * @param target
+	 *            The target to be invoked when a event of type 'etype' is
+	 *            published onto the bus.
+	 * @param methodName
+	 *            The method to be invoked when a event of type 'etype' is
+	 *            published onto the bus.
+	 */
+	void subscribe(String event, Object target, String methodName);
+
+	/**
+	 * Unsubscribe from the bus for the event type.
+	 * 
+	 * @param event
+	 * @param target
+	 * @param methodName
+	 */
+	void unsubscribe(final String event, final Object target, final String methodName);
 
 	/**
 	 * Publish an event of a particular type and an associated object to carry

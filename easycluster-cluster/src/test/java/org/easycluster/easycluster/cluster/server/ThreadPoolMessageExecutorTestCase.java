@@ -1,19 +1,8 @@
 package org.easycluster.easycluster.cluster.server;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-
-import javax.management.MBeanInfo;
-import javax.management.MBeanServer;
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-import javax.management.remote.JMXConnector;
-import javax.management.remote.JMXConnectorFactory;
-import javax.management.remote.JMXConnectorServer;
-import javax.management.remote.JMXConnectorServerFactory;
-import javax.management.remote.JMXServiceURL;
 
 import junit.framework.Assert;
 
@@ -21,41 +10,9 @@ import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.core.Closure;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 public class ThreadPoolMessageExecutorTestCase {
-
-	private JMXConnectorServer		cs;
-	private JMXConnector			cc;
-	private MBeanServerConnection	mbsc;
-
-	@Before
-	public void setUp() throws Exception {
-		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-		JMXServiceURL url = new JMXServiceURL("service:jmx:rmi://");
-		cs = JMXConnectorServerFactory.newJMXConnectorServer(url, null, mbs);
-		cs.start();
-
-		JMXServiceURL addr = cs.getAddress();
-
-		// Now make a connector client using the server's address
-		cc = JMXConnectorFactory.connect(addr);
-		mbsc = cc.getMBeanServerConnection();
-
-		// HtmlAdaptorServer html = new HtmlAdaptorServer();
-		// ObjectName html_name = new ObjectName("Adaptor:name=html,port=8082");
-		// mbs.registerMBean(html, html_name);
-		//
-		// html.start();
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		cc.close();
-		cs.stop();
-	}
 
 	@Test
 	public void test() throws Exception {
@@ -65,7 +22,7 @@ public class ThreadPoolMessageExecutorTestCase {
 
 		MessageExecutor messageExecutor = new ThreadPoolMessageExecutor("thread-pool-executor", 5, 10, 10, messageClosureRegistry);
 
-		int num = 5000;
+		int num = 100;
 
 		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
@@ -135,17 +92,6 @@ public class ThreadPoolMessageExecutorTestCase {
 
 		Assert.assertEquals(num, client1Responses.size());
 		Assert.assertEquals(num, client2Responses.size());
-
-		ObjectName objectName = new ObjectName("Application:name=RequestProcessor[thread-pool-executor]");
-
-		System.out.println("AverageProcessingTime:" + mbsc.getAttribute(objectName, "AverageProcessingTime") + " ms");
-		System.out.println("AverageWaitTime:" + mbsc.getAttribute(objectName, "AverageWaitTime") + " ms");
-		System.out.println("QueueSize:" + mbsc.getAttribute(objectName, "QueueSize"));
-
-		MBeanInfo beanInfo = mbsc.getMBeanInfo(objectName);
-		System.out.println(beanInfo);
-
-		Assert.assertEquals(10000, ((Long) mbsc.getAttribute(objectName, "RequestCount")).intValue());
 
 	}
 

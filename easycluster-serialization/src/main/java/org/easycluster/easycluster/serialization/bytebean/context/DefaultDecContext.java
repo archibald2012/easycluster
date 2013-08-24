@@ -78,48 +78,21 @@ public class DefaultDecContext extends AbstractCodecContext implements
 		return this;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.context.DecContext#getDecOwner
-	 * ()
-	 */
 	@Override
 	public Object getDecOwner() {
 		return decOwner;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.context.DecContext#getDecBytes
-	 * ()
-	 */
 	@Override
 	public byte[] getDecBytes() {
 		return decBytes;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.context.DecContext#getDecClass
-	 * ()
-	 */
 	@Override
 	public Class<?> getDecClass() {
 		return this.targetType;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.taotaosou.common.serialization.bytebean.context.DecContext#
-	 * getDecContextFactory()
-	 */
 	@Override
 	public DecContextFactory getDecContextFactory() {
 		return decContextFactory;

@@ -20,8 +20,6 @@ public enum SerializeType {
 
 	JSON,
 
-	XML,
-
 	JAVA,
 
 }

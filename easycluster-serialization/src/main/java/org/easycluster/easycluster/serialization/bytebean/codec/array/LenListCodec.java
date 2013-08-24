@@ -29,26 +29,12 @@ public class LenListCodec extends AbstractPrimitiveCodec implements
 	private static final Logger logger = LoggerFactory
 			.getLogger(LenListCodec.class);
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.codec.ByteFieldCodec#getCategory
-	 * ()
-	 */
 	@Override
 	public FieldCodecCategory getCategory() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.codec.ByteFieldCodec#decode
-	 * (com.taotaosou.common.serialization.bytebean.context.DecContext)
-	 */
 	@Override
 	public DecResult decode(DecContext ctx) {
 
@@ -76,13 +62,6 @@ public class LenListCodec extends AbstractPrimitiveCodec implements
 		return new DecResult(list, bytes);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.codec.ByteFieldCodec#encode
-	 * (com.taotaosou.common.serialization.bytebean.context.EncContext)
-	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public byte[] encode(EncContext ctx) {

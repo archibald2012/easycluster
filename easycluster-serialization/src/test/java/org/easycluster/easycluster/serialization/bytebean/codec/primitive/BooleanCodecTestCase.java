@@ -1,9 +1,4 @@
-/*******************************************************************************
- * CopyRight (c) 2005-2011 TAOTAOSOU Co, Ltd. All rights reserved.
- * Filename:    FloatCodecTestCase.java
- * Creator:     wangqi
- * Create-Date: 2011-7-13 上午10:36:10
- *******************************************************************************/
+
 package org.easycluster.easycluster.serialization.bytebean.codec.primitive;
 
 import junit.framework.Assert;

@@ -18,37 +18,16 @@ public class AnyCodec implements ByteFieldCodec {
 
 	private static final Logger logger = LoggerFactory.getLogger(AnyCodec.class);
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#getCategory
-	 * ()
-	 */
 	@Override
 	public FieldCodecCategory getCategory() {
 		return FieldCodecCategory.ANY;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#getFieldType
-	 * ()
-	 */
 	@Override
 	public Class<?>[] getFieldType() {
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#decode
-	 * (com.taotaosou.common.serialization.bytebean.context.DecContext)
-	 */
 	@Override
 	public DecResult decode(DecContext ctx) {
 		Class<?> clazz = ctx.getDecClass();
@@ -71,13 +50,6 @@ public class AnyCodec implements ByteFieldCodec {
 		return new DecResult(null, ctx.getDecBytes());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.taotaosou.common.serialization.bytebean.field.ByteFieldCodec#encode
-	 * (com.taotaosou.common.serialization.bytebean.context.EncContext)
-	 */
 	@Override
 	public byte[] encode(EncContext ctx) {
 		Class<?> clazz = ctx.getEncClass();
