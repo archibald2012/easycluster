@@ -44,10 +44,9 @@ public class IdGeneratorTestCase {
 		Collections.sort(result);
 
 		for (int i = 0; i < 2000; i++) {
-			Assert.assertEquals(i, result.get(i).intValue());
+			Assert.assertEquals(i + 1, result.get(i).intValue());
 		}
-		Assert.assertEquals(2000, IdGenerator.nextLong());
+		Assert.assertEquals(2001, IdGenerator.nextLong());
 	}
 
-	
 }

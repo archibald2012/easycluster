@@ -2,6 +2,7 @@ package org.easycluster.easycluster.cluster.netty.tcp;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -12,7 +13,7 @@ import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
-import org.easycluster.easycluster.cluster.client.loadbalancer.IntegerConsistentHashPartitionedLoadBalancerFactory;
+import org.easycluster.easycluster.cluster.client.loadbalancer.IntegerRoundRobinPartitionedLoadBalancerFactory;
 import org.easycluster.easycluster.cluster.common.ResponseIterator;
 import org.easycluster.easycluster.cluster.netty.serialization.SerializationConfig;
 import org.easycluster.easycluster.cluster.netty.serialization.SerializeType;
@@ -84,7 +85,8 @@ public class TcpPartitionedNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpPartitionedClient<Integer> nettyNetworkClient = new TcpPartitionedClient<Integer>(clientConfig, new IntegerConsistentHashPartitionedLoadBalancerFactory(2));
+		TcpPartitionedClient<Integer> nettyNetworkClient = new TcpPartitionedClient<Integer>(clientConfig,
+				new IntegerRoundRobinPartitionedLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -113,9 +115,9 @@ public class TcpPartitionedNetworkTestCase {
 	}
 
 	@Test
-	public void testBind() throws Exception {
+	public void testBatchSend_json() throws Exception {
 		List<String> packages = new ArrayList<String>();
-		packages.add("edu.hziee.common.cluster");
+		packages.add("org.easycluster.easycluster.cluster");
 		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
@@ -127,6 +129,7 @@ public class TcpPartitionedNetworkTestCase {
 
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setSerializationConfig(codecConfig);
 
 		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
@@ -141,26 +144,45 @@ public class TcpPartitionedNetworkTestCase {
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientCodecConfig.setDecodeBytesDebugEnabled(false);
+		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
 		TcpPartitionedClient<Integer> nettyNetworkClient = new TcpPartitionedClient<Integer>(clientConfig,
-				new IntegerConsistentHashPartitionedLoadBalancerFactory(1));
+				new IntegerRoundRobinPartitionedLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
-		SampleRequest request = new SampleRequest();
-		request.setIntField(1);
-		request.setShortField((byte) 1);
-		request.setByteField((byte) 1);
-		request.setLongField(1L);
-		request.setStringField("test");
-		request.setByteArrayField(new byte[] { 127 });
+		int num = 500;
+
+		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
+
+		for (int i = 0; i < num; i++) {
+			SampleRequest request = new SampleRequest();
+			request.setIntField(1);
+			request.setShortField((byte) 1);
+			request.setByteField((byte) 1);
+			request.setLongField(1L);
+			request.setStringField("test");
+			request.setByteArrayField(new byte[] { 127 });
+			request.setClient(UUID.randomUUID().getMostSignificantBits());
+
+			client1Requests.add(request);
+		}
 
 		int partitionId = 1;
-		Future<Object> future = nettyNetworkClient.sendMessage(partitionId, request);
 
-		System.out.println("Result: " + future.get(20, TimeUnit.SECONDS));
-		
+		final List<Future<Object>> futures = new ArrayList<Future<Object>>(num);
+
+		for (int i = 0; i < num; i++) {
+			futures.add(nettyNetworkClient.sendMessage(partitionId, client1Requests.get(i)));
+		}
+
+		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
+		for (int i = 0; i < num; i++) {
+			client1Responses.add((SampleResponse) futures.get(i).get(1800, TimeUnit.SECONDS));
+		}
+		Assert.assertEquals(num, client1Responses.size());
+
 		nettyNetworkClient.stop();
 		nettyNetworkServer.stop();
 	}

@@ -128,7 +128,7 @@ public class HttpNetworkTestCase {
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
-		int num = 50000;
+		int num = 500;
 
 		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
 
@@ -210,7 +210,7 @@ public class HttpNetworkTestCase {
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
-		int num = 50000;
+		int num = 500;
 
 		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
 
@@ -492,7 +492,7 @@ public class HttpNetworkTestCase {
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
-		int num = 50000;
+		int num = 500;
 
 		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
 
@@ -578,7 +578,7 @@ public class HttpNetworkTestCase {
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
-		int num = 50000;
+		int num = 500;
 
 		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
 

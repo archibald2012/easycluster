@@ -17,10 +17,9 @@ public class ClientChannelHandler extends SimpleChannelHandler {
 
 	private MessageContextHolder	messageContextHolder	= null;
 	private KeyTransformer			keyTransformer			= new KeyTransformer();
-
 	private AverageTracker			processingTime			= new AverageTracker(100);
 
-	public ClientChannelHandler(String service, MessageContextHolder messageContextHolder) {
+	public ClientChannelHandler(MessageContextHolder messageContextHolder) {
 		this.messageContextHolder = messageContextHolder;
 	}
 

@@ -37,7 +37,7 @@ public class TcpClient extends NetworkClient {
 
 		MessageContextHolder holder = new MessageContextHolder(messageRegistry, config.getStaleRequestTimeoutMins(),
 				config.getStaleRequestCleanupFrequencyMins());
-		final SimpleChannelHandler handler = new ClientChannelHandler(config.getService(), holder);
+		final SimpleChannelHandler handler = new ClientChannelHandler(holder);
 
 		final SerializationConfig serializationConfig = config.getSerializationConfig();
 		final SerializationFactory serializationFactory = new DefaultSerializationFactory(serializationConfig);

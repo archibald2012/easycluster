@@ -1,7 +1,6 @@
 package org.easycluster.easycluster.serialization.protocol.xip;
 
-
-public class AbstractXipSignal extends DefaultPropertiesSupport implements XipSignal {
+public class AbstractXipSignal extends DefaultPropertiesSupport implements XipSignal, Cloneable {
 
 	private long	sequence	= IdGenerator.nextLong();
 	private long	client		= 0;
@@ -44,6 +43,14 @@ public class AbstractXipSignal extends DefaultPropertiesSupport implements XipSi
 		if (sequence != other.sequence)
 			return false;
 		return true;
+	}
+	
+	@Override
+	public AbstractXipSignal clone() throws CloneNotSupportedException {
+		AbstractXipSignal o = (AbstractXipSignal) super.clone();
+		o.setClient(this.client);
+		o.setIdentification(IdGenerator.nextLong());
+		return o;
 	}
 
 }

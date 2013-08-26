@@ -16,7 +16,7 @@ import org.easycluster.easycluster.core.Propertyable;
  */
 public class DefaultPropertiesSupport implements Propertyable, Cloneable {
 
-	private Map<String, Object> properties = new HashMap<String, Object>();
+	private Map<String, Object>	properties	= new HashMap<String, Object>();
 
 	@Override
 	public Object getProperty(String key) {
@@ -47,23 +47,20 @@ public class DefaultPropertiesSupport implements Propertyable, Cloneable {
 	@Override
 	public DefaultPropertiesSupport clone() throws CloneNotSupportedException {
 		DefaultPropertiesSupport o = (DefaultPropertiesSupport) super.clone();
-
 		o.setProperties(this.properties);
 		return o;
 	}
 
 	@Override
 	public String toString() {
-		return ToStringBuilder.reflectionToString(this,
-				ToStringStyle.SHORT_PREFIX_STYLE);
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((properties == null) ? 0 : properties.hashCode());
+		result = prime * result + ((properties == null) ? 0 : properties.hashCode());
 		return result;
 	}
 

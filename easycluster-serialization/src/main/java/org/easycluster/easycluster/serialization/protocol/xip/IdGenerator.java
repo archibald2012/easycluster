@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class IdGenerator {
 
-	private static AtomicLong	transactionSeq	= new AtomicLong();
+	private static AtomicLong	transactionSeq	= new AtomicLong(1);
 
 	private IdGenerator() {
 	}
