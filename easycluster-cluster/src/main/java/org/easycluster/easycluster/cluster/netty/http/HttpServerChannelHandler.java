@@ -115,14 +115,18 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 
 			if (!messageHandlerRegistry.messageRegistered(signal.getClass())) {
 				String error = String.format("No such message of type %s registered", signal.getClass().getName());
-				LOGGER.warn(error);
+				if (LOGGER.isWarnEnabled()) {
+					LOGGER.warn(error);
+				}
 				responseHandler.execute(new InvalidMessageException(error));
 			} else {
 				messageExecutor.execute(signal, responseHandler);
 			}
 
 		} else {
-			LOGGER.warn("missing endpoint, ignore incoming msg:", request);
+			if (LOGGER.isWarnEnabled()) {
+				LOGGER.warn("missing endpoint, ignore incoming msg:", request);
+			}
 			// error reactor
 		}
 
@@ -141,7 +145,7 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 	}
 
 	class HttpResponseHandler implements Closure {
-		private Channel	channel;
+		private Channel		channel;
 		private HttpRequest	request;
 		private Object		requestId;
 
@@ -162,7 +166,7 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 		}
 
 		private Object buildErrorResponse(Exception ex) {
-			Class<?> responseType = messageHandlerRegistry.getResponseFor(request);
+			Class<?> responseType = messageHandlerRegistry.getResponseTypeFor(request);
 			if (responseType == null) {
 				return null;
 			}
@@ -172,7 +176,9 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 				response = responseType.newInstance();
 				// TODO set exception message
 			} catch (Exception e) {
-				LOGGER.warn("Build default response with error " + e.getMessage(), e);
+				if (LOGGER.isWarnEnabled()) {
+					LOGGER.warn("Build default response with error " + e.getMessage(), e);
+				}
 			}
 			return response;
 		}

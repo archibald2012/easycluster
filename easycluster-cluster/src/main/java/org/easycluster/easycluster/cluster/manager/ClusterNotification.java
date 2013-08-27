@@ -12,25 +12,24 @@ import java.util.Set;
 
 import org.easycluster.easycluster.cluster.Node;
 import org.easycluster.easycluster.cluster.common.SystemUtil;
+import org.easycluster.easycluster.cluster.common.XmlUtil;
 import org.easycluster.easycluster.cluster.manager.event.ClusterEvent;
 import org.easycluster.easycluster.cluster.manager.event.CoreEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.alibaba.fastjson.JSON;
 
 /**
  *
  */
 public class ClusterNotification {
 
-	private static final Logger			LOGGER				= LoggerFactory.getLogger(ClusterNotification.class);
+	private static final Logger			LOGGER			= LoggerFactory.getLogger(ClusterNotification.class);
 
-	private String						serviceName			= null;
-	private Set<Node>					currentNodes		= new HashSet<Node>();
-	private Map<Long, ClusterListener>	listeners			= new HashMap<Long, ClusterListener>();
-	private boolean						connected			= false;
-	private Long						listenerId			= 0L;
+	private String						serviceName		= null;
+	private Set<Node>					currentNodes	= new HashSet<Node>();
+	private Map<Long, ClusterListener>	listeners		= new HashMap<Long, ClusterListener>();
+	private boolean						connected		= false;
+	private Long						listenerId		= 0L;
 
 	public ClusterNotification(String serviceName) {
 		this.serviceName = serviceName;
@@ -55,13 +54,15 @@ public class ClusterNotification {
 		}
 		ClusterListener listener = listeners.remove(key);
 		if (listener == null) {
-			LOGGER.info("Attempt to remove an unknown listener with key: {}", key);
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("Attempt to remove an unknown listener with key: {}", key);
+			}
 		}
 	}
 
 	public void handleConnected(Collection<Node> nodes) {
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Handling Connected({}) message", nodes);
+			LOGGER.debug("Handling Connected({}) message", nodesAsString(nodes));
 		}
 
 		if (connected) {
@@ -95,7 +96,7 @@ public class ClusterNotification {
 
 	public void handleNodesChanged(Collection<Node> nodes) {
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Handling NodesChanged({}) message", nodes);
+			LOGGER.debug("Handling NodesChanged({}) message", nodesAsString(nodes));
 		}
 
 		if (connected) {
@@ -111,11 +112,11 @@ public class ClusterNotification {
 	}
 
 	public void handleClusterEvent(String clusterEvent) {
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Handling cluster event ({})", clusterEvent);
+		if (LOGGER.isInfoEnabled()) {
+			LOGGER.info("Handling cluster event ({})", clusterEvent);
 		}
 
-		ClusterEvent request = JSON.parseObject(clusterEvent, ClusterEvent.class);
+		ClusterEvent request = XmlUtil.unmarshal(clusterEvent, ClusterEvent.class);
 
 		CoreEvent event = request.getEvent();
 
@@ -137,7 +138,9 @@ public class ClusterNotification {
 			}
 		}
 		if (!isTargeted) {
-			LOGGER.debug("Event " + event + " is not targeted to this instance.");
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("Event " + event + " is not targeted to this instance.");
+			}
 			return;
 		}
 
@@ -176,6 +179,17 @@ public class ClusterNotification {
 
 	public Set<Node> getCurrentNodes() {
 		return Collections.unmodifiableSet(currentNodes);
+	}
+
+	private String nodesAsString(Collection<Node> nodes) {
+		StringBuilder body = new StringBuilder();
+		body.append("node num is:[");
+		body.append(nodes.size());
+		body.append("]\r\n");
+		for (Node n : nodes) {
+			body.append(n).append("\r\n");
+		}
+		return body.toString();
 	}
 
 }

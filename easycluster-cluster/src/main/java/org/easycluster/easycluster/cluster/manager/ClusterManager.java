@@ -11,6 +11,11 @@ public interface ClusterManager {
 
 	/**
 	 * 
+	 */
+	void shutdown();
+
+	/**
+	 * 
 	 * @param node
 	 */
 	void addNode(Node node);
@@ -33,8 +38,4 @@ public interface ClusterManager {
 	 */
 	void markNodeUnavailable(String nodeId);
 
-	/**
-	 * 
-	 */
-	void shutdown();
 }

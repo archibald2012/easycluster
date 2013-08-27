@@ -1,10 +1,14 @@
 package org.easycluster.easycluster.cluster.manager.zookeeper;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
@@ -39,10 +43,11 @@ public class ZooKeeperClusterManager implements ClusterManager {
 	private String				eventNode			= null;
 	private String				availabilityNode	= null;
 
-	private Map<String, Node>	currentNodes		= new HashMap<String, Node>();
 	private ZooKeeper			zooKeeper			= null;
 	private ClusterWatcher		watcher				= null;
 	private volatile boolean	connected			= false;
+	private Map<String, Node>	currentNodes		= new HashMap<String, Node>();
+	private Lock				nodeLock			= new ReentrantLock();
 
 	public ZooKeeperClusterManager(String serviceGroup, String service, String zooKeeperConnectString, int zooKeeperSessionTimeoutMillis) {
 		this.connectString = zooKeeperConnectString;
@@ -59,6 +64,50 @@ public class ZooKeeperClusterManager implements ClusterManager {
 	@Override
 	public void start() {
 		startZooKeeper();
+	}
+
+	private void startZooKeeper() {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Connecting to ZooKeeper...");
+		}
+
+		try {
+			watcher = new ClusterWatcher(this);
+			zooKeeper = new ZooKeeper(connectString, sessionTimeout, watcher);
+
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Connected to ZooKeeper");
+			}
+		} catch (IOException ex) {
+			LOGGER.error("Unable to connect to ZooKeeper", ex);
+		} catch (Exception e) {
+			LOGGER.error("Exception while connecting to ZooKeeper", e);
+		}
+	}
+
+	@Override
+	public void shutdown() {
+
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Handling a Shutdown message");
+		}
+
+		try {
+			watcher.shutdown();
+			zooKeeper.close();
+		} catch (Exception ex) {
+			LOGGER.error("Exception when closing connection to ZooKeeper", ex);
+		}
+
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Shutting down ClusterNotification...");
+		}
+		clusterNotification.handleShutdown();
+
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("ZooKeeperClusterManager shut down");
+		}
+
 	}
 
 	@Override
@@ -84,7 +133,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("creating node - path=[{}], data=[{}]", path, nodeString);
 					}
-					zk.create(path, nodeString.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+					zk.create(path, getBytes(nodeString), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 				} catch (KeeperException.NodeExistsException ex) {
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("A node with id " + node.getId() + " already exists");
@@ -94,14 +143,13 @@ public class ZooKeeperClusterManager implements ClusterManager {
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("setData - path=[{}], data=[{}], version=[{}]", new Object[] { path, nodeString, stat.getVersion() });
 					}
-					zk.setData(path, nodeString.getBytes(), stat.getVersion());
+					zk.setData(path, getBytes(nodeString), stat.getVersion());
 				}
 
 				currentNodes.put(node.getId(), node);
 				clusterNotification.handleNodesChanged(currentNodes.values());
 			}
 		});
-
 	}
 
 	@Override
@@ -184,20 +232,20 @@ public class ZooKeeperClusterManager implements ClusterManager {
 			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
 
 				List<String> availableSet = zk.getChildren(availabilityNode, false);
-
-				for (String availableNode : availableSet) {
-					if (availableNode.startsWith(nodeId)) {
-						String path = availabilityNode + NODE_SEPARATOR + availableNode;
-						if (zk.exists(path, false) != null) {
-							try {
-								zk.delete(path, -1);
-							} catch (KeeperException.NoNodeException ex) {
-								// do nothing
+				if (availableSet != null) {
+					for (String availableNode : availableSet) {
+						if (availableNode.startsWith(nodeId)) {
+							String path = availabilityNode + NODE_SEPARATOR + availableNode;
+							if (zk.exists(path, false) != null) {
+								try {
+									zk.delete(path, -1);
+								} catch (KeeperException.NoNodeException ex) {
+									// do nothing
+								}
 							}
 						}
 					}
 				}
-
 				makeNodeUnavailable(nodeId);
 				clusterNotification.handleNodesChanged(currentNodes.values());
 			}
@@ -281,9 +329,9 @@ public class ZooKeeperClusterManager implements ClusterManager {
 		doWithZooKeeper(event, zooKeeper, new ZooKeeperStatement() {
 
 			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
-				byte[] data = zk.getData(eventNode, false, null);
+				byte[] data = zk.getData(eventNode, true, null);
 				if (data != null && data.length > 0) {
-					clusterNotification.handleClusterEvent(new String(data));
+					clusterNotification.handleClusterEvent(fromBytes(data));
 				}
 			}
 		});
@@ -297,22 +345,27 @@ public class ZooKeeperClusterManager implements ClusterManager {
 
 		currentNodes.clear();
 
-		for (String nodeId : members) {
-			byte[] data = zk.getData(membershipNode + NODE_SEPARATOR + nodeId, false, null);
-			Node node = JSON.parseObject(new String(data), Node.class);
-			if (node != null) {
-				boolean available = false;
-				for (String availableNode : availableSet) {
-					if (availableNode.startsWith(node.getId())) {
-						available = true;
-						break;
+		if (members != null) {
+			for (String nodeId : members) {
+				byte[] data = zk.getData(membershipNode + NODE_SEPARATOR + nodeId, false, null);
+				Node node = JSON.parseObject(fromBytes(data), Node.class);
+				if (node != null) {
+					boolean available = false;
+					if (availableSet != null) {
+						for (String availableNode : availableSet) {
+							if (availableNode.startsWith(node.getId())) {
+								available = true;
+								break;
+							}
+						}
 					}
-				}
 
-				node.setAvailable(available);
-				currentNodes.put(nodeId, node);
+					node.setAvailable(available);
+					currentNodes.put(nodeId, node);
+				}
 			}
 		}
+
 	}
 
 	private void makeNodeAvailable(String nodeId) {
@@ -328,24 +381,6 @@ public class ZooKeeperClusterManager implements ClusterManager {
 		if (old.getAvailable()) {
 			old.setAvailable(false);
 			currentNodes.put(old.getId(), old);
-		}
-	}
-
-	@Override
-	public void shutdown() {
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Handling a Shutdown message");
-		}
-
-		try {
-			watcher.shutdown();
-			zooKeeper.close();
-		} catch (Exception ex) {
-			LOGGER.error("Exception when closing connection to ZooKeeper", ex);
-		}
-
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("ZooKeeperClusterManager shut down");
 		}
 	}
 
@@ -377,11 +412,16 @@ public class ZooKeeperClusterManager implements ClusterManager {
 
 		if (!connected) {
 			LOGGER.error("Disconnected when not connected");
-		} else {
-			connected = false;
-			currentNodes.clear();
-			clusterNotification.handleDisconnected();
+			return;
 		}
+
+		doWithZooKeeper("Disconnected", zooKeeper, new ZooKeeperStatement() {
+			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
+				connected = false;
+				currentNodes.clear();
+				clusterNotification.handleDisconnected();
+			}
+		});
 
 	}
 
@@ -392,29 +432,14 @@ public class ZooKeeperClusterManager implements ClusterManager {
 
 		LOGGER.error("Connection to ZooKeeper expired, reconnecting...");
 
-		connected = false;
-		currentNodes.clear();
-		watcher.shutdown();
-		startZooKeeper();
-	}
-
-	private void startZooKeeper() {
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Connecting to ZooKeeper...");
-		}
-
-		try {
-			watcher = new ClusterWatcher(this);
-			zooKeeper = new ZooKeeper(connectString, sessionTimeout, watcher);
-
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Connected to ZooKeeper");
+		doWithZooKeeper("Expired", zooKeeper, new ZooKeeperStatement() {
+			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
+				connected = false;
+				currentNodes.clear();
+				watcher.shutdown();
+				startZooKeeper();
 			}
-		} catch (IOException ex) {
-			LOGGER.error("Unable to connect to ZooKeeper", ex);
-		} catch (Exception e) {
-			LOGGER.error("Exception while connecting to ZooKeeper", e);
-		}
+		});
 	}
 
 	private void verifyZooKeeperStructure(ZooKeeper zk) throws KeeperException, InterruptedException {
@@ -427,7 +452,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Ensuring {} exists", path);
 				}
-				if (zk.exists(path, false) == null) {
+				if (zk.exists(path, true) == null) {
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("{} doesn't exist, creating", path);
 					}
@@ -440,19 +465,39 @@ public class ZooKeeperClusterManager implements ClusterManager {
 	}
 
 	private void doWithZooKeeper(String event, ZooKeeper zk, ZooKeeperStatement action) {
-		if (zooKeeper == null) {
+		if (zk == null) {
 			LOGGER.error("{} when ZooKeeper is null, this should never happen. ", event);
 			return;
 		}
 
+		nodeLock.lock();
 		try {
 			action.doInZooKeeper(zk);
 		} catch (KeeperException ex) {
 			LOGGER.error("ZooKeeper threw an exception", ex);
 		} catch (Exception ex) {
 			LOGGER.error("Unhandled exception while working with ZooKeeper", ex);
+		} finally {
+			nodeLock.unlock();
 		}
+	}
 
+	private byte[] getBytes(String source) {
+		try {
+			return source.getBytes("UTF-8");
+		} catch (UnsupportedEncodingException ignore) {
+			LOGGER.error("", ignore);
+			return new byte[0];
+		}
+	}
+
+	private String fromBytes(byte[] bytes) {
+		try {
+			return new String(bytes, "UTF-8");
+		} catch (UnsupportedEncodingException ignore) {
+			LOGGER.error("", ignore);
+			return null;
+		}
 	}
 
 	interface ZooKeeperStatement {
@@ -473,6 +518,10 @@ public class ZooKeeperClusterManager implements ClusterManager {
 		}
 
 		public void process(WatchedEvent event) {
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Received watched event {}", ToStringBuilder.reflectionToString(event));
+			}
+
 			if (shutdownSwitch) {
 				return;
 			}

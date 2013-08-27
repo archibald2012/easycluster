@@ -6,9 +6,18 @@ package org.easycluster.easycluster.cluster.manager.event;
  */
 public enum EventType {
 
+	/**
+	 * For modifying the log level.
+	 */
 	LOG_UPDATE,
 
+	/**
+	 * For modifying the metrics settings.
+	 */
 	METRICS_UPDATE,
-	
-	CONFIG_UPDATE;
+
+	/**
+	 * For updating the message registry.
+	 */
+	MESSAGE_FILTER;
 }

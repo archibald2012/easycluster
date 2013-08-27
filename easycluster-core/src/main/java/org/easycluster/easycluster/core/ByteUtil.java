@@ -1,4 +1,3 @@
-
 package org.easycluster.easycluster.core;
 
 import java.util.List;
@@ -44,22 +43,28 @@ public class ByteUtil {
 
 	public static byte[] union(List<byte[]> byteList) {
 		int size = 0;
-		for (byte[] bs : byteList) {
-			size += bs.length;
+		if (byteList != null) {
+			for (byte[] bs : byteList) {
+				size += bs.length;
+			}
 		}
 		byte[] ret = new byte[size];
 		int pos = 0;
-		for (byte[] bs : byteList) {
-			System.arraycopy(bs, 0, ret, pos, bs.length);
-			pos += bs.length;
+		if (byteList != null) {
+			for (byte[] bs : byteList) {
+				System.arraycopy(bs, 0, ret, pos, bs.length);
+				pos += bs.length;
+			}
 		}
 		return ret;
 	}
 
 	public static int totalByteSizeOf(List<byte[]> byteList) {
 		int len = 0;
-		for (byte[] bs : byteList) {
-			len += bs.length;
+		if (byteList != null) {
+			for (byte[] bs : byteList) {
+				len += bs.length;
+			}
 		}
 
 		return len;

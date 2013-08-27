@@ -57,8 +57,8 @@ public class HttpResponseEncoder implements Transformer<Object, HttpResponse> {
 			throw new InvalidMessageException("invalid signal, no messageCode defined.");
 		}
 
-		byte[] headerBytes = getBeanFieldCodec().getEncContextFactory().createEncContext(new Integer(attr.messageCode()), Integer.class, null).getNumberCodec()
-				.int2Bytes(attr.messageCode(), 4);
+		byte[] headerBytes = getBeanFieldCodec().getEncContextFactory().createEncContext(Integer.valueOf(attr.messageCode()), Integer.class, null)
+				.getNumberCodec().int2Bytes(attr.messageCode(), 4);
 
 		byte[] bodyBytes = serialization.serialize(message);
 

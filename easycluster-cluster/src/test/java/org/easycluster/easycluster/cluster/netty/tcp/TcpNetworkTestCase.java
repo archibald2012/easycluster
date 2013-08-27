@@ -164,7 +164,7 @@ public class TcpNetworkTestCase {
 
 		Future<Object> future = nettyNetworkClient.sendMessage(request);
 
-		SampleResponse assertobj = (SampleResponse) future.get(1800, TimeUnit.SECONDS);
+		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
 		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
@@ -209,7 +209,7 @@ public class TcpNetworkTestCase {
 		TcpServer nettyNetworkServer2 = new TcpServer(serverConfig2);
 		nettyNetworkServer2.setHandlers(handlers);
 		nettyNetworkServer2.start();
-		
+
 		NetworkServerConfig serverConfig3 = new NetworkServerConfig();
 		serverConfig3.setServiceGroup("app");
 		serverConfig3.setService("test");
@@ -251,7 +251,7 @@ public class TcpNetworkTestCase {
 			ResponseIterator ri = nettyNetworkClient.broadcastMessage(request);
 
 			while (ri.hasNext()) {
-				SampleResponse assertobj = (SampleResponse) ri.next(1800L, TimeUnit.SECONDS);
+				SampleResponse assertobj = (SampleResponse) ri.next(60L, TimeUnit.SECONDS);
 				Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 				Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 				Assert.assertEquals(request.getLongField(), assertobj.getLongField());
@@ -259,7 +259,7 @@ public class TcpNetworkTestCase {
 				Assert.assertEquals(request.getStringField(), assertobj.getStringField());
 			}
 		}
-		
+
 		nettyNetworkClient.stop();
 		nettyNetworkServer.stop();
 		nettyNetworkServer2.stop();
@@ -316,7 +316,7 @@ public class TcpNetworkTestCase {
 
 		Future<Object> future = nettyNetworkClient.sendMessage(request);
 
-		SampleResponse assertobj = (SampleResponse) future.get(1800, TimeUnit.SECONDS);
+		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
 		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
@@ -366,26 +366,29 @@ public class TcpNetworkTestCase {
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
-		SampleRequest request = new SampleRequest();
-		request.setIntField(1);
-		request.setShortField((byte) 1);
-		request.setByteField((byte) 1);
-		request.setLongField(1L);
-		request.setStringField("test");
+		try {
 
-		request.setByteArrayField(new byte[] { 127 });
+			SampleRequest request = new SampleRequest();
+			request.setIntField(1);
+			request.setShortField((byte) 1);
+			request.setByteField((byte) 1);
+			request.setLongField(1L);
+			request.setStringField("test");
 
-		Future<Object> future = nettyNetworkClient.sendMessage(request);
+			request.setByteArrayField(new byte[] { 127 });
 
-		SampleResponse assertobj = (SampleResponse) future.get(1800, TimeUnit.SECONDS);
-		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
-		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
-		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
-		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
-		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
+			Future<Object> future = nettyNetworkClient.sendMessage(request);
 
-		nettyNetworkClient.stop();
-		nettyNetworkServer.stop();
+			SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
+			Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+			Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+			Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+			Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+			Assert.assertEquals(request.getStringField(), assertobj.getStringField());
+		} finally {
+			nettyNetworkClient.stop();
+			nettyNetworkServer.stop();
+		}
 	}
 
 	@Test
@@ -425,28 +428,32 @@ public class TcpNetworkTestCase {
 
 		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
-		nettyNetworkClient.start();
 
-		SampleRequest request = new SampleRequest();
-		request.setIntField(1);
-		request.setShortField((byte) 1);
-		request.setByteField((byte) 1);
-		request.setLongField(1L);
-		request.setStringField("test");
+		try {
 
-		request.setByteArrayField(new byte[] { 127 });
+			nettyNetworkClient.start();
 
-		Future<Object> future = nettyNetworkClient.sendMessage(request);
+			SampleRequest request = new SampleRequest();
+			request.setIntField(1);
+			request.setShortField((byte) 1);
+			request.setByteField((byte) 1);
+			request.setLongField(1L);
+			request.setStringField("test");
 
-		SampleResponse assertobj = (SampleResponse) future.get(1800, TimeUnit.SECONDS);
-		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
-		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
-		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
-		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
-		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
+			request.setByteArrayField(new byte[] { 127 });
 
-		nettyNetworkClient.stop();
-		nettyNetworkServer.stop();
+			Future<Object> future = nettyNetworkClient.sendMessage(request);
+
+			SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
+			Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+			Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+			Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+			Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+			Assert.assertEquals(request.getStringField(), assertobj.getStringField());
+		} finally {
+			nettyNetworkClient.stop();
+			nettyNetworkServer.stop();
+		}
 	}
 
 	@Test
@@ -470,7 +477,6 @@ public class TcpNetworkTestCase {
 
 		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
-		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
 		clientConfig.setServiceGroup("app");
@@ -486,28 +492,32 @@ public class TcpNetworkTestCase {
 
 		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
-		nettyNetworkClient.start();
 
-		SampleRequest request = new SampleRequest();
-		request.setIntField(1);
-		request.setShortField((byte) 1);
-		request.setByteField((byte) 1);
-		request.setLongField(1L);
-		request.setStringField("test");
+		try {
+			nettyNetworkServer.start();
+			nettyNetworkClient.start();
 
-		request.setByteArrayField(new byte[] { 127 });
+			SampleRequest request = new SampleRequest();
+			request.setIntField(1);
+			request.setShortField((byte) 1);
+			request.setByteField((byte) 1);
+			request.setLongField(1L);
+			request.setStringField("test");
 
-		Future<Object> future = nettyNetworkClient.sendMessage(request);
+			request.setByteArrayField(new byte[] { 127 });
 
-		SampleResponse assertobj = (SampleResponse) future.get(1800, TimeUnit.SECONDS);
-		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
-		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
-		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
-		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
-		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
+			Future<Object> future = nettyNetworkClient.sendMessage(request);
 
-		nettyNetworkClient.stop();
-		nettyNetworkServer.stop();
+			SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
+			Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+			Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+			Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+			Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+			Assert.assertEquals(request.getStringField(), assertobj.getStringField());
+		} finally {
+			nettyNetworkClient.stop();
+			nettyNetworkServer.stop();
+		}
 	}
 
 	@Test
@@ -582,7 +592,7 @@ public class TcpNetworkTestCase {
 
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
-			client1Responses.add((SampleResponse) futures.get(i).get(1800, TimeUnit.SECONDS));
+			client1Responses.add((SampleResponse) futures.get(i).get(60, TimeUnit.SECONDS));
 		}
 		Assert.assertEquals(num, count.get());
 		Assert.assertEquals(num, client1Responses.size());
@@ -668,7 +678,7 @@ public class TcpNetworkTestCase {
 
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
-			client1Responses.add((SampleResponse) futures.get(i).get(1800, TimeUnit.SECONDS));
+			client1Responses.add((SampleResponse) futures.get(i).get(60, TimeUnit.SECONDS));
 		}
 		Assert.assertEquals(num, count.get());
 		Assert.assertEquals(num, client1Responses.size());
@@ -752,7 +762,7 @@ public class TcpNetworkTestCase {
 
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
-			client1Responses.add((SampleResponse) futures.get(i).get(1800, TimeUnit.SECONDS));
+			client1Responses.add((SampleResponse) futures.get(i).get(60, TimeUnit.SECONDS));
 		}
 		Assert.assertEquals(num, client1Responses.size());
 		Assert.assertEquals(num, count.get());
@@ -838,7 +848,7 @@ public class TcpNetworkTestCase {
 
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
-			client1Responses.add((SampleResponse) futures.get(i).get(1800, TimeUnit.SECONDS));
+			client1Responses.add((SampleResponse) futures.get(i).get(60, TimeUnit.SECONDS));
 		}
 		Assert.assertEquals(num, count.get());
 		Assert.assertEquals(num, client1Responses.size());
@@ -924,7 +934,7 @@ public class TcpNetworkTestCase {
 
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
-			client1Responses.add((SampleResponse) futures.get(i).get(1800, TimeUnit.SECONDS));
+			client1Responses.add((SampleResponse) futures.get(i).get(60, TimeUnit.SECONDS));
 		}
 		Assert.assertEquals(num, count.get());
 		Assert.assertEquals(num, client1Responses.size());

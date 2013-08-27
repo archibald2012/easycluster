@@ -34,8 +34,8 @@ public class ResponseFuture implements Future<Object> {
 
 	@Override
 	public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-		latch.await(timeout, unit);
-		if (response == null) {
+		boolean result = latch.await(timeout, unit);
+		if (!result || response == null) {
 			throw new TimeoutException("Timed out waiting for response");
 		}
 

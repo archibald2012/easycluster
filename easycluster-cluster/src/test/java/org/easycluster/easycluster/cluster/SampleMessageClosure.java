@@ -1,17 +1,23 @@
 package org.easycluster.easycluster.cluster;
 
-import org.easycluster.easycluster.cluster.server.MessageClosure;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import org.easycluster.easycluster.cluster.server.MessageClosure;
 
 public class SampleMessageClosure implements MessageClosure<SampleRequest, SampleResponse> {
 
-	private static final Logger	logger	= LoggerFactory.getLogger(SampleMessageClosure.class);
+	public static final Logger	LOGGER	= Logger.getLogger(SampleMessageClosure.class.getName());
 
+	public SampleMessageClosure(){
+		LOGGER.setLevel(Level.INFO);
+	}
+	
 	@Override
 	public SampleResponse execute(SampleRequest input) {
-		logger.debug("try echo:" + input);
+		if (LOGGER.isLoggable(Level.INFO)) {
+			LOGGER.log(Level.INFO, "try echo:" + input);
+		}
 		SampleResponse response = new SampleResponse();
 		response.setIntField(input.getIntField());
 		response.setLongField(input.getLongField());

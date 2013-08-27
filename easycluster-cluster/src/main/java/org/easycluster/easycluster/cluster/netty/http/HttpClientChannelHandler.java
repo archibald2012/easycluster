@@ -65,7 +65,9 @@ public class HttpClientChannelHandler extends SimpleChannelHandler {
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-		LOGGER.info("Caught exception in network layer", e.getCause());
+		if (LOGGER.isInfoEnabled()) {
+			LOGGER.info("Caught exception in network layer", e.getCause());
+		}
 	}
 
 	public void setRequestTransformer(Transformer<Object, HttpRequest> requestTransformer) {

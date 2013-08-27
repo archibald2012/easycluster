@@ -219,4 +219,8 @@ public class NetworkServer {
 		return methods;
 	}
 
+	public MessageClosureRegistry getMessageClosureRegistry() {
+		return messageClosureRegistry;
+	}
+
 }

@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.UnsupportedEncodingException;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
@@ -32,7 +33,7 @@ public class BeanJavaSerialization implements Serialization {
 			out.close();
 		} catch (IOException e) {
 			String errorMsg = "Failed to serialize the object with error: " + e.getMessage();
-			LOGGER.error(errorMsg);
+			LOGGER.error(errorMsg, e);
 			throw new SerializationException(errorMsg, e);
 		}
 
@@ -89,11 +90,11 @@ public class BeanJavaSerialization implements Serialization {
 			in.close();
 		} catch (IOException e) {
 			String errorMsg = "Failed to deserialize the object with io error: " + e.getMessage();
-			LOGGER.error(errorMsg);
+			LOGGER.error(errorMsg, e);
 			throw new SerializationException(errorMsg, e);
 		} catch (ClassNotFoundException e) {
 			String errorMsg = "Failed to deserialize the object with class not found error: " + e.getMessage();
-			LOGGER.error(errorMsg);
+			LOGGER.error(errorMsg, e);
 			throw new SerializationException(errorMsg, e);
 		}
 
@@ -115,7 +116,10 @@ public class BeanJavaSerialization implements Serialization {
 
 	public void setEncryptKey(String encryptKey) {
 		if (encryptKey != null) {
-			this.encryptKey = encryptKey.getBytes();
+			try {
+				this.encryptKey = encryptKey.getBytes("UTF-8");
+			} catch (UnsupportedEncodingException ignore) {
+			}
 		}
 	}
 

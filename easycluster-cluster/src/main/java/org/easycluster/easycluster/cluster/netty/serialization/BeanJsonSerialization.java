@@ -43,7 +43,7 @@ public class BeanJsonSerialization implements Serialization {
 					ByteUtil.bytesAsHexString(bytes, dumpBytes));
 		}
 
-		if (bytes.length > 0 && encryptKey != null) {
+		if (bytes != null && bytes.length > 0 && encryptKey != null) {
 			try {
 				bytes = DES.encryptThreeDESECB(bytes, encryptKey);
 
@@ -111,7 +111,10 @@ public class BeanJsonSerialization implements Serialization {
 
 	public void setEncryptKey(String encryptKey) {
 		if (encryptKey != null) {
-			this.encryptKey = encryptKey.getBytes();
+			try {
+				this.encryptKey = encryptKey.getBytes("UTF-8");
+			} catch (UnsupportedEncodingException ignore) {
+			}
 		}
 	}
 }

@@ -1,7 +1,6 @@
 package org.easycluster.easycluster.cluster.netty.tcp;
 
 import java.net.SocketAddress;
-import java.nio.channels.ClosedChannelException;
 
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.cluster.netty.endpoint.DefaultEndpointFactory;
@@ -76,16 +75,12 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
 		SocketAddress remoteAddress = e.getChannel().getRemoteAddress();
 		Throwable cause = e.getCause();
-		if (cause instanceof ClosedChannelException) {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("channel: [" + remoteAddress + "], exceptionCaught: ", cause);
-			}
-		} else {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("channel: [" + remoteAddress + "], exceptionCaught: ", cause);
-				// ctx.getChannel().close();
-			}
+
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("channel: [" + remoteAddress + "], exceptionCaught: ", cause);
+			// ctx.getChannel().close();
 		}
+
 	}
 
 	@Override
@@ -191,7 +186,7 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 		}
 
 		private Object buildErrorResponse(Exception ex) {
-			Class<?> responseType = messageHandlerRegistry.getResponseFor(request);
+			Class<?> responseType = messageHandlerRegistry.getResponseTypeFor(request);
 			if (responseType == null) {
 				return null;
 			}

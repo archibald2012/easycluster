@@ -45,7 +45,9 @@ public class NettyIoServer implements ClusterIoServer {
 				serverChannel = bootstrap.bind(address);
 				binded = true;
 			} catch (ChannelException ex) {
-				LOGGER.warn("start failed : " + ex + ", and retry...");
+				if (LOGGER.isWarnEnabled()) {
+					LOGGER.warn("start failed : " + ex + ", and retry...");
+				}
 
 				retryCount++;
 				if (retryCount >= maxRetryCount) {

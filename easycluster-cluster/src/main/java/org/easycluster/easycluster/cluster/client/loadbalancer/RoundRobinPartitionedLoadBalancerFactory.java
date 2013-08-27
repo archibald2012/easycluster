@@ -3,6 +3,7 @@ package org.easycluster.easycluster.cluster.client.loadbalancer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.easycluster.easycluster.cluster.Node;
@@ -40,8 +41,8 @@ public abstract class RoundRobinPartitionedLoadBalancerFactory<PartitionedId> im
 					nodeSet.add(node);
 				}
 			}
-			for (Integer partitionedId : nodeMap.keySet()) {
-				loadBalancerMap.put(partitionedId, new RoundRobinLoadBalancer(nodeMap.get(partitionedId)));
+			for (Entry<Integer, Set<Node>> entry : nodeMap.entrySet()) {
+				loadBalancerMap.put(entry.getKey(), new RoundRobinLoadBalancer(entry.getValue()));
 			}
 
 		}

@@ -17,7 +17,7 @@ import org.easycluster.easycluster.cluster.exception.ClusterDisconnectedExceptio
 import org.easycluster.easycluster.cluster.exception.ClusterNotStartedException;
 import org.easycluster.easycluster.cluster.exception.ClusterShutdownException;
 import org.easycluster.easycluster.cluster.manager.event.ClusterEvent;
-import org.easycluster.easycluster.cluster.manager.event.handler.ClusterEventHandler;
+import org.easycluster.easycluster.cluster.manager.event.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,7 @@ public class DefaultClusterClient implements ClusterClient {
 	private String					service				= null;
 	private AtomicBoolean			shutdownSwitch		= new AtomicBoolean(false);
 	private AtomicBoolean			startedSwitch		= new AtomicBoolean(false);
-	private ClusterEventHandler		clusterEventHandler		= null;
+	private EventHandler			clusterEventHandler	= null;
 	private volatile CountDownLatch	connectedLatch		= new CountDownLatch(1);
 	private String					mbeanObjectName		= "org.easycluster:type=DefaultClusterClient,service=%s";
 
@@ -80,7 +80,9 @@ public class DefaultClusterClient implements ClusterClient {
 
 		if (startedSwitch.compareAndSet(false, true)) {
 
-			LOGGER.info("Starting ClusterClient...");
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("Starting ClusterClient...");
+			}
 
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Starting ClusterManager...");
@@ -113,7 +115,9 @@ public class DefaultClusterClient implements ClusterClient {
 				}
 			});
 
-			LOGGER.info("Cluster started");
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("Cluster started");
+			}
 		}
 	}
 
@@ -312,19 +316,18 @@ public class DefaultClusterClient implements ClusterClient {
 	public void shutdown() {
 		if (shutdownSwitch.compareAndSet(false, true)) {
 
-			LOGGER.info("Shutting down clusterClient...");
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("Shutting down clusterClient...");
+			}
 
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Shutting down ClusterManager...");
 			}
 			clusterManager.shutdown();
 
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Shutting down ClusterNotification...");
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("Cluster client shut down");
 			}
-			clusterNotification.handleShutdown();
-
-			LOGGER.info("Cluster client shut down");
 		}
 	}
 
@@ -332,11 +335,7 @@ public class DefaultClusterClient implements ClusterClient {
 		this.clusterManager = clusterManager;
 	}
 
-	public void setClusterNotification(ClusterNotification clusterNotification) {
-		this.clusterNotification = clusterNotification;
-	}
-
-	public void setClusterEventHandler(ClusterEventHandler clusterEventHandler) {
+	public void setClusterEventHandler(EventHandler clusterEventHandler) {
 		this.clusterEventHandler = clusterEventHandler;
 	}
 

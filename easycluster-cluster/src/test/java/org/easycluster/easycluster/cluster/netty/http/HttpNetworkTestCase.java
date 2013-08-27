@@ -568,6 +568,7 @@ public class HttpNetworkTestCase {
 		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		clientConfig.setStaleRequestTimeoutMins(60);
+		clientConfig.setWriteTimeoutMillis(100);
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);

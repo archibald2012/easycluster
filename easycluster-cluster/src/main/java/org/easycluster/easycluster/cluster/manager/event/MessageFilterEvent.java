@@ -8,37 +8,37 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(propOrder = { "functionName", "isFilter" })
-public class MetricsUpdateEvent extends CoreEvent {
+@XmlType(propOrder = { "messageType", "isFilter" })
+public class MessageFilterEvent extends CoreEvent {
 
 	@XmlTransient
 	private static final long	serialVersionUID	= 1L;
 
-	@XmlElement(name = "function", required = false)
+	@XmlElement(name = "message", required = false)
 	@XmlSchemaType(name = "QName")
-	private String				functionName;
+	private String				messageType;
 
 	@XmlElement(name = "isFilter", required = true)
 	@XmlSchemaType(name = "QName")
 	private boolean				isFilter;
 
-	public MetricsUpdateEvent() {
-		super(EventType.METRICS_UPDATE.name());
+	public MessageFilterEvent() {
+		super(EventType.MESSAGE_FILTER.name());
 	}
 
-	public MetricsUpdateEvent(String component, Class<?> clazz, String functionName, boolean isFilter) {
-		super(EventType.METRICS_UPDATE.name(), component, clazz);
+	public MessageFilterEvent(String component, Class<?> clazz, Class<?> messageType, boolean isFilter) {
+		super(EventType.MESSAGE_FILTER.name(), component, clazz);
 
-		this.functionName = functionName;
+		this.messageType = messageType.getName();
 		this.isFilter = isFilter;
 	}
 
-	public String getFunctionName() {
-		return functionName;
+	public String getMessageType() {
+		return messageType;
 	}
 
-	public void setFunctionName(String functionName) {
-		this.functionName = functionName;
+	public void setMessageType(String messageType) {
+		this.messageType = messageType;
 	}
 
 	public boolean isFilter() {

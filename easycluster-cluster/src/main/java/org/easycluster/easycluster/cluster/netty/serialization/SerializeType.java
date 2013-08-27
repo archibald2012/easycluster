@@ -8,6 +8,9 @@ package org.easycluster.easycluster.cluster.netty.serialization;
  */
 public enum SerializeType {
 
+	/**
+	 * 
+	 */
 	BYTE_BEAN,
 
 	/**
@@ -16,10 +19,19 @@ public enum SerializeType {
 	 */
 	TLV,
 
+	/**
+	 * 
+	 */
 	KV,
 
+	/**
+	 * 
+	 */
 	JSON,
 
+	/**
+	 * 
+	 */
 	JAVA,
 
 }

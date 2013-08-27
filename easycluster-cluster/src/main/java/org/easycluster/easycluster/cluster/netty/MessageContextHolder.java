@@ -34,7 +34,9 @@ public class MessageContextHolder {
 					for (Object key : requestMap.keySet()) {
 						MessageContext request = requestMap.get(key);
 						if ((System.nanoTime() - request.getTimestamp()) / 1000 * 1000 > staleRequestTimeoutMillis) {
-							LOGGER.warn("Remove timeout message context. key=[{}], timeoutMillis=[{}]", key, staleRequestTimeoutMillis);
+							if (LOGGER.isWarnEnabled()) {
+								LOGGER.warn("Remove timeout message context. key=[{}], timeoutMillis=[{}]", key, staleRequestTimeoutMillis);
+							}
 							requestMap.remove(key);
 						}
 					}
@@ -57,11 +59,15 @@ public class MessageContextHolder {
 			return;
 		}
 		if (requestId == null) {
-			LOGGER.warn("No request id found from request object {}.", message);
+			if (LOGGER.isWarnEnabled()) {
+				LOGGER.warn("No request id found from request object {}.", message);
+			}
 			return;
 		}
 		if (requestMap.containsKey(requestId)) {
-			LOGGER.warn("Duplicated request id found from request object {}.", message);
+			if (LOGGER.isWarnEnabled()) {
+				LOGGER.warn("Duplicated request id found from request object {}.", message);
+			}
 			return;
 		}
 		requestMap.put(requestId, requestContext);
@@ -81,7 +87,9 @@ public class MessageContextHolder {
 				}
 			}
 		} else {
-			LOGGER.warn("No request id found from response object {}.", response);
+			if (LOGGER.isWarnEnabled()) {
+				LOGGER.warn("No request id found from response object {}.", response);
+			}
 		}
 		return requestContext;
 	}

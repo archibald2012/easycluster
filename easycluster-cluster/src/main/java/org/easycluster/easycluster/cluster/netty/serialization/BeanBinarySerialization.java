@@ -1,5 +1,7 @@
 package org.easycluster.easycluster.cluster.netty.serialization;
 
+import java.io.UnsupportedEncodingException;
+
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.core.ByteUtil;
@@ -144,7 +146,10 @@ public class BeanBinarySerialization implements Serialization {
 
 	public void setEncryptKey(String encryptKey) {
 		if (encryptKey != null) {
-			this.encryptKey = encryptKey.getBytes();
+			try {
+				this.encryptKey = encryptKey.getBytes("UTF-8");
+			} catch (UnsupportedEncodingException ignore) {
+			}
 		}
 	}
 }

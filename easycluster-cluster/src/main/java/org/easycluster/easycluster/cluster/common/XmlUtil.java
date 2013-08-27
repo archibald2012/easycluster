@@ -13,7 +13,6 @@ import org.easycluster.easycluster.cluster.exception.SerializationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class XmlUtil {
 
 	private static final Logger	LOGGER	= LoggerFactory.getLogger(XmlUtil.class);
@@ -21,8 +20,10 @@ public class XmlUtil {
 	/**
 	 * Deserialize the XML string to object
 	 * 
-	 * @param obj
-	 * @return
+	 * @param content
+	 * @param clazz
+	 * @return instance of given class
+	 * @throws SerializationException
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T unmarshal(String content, Class<?> clazz) {
@@ -47,7 +48,8 @@ public class XmlUtil {
 	 * serialize the object to XML string
 	 * 
 	 * @param obj
-	 * @return
+	 * @return XML
+	 * @throws SerializationException
 	 */
 	public static String marshal(Object obj) {
 		OutputStream os = new ByteArrayOutputStream();
