@@ -3,10 +3,12 @@
  */
 package org.easycluster.easycluster.cluster.manager;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -182,11 +184,16 @@ public class ClusterNotification {
 	}
 
 	private String nodesAsString(Collection<Node> nodes) {
+
+		List<Node> nodeList = new ArrayList<Node>();
+		nodeList.addAll(nodes);
+		Collections.sort(nodeList);
+
 		StringBuilder body = new StringBuilder();
 		body.append("node num is:[");
-		body.append(nodes.size());
+		body.append(nodeList.size());
 		body.append("]\r\n");
-		for (Node n : nodes) {
+		for (Node n : nodeList) {
 			body.append(n).append("\r\n");
 		}
 		return body.toString();

@@ -41,7 +41,7 @@ public class BaseNetworkClient {
 
 	public BaseNetworkClient(final NetworkClientConfig config) {
 		this.clusterClient = new ZooKeeperClusterClient(config.getServiceGroup(), config.getService(), config.getZooKeeperConnectString(),
-				config.getZooKeeperSessionTimeoutMillis());
+				config.getZooKeeperSessionTimeoutMillis(), config.isMutexInstance());
 	}
 
 	public void start() {

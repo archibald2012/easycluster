@@ -42,6 +42,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 	private String				membershipNode		= null;
 	private String				eventNode			= null;
 	private String				availabilityNode	= null;
+	private boolean				mutexInstance		= false;
 
 	private ZooKeeper			zooKeeper			= null;
 	private ClusterWatcher		watcher				= null;
@@ -49,9 +50,10 @@ public class ZooKeeperClusterManager implements ClusterManager {
 	private Map<String, Node>	currentNodes		= new HashMap<String, Node>();
 	private Lock				nodeLock			= new ReentrantLock();
 
-	public ZooKeeperClusterManager(String serviceGroup, String service, String zooKeeperConnectString, int zooKeeperSessionTimeoutMillis) {
+	public ZooKeeperClusterManager(String serviceGroup, String service, String zooKeeperConnectString, int zooKeeperSessionTimeoutMillis, boolean mutexInstance) {
 		this.connectString = zooKeeperConnectString;
 		this.sessionTimeout = zooKeeperSessionTimeoutMillis;
+		this.mutexInstance = mutexInstance;
 		this.serviceGroupNode = rootNode + NODE_SEPARATOR + serviceGroup;
 		this.serviceNode = serviceGroupNode + NODE_SEPARATOR + service;
 		this.membershipNode = serviceNode + NODE_SEPARATOR + "members";
@@ -164,6 +166,8 @@ public class ZooKeeperClusterManager implements ClusterManager {
 			return;
 		}
 
+		markNodeUnavailable(nodeId);
+
 		doWithZooKeeper(event, zooKeeper, new ZooKeeperStatement() {
 
 			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
@@ -208,7 +212,20 @@ public class ZooKeeperClusterManager implements ClusterManager {
 					LOGGER.debug("Path [{}] created.", node);
 				}
 
-				makeNodeAvailable(nodeId);
+				if (mutexInstance) {
+					List<String> availableSet = zk.getChildren(availabilityNode, true);
+					String predecessor = getPredecessor(availableSet);
+					for (String nodeId : currentNodes.keySet()) {
+						if (predecessor != null && predecessor.startsWith(nodeId)) {
+							makeNodeAvailable(nodeId);
+						} else {
+							makeNodeUnavailable(nodeId);
+						}
+					}
+				} else {
+					makeNodeAvailable(nodeId);
+				}
+
 				clusterNotification.handleNodesChanged(currentNodes.values());
 			}
 		});
@@ -246,7 +263,10 @@ public class ZooKeeperClusterManager implements ClusterManager {
 						}
 					}
 				}
-				makeNodeUnavailable(nodeId);
+
+				availableSet = zk.getChildren(availabilityNode, true);
+				refreshAvailableNode(availableSet);
+
 				clusterNotification.handleNodesChanged(currentNodes.values());
 			}
 		});
@@ -294,24 +314,11 @@ public class ZooKeeperClusterManager implements ClusterManager {
 						makeNodeUnavailable(nodeId);
 					}
 				} else {
-					for (String nodeId : currentNodes.keySet()) {
-						boolean available = false;
-						for (String availableNode : availableSet) {
-							if (availableNode.startsWith(nodeId)) {
-								available = true;
-								break;
-							}
-						}
-
-						if (available) {
-							makeNodeAvailable(nodeId);
-						} else {
-							makeNodeUnavailable(nodeId);
-						}
-					}
+					refreshAvailableNode(availableSet);
 				}
 				clusterNotification.handleNodesChanged(currentNodes.values());
 			}
+
 		});
 	}
 
@@ -341,31 +348,64 @@ public class ZooKeeperClusterManager implements ClusterManager {
 	private void lookupCurrentNodes(ZooKeeper zk) throws KeeperException, InterruptedException {
 
 		List<String> members = zk.getChildren(membershipNode, true);
-		List<String> availableSet = zk.getChildren(availabilityNode, true);
 
 		currentNodes.clear();
 
-		if (members != null) {
-			for (String nodeId : members) {
-				byte[] data = zk.getData(membershipNode + NODE_SEPARATOR + nodeId, false, null);
-				Node node = JSON.parseObject(fromBytes(data), Node.class);
-				if (node != null) {
-					boolean available = false;
-					if (availableSet != null) {
-						for (String availableNode : availableSet) {
-							if (availableNode.startsWith(node.getId())) {
-								available = true;
-								break;
-							}
-						}
-					}
-
-					node.setAvailable(available);
-					currentNodes.put(nodeId, node);
-				}
+		for (String nodeId : members) {
+			byte[] data = zk.getData(membershipNode + NODE_SEPARATOR + nodeId, false, null);
+			Node node = JSON.parseObject(fromBytes(data), Node.class);
+			if (node != null) {
+				currentNodes.put(nodeId, node);
 			}
 		}
 
+		List<String> availableSet = zk.getChildren(availabilityNode, true);
+		refreshAvailableNode(availableSet);
+	}
+
+	private String getPredecessor(List<String> availableSet) {
+		int previousSeqNum = Integer.MAX_VALUE;
+		String predecessor = null;
+		for (String child : availableSet) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("child: " + child);
+			}
+
+			int otherSeqNum = Integer.parseInt(child.substring(child.lastIndexOf('-') + 1));
+			if (otherSeqNum < previousSeqNum) {
+				previousSeqNum = otherSeqNum;
+				predecessor = child;
+			}
+		}
+		return predecessor;
+	}
+
+	private void refreshAvailableNode(List<String> availableSet) {
+		if (mutexInstance) {
+			String predecessor = getPredecessor(availableSet);
+			for (String nodeId : currentNodes.keySet()) {
+				if (predecessor != null && predecessor.startsWith(nodeId)) {
+					makeNodeAvailable(nodeId);
+				} else {
+					makeNodeUnavailable(nodeId);
+				}
+			}
+		} else {
+			for (String nodeId : currentNodes.keySet()) {
+				boolean available = false;
+				for (String availableNode : availableSet) {
+					if (availableNode.startsWith(nodeId)) {
+						available = true;
+						break;
+					}
+				}
+				if (available) {
+					makeNodeAvailable(nodeId);
+				} else {
+					makeNodeUnavailable(nodeId);
+				}
+			}
+		}
 	}
 
 	private void makeNodeAvailable(String nodeId) {
@@ -506,6 +546,10 @@ public class ZooKeeperClusterManager implements ClusterManager {
 
 	public void setClusterNotification(ClusterNotification clusterNotification) {
 		this.clusterNotification = clusterNotification;
+	}
+
+	public ClusterNotification getClusterNotification() {
+		return clusterNotification;
 	}
 
 	class ClusterWatcher implements Watcher {

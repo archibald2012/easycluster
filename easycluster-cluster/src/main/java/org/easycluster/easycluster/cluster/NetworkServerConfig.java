@@ -27,6 +27,8 @@ public class NetworkServerConfig {
 	 */
 	private int					zooKeeperSessionTimeoutMillis	= ClusterDefaults.ZOOKEEPER_SESSION_TIMEOUT_MILLIS;
 
+	private boolean				mutexInstance					= false;
+
 	/**
 	 * The number of milliseconds to wait when opening a socket.
 	 */
@@ -202,6 +204,14 @@ public class NetworkServerConfig {
 
 	public void setClusterEventHandler(EventHandler clusterEventHandler) {
 		this.clusterEventHandler = clusterEventHandler;
+	}
+
+	public boolean isMutexInstance() {
+		return mutexInstance;
+	}
+
+	public void setMutexInstance(boolean mutexInstance) {
+		this.mutexInstance = mutexInstance;
 	}
 
 }

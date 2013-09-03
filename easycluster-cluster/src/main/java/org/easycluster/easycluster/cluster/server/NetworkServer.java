@@ -41,7 +41,7 @@ public class NetworkServer {
 		node.setUrl(config.getUrl());
 
 		ZooKeeperClusterClient clusterClient = new ZooKeeperClusterClient(config.getServiceGroup(), config.getService(), config.getZooKeeperConnectString(),
-				config.getZooKeeperSessionTimeoutMillis());
+				config.getZooKeeperSessionTimeoutMillis(), config.isMutexInstance());
 		clusterClient.setClusterEventHandler(config.getClusterEventHandler());
 		this.clusterClient = clusterClient;
 	}
