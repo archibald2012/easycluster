@@ -33,7 +33,6 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 
 		this.messageHandlerRegistry = messageHandlerRegistry;
 
-		// 无界队列,在所有 corePoolSize 线程都忙时新任务在队列中等待,创建的线程不会超过 corePoolSize
 		this.threadPool = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
 				new NamedPoolThreadFactory(name)) {
 
@@ -90,13 +89,11 @@ public class ThreadPoolMessageExecutor implements MessageExecutor {
 					return threadPool.getCompletedTaskCount();
 				}
 
-				public double getAverageWaitTime() {
-					// 返回毫秒
+				public double getAverageWaitTimeInMillis() {
 					return waitTime.getAverage() / 1000000;
 				}
 
-				public double getAverageProcessingTime() {
-					// 返回毫秒
+				public double getAverageProcessingTimeInMillis() {
 					return processingTime.getAverage() / 1000000;
 				}
 

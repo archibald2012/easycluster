@@ -84,6 +84,9 @@ public class BeanJsonSerialization implements Serialization {
 		} catch (UnsupportedEncodingException ingore) {
 		}
 
+		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+			LOGGER.debug("Deserialize object string --> {}, deserialized type:{}", text, type.getName());
+		}
 		T object = JSON.parseObject(text, type);
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {

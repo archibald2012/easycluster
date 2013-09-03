@@ -4,6 +4,8 @@ package org.easycluster.easycluster.serialization.bytebean.field;
 import java.lang.reflect.Field;
 
 import org.easycluster.easycluster.serialization.bytebean.ByteBeanUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -14,6 +16,8 @@ import org.easycluster.easycluster.serialization.bytebean.ByteBeanUtil;
  */
 public class DefaultFieldDesc extends ByteBeanUtil implements ByteFieldDesc {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFieldDesc.class);
+	
 	private Field field;
 	private int maxByteSize = -1;
 	private int index;
@@ -136,10 +140,10 @@ public class DefaultFieldDesc extends ByteBeanUtil implements ByteFieldDesc {
 				return -1;
 			}
 		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 			return -1;
 		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 			return -1;
 		}
 	}

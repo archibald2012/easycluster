@@ -94,22 +94,23 @@ public class ZooKeeperClusterManager implements ClusterManager {
 			LOGGER.debug("Handling a Shutdown message");
 		}
 
-		try {
-			watcher.shutdown();
-			zooKeeper.close();
-		} catch (Exception ex) {
-			LOGGER.error("Exception when closing connection to ZooKeeper", ex);
-		}
+		doWithZooKeeper("Expired", zooKeeper, new ZooKeeperStatement() {
+			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
+				connected = false;
+				currentNodes.clear();
+				watcher.shutdown();
+				zooKeeper.close();
 
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Shutting down ClusterNotification...");
-		}
-		clusterNotification.handleShutdown();
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Shutting down ClusterNotification...");
+				}
+				clusterNotification.handleShutdown();
+			}
+		});
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("ZooKeeperClusterManager shut down");
 		}
-
 	}
 
 	@Override
@@ -424,7 +425,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 		}
 	}
 
-	private void handleConnected() {
+	void handleConnected() {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("handleConnected");
 		}
@@ -445,7 +446,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 		});
 	}
 
-	private void handleDisconnected() {
+	void handleDisconnected() {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("handleDisconnected");
 		}
@@ -465,7 +466,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 
 	}
 
-	private void handleExpired() {
+	void handleExpired() {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("handleExpired");
 		}

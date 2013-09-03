@@ -1,4 +1,3 @@
-
 package org.easycluster.easycluster.serialization.bytebean.codec.bean;
 
 import java.lang.reflect.Field;
@@ -18,7 +17,6 @@ import org.easycluster.easycluster.serialization.bytebean.field.Field2Desc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * TODO
  * 
@@ -27,13 +25,12 @@ import org.slf4j.LoggerFactory;
  */
 public class BeanCodec extends AbstractCategoryCodec implements BeanFieldCodec {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(BeanCodec.class);
+	private static final Logger	logger	= LoggerFactory.getLogger(BeanCodec.class);
 
-	private DecContextFactory decContextFactory;
-	private EncContextFactory encContextFactory;
+	private DecContextFactory	decContextFactory;
+	private EncContextFactory	encContextFactory;
 
-	private BeanCodecUtil util;
+	private BeanCodecUtil		util;
 
 	public BeanCodec(Field2Desc field2Desc) {
 		this.util = new BeanCodecUtil(field2Desc);
@@ -52,19 +49,20 @@ public class BeanCodec extends AbstractCategoryCodec implements BeanFieldCodec {
 			List<ByteFieldDesc> desces = util.getFieldDesces(clazz);
 			ByteFieldCodec anyCodec = ctx.getCodecOf(FieldCodecCategory.ANY);
 
-			for (ByteFieldDesc desc : desces) {
+			if (desces != null) {
+				for (ByteFieldDesc desc : desces) {
 
-				Field field = desc.getField();
+					Field field = desc.getField();
 
-				Class<?> fieldClass = field.getType();
+					Class<?> fieldClass = field.getType();
 
-				DecResult ret = anyCodec.decode(decContextFactory
-						.createDecContext(bytes, fieldClass, target, desc));
-				Object fieldValue = ret.getValue();
-				bytes = ret.getRemainBytes();
+					DecResult ret = anyCodec.decode(decContextFactory.createDecContext(bytes, fieldClass, target, desc));
+					Object fieldValue = ret.getValue();
+					bytes = ret.getRemainBytes();
 
-				field.setAccessible(true);
-				field.set(target, fieldValue);
+					field.setAccessible(true);
+					field.set(target, fieldValue);
+				}
 			}
 
 		} catch (InstantiationException e) {
@@ -87,7 +85,7 @@ public class BeanCodec extends AbstractCategoryCodec implements BeanFieldCodec {
 				errmsg += "/ cause type is [" + ctx.getEncClass() + "]";
 			}
 			logger.error(errmsg);
-			//throw new RuntimeException(errmsg);
+			// throw new RuntimeException(errmsg);
 			return new byte[0];
 		}
 		List<ByteFieldDesc> desces = util.getFieldDesces(bean.getClass());
@@ -108,9 +106,7 @@ public class BeanCodec extends AbstractCategoryCodec implements BeanFieldCodec {
 				logger.error("BeanCodec:", e);
 			}
 
-			ret = (byte[]) ArrayUtils.addAll(ret, anyCodec
-					.encode(encContextFactory.createEncContext(fieldValue,
-							fieldClass, desc)));
+			ret = (byte[]) ArrayUtils.addAll(ret, anyCodec.encode(encContextFactory.createEncContext(fieldValue, fieldClass, desc)));
 		}
 
 		return ret;

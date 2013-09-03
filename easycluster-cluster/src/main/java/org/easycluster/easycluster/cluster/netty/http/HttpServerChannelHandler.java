@@ -107,11 +107,11 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 
 		if (null != endpoint) {
 
-			HttpResponseHandler responseHandler = new HttpResponseHandler(channel, (HttpRequest) request);
-
 			Object signal = requestTransformer.transform((HttpRequest) request);
 
 			TransportUtil.attachSender(signal, endpoint);
+
+			HttpResponseHandler responseHandler = new HttpResponseHandler(channel, (HttpRequest) request, signal);
 
 			if (!messageHandlerRegistry.messageRegistered(signal.getClass())) {
 				String error = String.format("No such message of type %s registered", signal.getClass().getName());
@@ -147,16 +147,17 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 	class HttpResponseHandler implements Closure {
 		private Channel		channel;
 		private HttpRequest	request;
-		private Object		requestId;
+		private Object		signal;
 
-		public HttpResponseHandler(Channel channel, HttpRequest request) {
+		public HttpResponseHandler(Channel channel, HttpRequest request, Object signal) {
 			this.channel = channel;
 			this.request = request;
-			this.requestId = keyTransformer.transform(request);
+			this.signal = signal;
 		}
 
 		@Override
 		public void execute(Object message) {
+
 			if (message instanceof Exception) {
 				Exception ex = (Exception) message;
 				message = buildErrorResponse(ex);
@@ -166,7 +167,7 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 		}
 
 		private Object buildErrorResponse(Exception ex) {
-			Class<?> responseType = messageHandlerRegistry.getResponseTypeFor(request);
+			Class<?> responseType = messageHandlerRegistry.getResponseTypeFor(signal);
 			if (responseType == null) {
 				return null;
 			}
@@ -187,9 +188,9 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 			if (message != null) {
 				HttpResponse response = responseTransformer.transform(message);
 
+				Object requestId = keyTransformer.transform(request);
 				response.setHeader("uuid", requestId);
 
-				// 是否需要持久连接
 				String keepAlive = request.getHeader(HttpHeaders.Names.CONNECTION);
 				if (keepAlive != null) {
 					response.setHeader(HttpHeaders.Names.CONNECTION, keepAlive);

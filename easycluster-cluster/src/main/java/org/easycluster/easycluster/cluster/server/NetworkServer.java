@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.Node;
 import org.easycluster.easycluster.cluster.exception.ClusterException;
@@ -186,17 +185,13 @@ public class NetworkServer {
 	}
 
 	public void setHandlers(List<MessageClosure<?, ?>> handlers) {
-		if (handlers != null) {
-			for (MessageClosure<?, ?> handler : handlers) {
-				Method[] methods = getAllMethodOf(handler.getClass());
-				for (Method method : methods) {
-					if (method.getName().equals("execute")) {
-						Class<?>[] params = method.getParameterTypes();
-						if (params.length < 1) {
-							continue;
-						}
-
-						Class<?> requestType = params[0];
+		for (MessageClosure<?, ?> handler : handlers) {
+			Class<?>[] interfaces = handler.getClass().getInterfaces();
+			for (Class<?> inter : interfaces) {
+				if (MessageClosure.class.isAssignableFrom(inter)) {
+					Method[] methods = handler.getClass().getDeclaredMethods();
+					for (Method method : methods) {
+						Class<?> requestType = method.getParameterTypes()[0];
 						Class<?> responseType = method.getReturnType();
 						responseType = (Void.class.isAssignableFrom(responseType)) ? null : responseType;
 
@@ -205,18 +200,6 @@ public class NetworkServer {
 				}
 			}
 		}
-	}
-
-	private Method[] getAllMethodOf(final Class<?> clazz) {
-		Method[] methods = null;
-
-		Class<?> itr = clazz;
-		while (!itr.equals(Object.class) && !itr.isInterface()) {
-			methods = (Method[]) ArrayUtils.addAll(itr.getDeclaredMethods(), methods);
-			itr = itr.getSuperclass();
-		}
-
-		return methods;
 	}
 
 	public MessageClosureRegistry getMessageClosureRegistry() {

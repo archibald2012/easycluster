@@ -11,10 +11,10 @@ import org.easycluster.easycluster.cluster.client.loadbalancer.PartitionedLoadBa
 import org.easycluster.easycluster.cluster.common.DefaultResponseIterator;
 import org.easycluster.easycluster.cluster.common.ResponseFuture;
 import org.easycluster.easycluster.cluster.common.ResponseIterator;
-import org.easycluster.easycluster.cluster.exception.ClusterDisconnectedException;
 import org.easycluster.easycluster.cluster.exception.InvalidClusterException;
 import org.easycluster.easycluster.cluster.exception.NoNodesAvailableException;
 import org.easycluster.easycluster.core.Closure;
+import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,10 +40,6 @@ public class PartitionedNetworkClient<PartitionedId> extends BaseNetworkClient {
 		}
 
 		checkIfConnected();
-
-		if (loadBalancer == null) {
-			throw new ClusterDisconnectedException();
-		}
 
 		verifyMessageRegistered(message);
 
@@ -76,10 +72,6 @@ public class PartitionedNetworkClient<PartitionedId> extends BaseNetworkClient {
 
 		checkIfConnected();
 
-		if (loadBalancer == null) {
-			throw new ClusterDisconnectedException();
-		}
-
 		verifyMessageRegistered(message);
 
 		Set<Node> nodes = calculateNodesFromIds(ids);
@@ -87,7 +79,17 @@ public class PartitionedNetworkClient<PartitionedId> extends BaseNetworkClient {
 		final DefaultResponseIterator it = new DefaultResponseIterator(currentNodes.size());
 
 		for (Node node : nodes) {
-			doSendMessage(node, message, new Closure() {
+
+			Object obj = message;
+			if (message instanceof AbstractXipSignal) {
+				try {
+					obj = ((AbstractXipSignal) message).clone();
+				} catch (CloneNotSupportedException e) {
+					LOGGER.error("Clone operation not supported!", e);
+				}
+			}
+
+			doSendMessage(node, obj, new Closure() {
 
 				@Override
 				public void execute(Object message) {
@@ -100,7 +102,7 @@ public class PartitionedNetworkClient<PartitionedId> extends BaseNetworkClient {
 	}
 
 	@Override
-	protected void updateLoadBalancer(Set<Node> nodes) {
+	public void updateLoadBalancer(Set<Node> nodes) {
 		if (nodes != null && nodes.size() > 0) {
 			try {
 				loadBalancer = loadBalancerFactory.newLoadBalancer(nodes);
@@ -112,10 +114,14 @@ public class PartitionedNetworkClient<PartitionedId> extends BaseNetworkClient {
 		}
 	}
 
+	public Node nextNode(PartitionedId id) {
+		return loadBalancer == null ? null : loadBalancer.nextNode(id);
+	}
+
 	private Set<Node> calculateNodesFromIds(Set<PartitionedId> ids) {
 		Set<Node> ret = new HashSet<Node>();
 		for (PartitionedId id : ids) {
-			Node node = loadBalancer.nextNode(id);
+			Node node = nextNode(id);
 			if (node == null) {
 				throw new NoNodesAvailableException(String.format("Unable to satisfy request, no node available for id %s", id));
 			}

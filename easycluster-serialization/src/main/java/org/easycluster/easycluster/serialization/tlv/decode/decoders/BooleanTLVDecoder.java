@@ -7,6 +7,6 @@ public class BooleanTLVDecoder implements TLVDecoder {
 
 	@Override
 	public Object decode(int tlvLength, byte[] tlvValue, TLVDecodeContext ctx) {
-		return new Boolean(0 != tlvValue[0]);
+		return Boolean.valueOf(0 != tlvValue[0]);
 	}
 }

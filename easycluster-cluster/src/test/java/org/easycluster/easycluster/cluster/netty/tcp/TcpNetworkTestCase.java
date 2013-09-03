@@ -22,11 +22,37 @@ import org.easycluster.easycluster.cluster.netty.serialization.SerializeType;
 import org.easycluster.easycluster.cluster.server.MessageClosure;
 import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 public class TcpNetworkTestCase {
 
+	private TcpServer	nettyNetworkServer;
+	private TcpServer	nettyNetworkServer2;
+	private TcpServer	nettyNetworkServer3;
 	private TcpClient	nettyNetworkClient;
+
+	@Before
+	public void setUp() {
+
+	}
+
+	@After
+	public void tearDown() {
+		if (nettyNetworkClient != null) {
+			nettyNetworkClient.stop();
+		}
+		if (nettyNetworkServer != null) {
+			nettyNetworkServer.stop();
+		}
+		if (nettyNetworkServer2 != null) {
+			nettyNetworkServer2.stop();
+		}
+		if (nettyNetworkServer3 != null) {
+			nettyNetworkServer3.stop();
+		}
+	}
 
 	@Test
 	public void testLong() {
@@ -70,7 +96,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setDecodeBytesDebugEnabled(true);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
@@ -81,7 +107,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -107,9 +133,6 @@ public class TcpNetworkTestCase {
 		}
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
-
-		nettyNetworkClient.stop();
-		nettyNetworkServer.stop();
 	}
 
 	@Test
@@ -131,7 +154,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer = new TcpServer(serverConfig);
 		ArrayList<MessageClosure<?, ?>> handlers = new ArrayList<MessageClosure<?, ?>>();
 		handlers.add(new SampleMessageClosure());
 		nettyNetworkServer.setHandlers(handlers);
@@ -149,7 +172,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -171,8 +194,6 @@ public class TcpNetworkTestCase {
 		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
 		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
 
-		nettyNetworkClient.stop();
-		nettyNetworkServer.stop();
 	}
 
 	@Test
@@ -194,7 +215,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer = new TcpServer(serverConfig);
 		ArrayList<MessageClosure<?, ?>> handlers = new ArrayList<MessageClosure<?, ?>>();
 		handlers.add(new SampleMessageClosure());
 		nettyNetworkServer.setHandlers(handlers);
@@ -206,7 +227,7 @@ public class TcpNetworkTestCase {
 		serverConfig2.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig2.setPort(6001);
 		serverConfig2.setSerializationConfig(codecConfig);
-		TcpServer nettyNetworkServer2 = new TcpServer(serverConfig2);
+		nettyNetworkServer2 = new TcpServer(serverConfig2);
 		nettyNetworkServer2.setHandlers(handlers);
 		nettyNetworkServer2.start();
 
@@ -216,7 +237,7 @@ public class TcpNetworkTestCase {
 		serverConfig3.setZooKeeperConnectString("127.0.0.1:2181");
 		serverConfig3.setPort(6002);
 		serverConfig3.setSerializationConfig(codecConfig);
-		TcpServer nettyNetworkServer3 = new TcpServer(serverConfig3);
+		nettyNetworkServer3 = new TcpServer(serverConfig3);
 		nettyNetworkServer3.setHandlers(handlers);
 		nettyNetworkServer3.start();
 
@@ -232,7 +253,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -259,11 +280,6 @@ public class TcpNetworkTestCase {
 				Assert.assertEquals(request.getStringField(), assertobj.getStringField());
 			}
 		}
-
-		nettyNetworkClient.stop();
-		nettyNetworkServer.stop();
-		nettyNetworkServer2.stop();
-		nettyNetworkServer3.stop();
 	}
 
 	@Test
@@ -285,7 +301,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.JAVA);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		nettyNetworkServer.start();
 
@@ -301,7 +317,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JAVA);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -322,9 +338,6 @@ public class TcpNetworkTestCase {
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
 		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
 		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
-
-		nettyNetworkClient.stop();
-		nettyNetworkServer.stop();
 	}
 
 	@Test
@@ -346,7 +359,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.BYTE_BEAN);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		nettyNetworkServer.start();
 
@@ -362,33 +375,28 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.BYTE_BEAN);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
-		try {
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
 
-			SampleRequest request = new SampleRequest();
-			request.setIntField(1);
-			request.setShortField((byte) 1);
-			request.setByteField((byte) 1);
-			request.setLongField(1L);
-			request.setStringField("test");
+		request.setByteArrayField(new byte[] { 127 });
 
-			request.setByteArrayField(new byte[] { 127 });
+		Future<Object> future = nettyNetworkClient.sendMessage(request);
 
-			Future<Object> future = nettyNetworkClient.sendMessage(request);
+		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
+		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
 
-			SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
-			Assert.assertEquals(request.getIntField(), assertobj.getIntField());
-			Assert.assertEquals(request.getShortField(), assertobj.getShortField());
-			Assert.assertEquals(request.getLongField(), assertobj.getLongField());
-			Assert.assertEquals(request.getByteField(), assertobj.getByteField());
-			Assert.assertEquals(request.getStringField(), assertobj.getStringField());
-		} finally {
-			nettyNetworkClient.stop();
-			nettyNetworkServer.stop();
-		}
 	}
 
 	@Test
@@ -410,7 +418,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.TLV);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		nettyNetworkServer.start();
 
@@ -426,34 +434,29 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.TLV);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 
-		try {
+		nettyNetworkClient.start();
 
-			nettyNetworkClient.start();
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
 
-			SampleRequest request = new SampleRequest();
-			request.setIntField(1);
-			request.setShortField((byte) 1);
-			request.setByteField((byte) 1);
-			request.setLongField(1L);
-			request.setStringField("test");
+		request.setByteArrayField(new byte[] { 127 });
 
-			request.setByteArrayField(new byte[] { 127 });
+		Future<Object> future = nettyNetworkClient.sendMessage(request);
 
-			Future<Object> future = nettyNetworkClient.sendMessage(request);
+		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
+		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
 
-			SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
-			Assert.assertEquals(request.getIntField(), assertobj.getIntField());
-			Assert.assertEquals(request.getShortField(), assertobj.getShortField());
-			Assert.assertEquals(request.getLongField(), assertobj.getLongField());
-			Assert.assertEquals(request.getByteField(), assertobj.getByteField());
-			Assert.assertEquals(request.getStringField(), assertobj.getStringField());
-		} finally {
-			nettyNetworkClient.stop();
-			nettyNetworkServer.stop();
-		}
 	}
 
 	@Test
@@ -475,7 +478,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.KV);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
@@ -490,34 +493,30 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.KV);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 
-		try {
-			nettyNetworkServer.start();
-			nettyNetworkClient.start();
+		nettyNetworkServer.start();
+		nettyNetworkClient.start();
 
-			SampleRequest request = new SampleRequest();
-			request.setIntField(1);
-			request.setShortField((byte) 1);
-			request.setByteField((byte) 1);
-			request.setLongField(1L);
-			request.setStringField("test");
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
 
-			request.setByteArrayField(new byte[] { 127 });
+		request.setByteArrayField(new byte[] { 127 });
 
-			Future<Object> future = nettyNetworkClient.sendMessage(request);
+		Future<Object> future = nettyNetworkClient.sendMessage(request);
 
-			SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
-			Assert.assertEquals(request.getIntField(), assertobj.getIntField());
-			Assert.assertEquals(request.getShortField(), assertobj.getShortField());
-			Assert.assertEquals(request.getLongField(), assertobj.getLongField());
-			Assert.assertEquals(request.getByteField(), assertobj.getByteField());
-			Assert.assertEquals(request.getStringField(), assertobj.getStringField());
-		} finally {
-			nettyNetworkClient.stop();
-			nettyNetworkServer.stop();
-		}
+		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
+		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
+
 	}
 
 	@Test
@@ -536,7 +535,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
@@ -549,7 +548,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -600,8 +599,6 @@ public class TcpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		nettyNetworkClient.stop();
-		nettyNetworkServer.stop();
 	}
 
 	@Test
@@ -621,7 +618,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.JAVA);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
@@ -635,7 +632,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JAVA);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -686,8 +683,6 @@ public class TcpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		nettyNetworkClient.stop();
-		nettyNetworkServer.stop();
 	}
 
 	@Test
@@ -707,7 +702,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
@@ -719,7 +714,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -770,8 +765,6 @@ public class TcpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		nettyNetworkClient.stop();
-		nettyNetworkServer.stop();
 	}
 
 	@Test
@@ -791,7 +784,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.TLV);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
@@ -805,7 +798,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.TLV);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -856,8 +849,6 @@ public class TcpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		nettyNetworkClient.stop();
-		nettyNetworkServer.stop();
 	}
 
 	@Test
@@ -877,7 +868,7 @@ public class TcpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.KV);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
@@ -891,7 +882,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.KV);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpClient nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -942,8 +933,7 @@ public class TcpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		nettyNetworkClient.stop();
-		nettyNetworkServer.stop();
-
 	}
+
+	
 }

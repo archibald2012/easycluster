@@ -1,7 +1,10 @@
 package org.easycluster.easycluster.cluster.netty.tcp;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -10,11 +13,15 @@ import junit.framework.Assert;
 
 import org.easycluster.easycluster.cluster.NetworkClientConfig;
 import org.easycluster.easycluster.cluster.NetworkServerConfig;
+import org.easycluster.easycluster.cluster.Node;
 import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
 import org.easycluster.easycluster.cluster.SampleResponse;
 import org.easycluster.easycluster.cluster.client.loadbalancer.IntegerRoundRobinPartitionedLoadBalancerFactory;
 import org.easycluster.easycluster.cluster.common.ResponseIterator;
+import org.easycluster.easycluster.cluster.exception.InvalidNodeException;
+import org.easycluster.easycluster.cluster.exception.NetworkShutdownException;
+import org.easycluster.easycluster.cluster.exception.NoNodesAvailableException;
 import org.easycluster.easycluster.cluster.netty.serialization.SerializationConfig;
 import org.easycluster.easycluster.cluster.netty.serialization.SerializeType;
 import org.easycluster.easycluster.cluster.server.MessageClosure;
@@ -26,12 +33,25 @@ import org.junit.Test;
 
 public class TcpPartitionedNetworkTestCase {
 
+	private TcpServer						nettyNetworkServer;
+	private TcpServer						nettyNetworkServer2;
+	private TcpPartitionedClient<Integer>	nettyNetworkClient;
+
 	@Before
 	public void setUp() throws Exception {
 	}
 
 	@After
 	public void tearDown() throws Exception {
+		if (nettyNetworkClient != null) {
+			nettyNetworkClient.stop();
+		}
+		if (nettyNetworkServer != null) {
+			nettyNetworkServer.stop();
+		}
+		if (nettyNetworkServer2 != null) {
+			nettyNetworkServer2.stop();
+		}
 	}
 
 	@Test
@@ -55,7 +75,7 @@ public class TcpPartitionedNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer = new TcpServer(serverConfig);
 		ArrayList<MessageClosure<?, ?>> handlers = new ArrayList<MessageClosure<?, ?>>();
 		handlers.add(new SampleMessageClosure());
 		nettyNetworkServer.setHandlers(handlers);
@@ -69,7 +89,7 @@ public class TcpPartitionedNetworkTestCase {
 		serverConfig2.setSerializationConfig(codecConfig);
 		serverConfig2.setPartitions(new Integer[] { 2 });
 
-		TcpServer nettyNetworkServer2 = new TcpServer(serverConfig2);
+		nettyNetworkServer2 = new TcpServer(serverConfig2);
 		nettyNetworkServer2.setHandlers(handlers);
 		nettyNetworkServer2.start();
 
@@ -85,8 +105,7 @@ public class TcpPartitionedNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpPartitionedClient<Integer> nettyNetworkClient = new TcpPartitionedClient<Integer>(clientConfig,
-				new IntegerRoundRobinPartitionedLoadBalancerFactory());
+		nettyNetworkClient = new TcpPartitionedClient<Integer>(clientConfig, new IntegerRoundRobinPartitionedLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -102,7 +121,7 @@ public class TcpPartitionedNetworkTestCase {
 		ResponseIterator ri = nettyNetworkClient.broadcastMessage(request);
 
 		while (ri.hasNext()) {
-			SampleResponse assertobj = (SampleResponse) ri.next(1800L, TimeUnit.SECONDS);
+			SampleResponse assertobj = (SampleResponse) ri.next(60L, TimeUnit.SECONDS);
 			Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 			Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 			Assert.assertEquals(request.getLongField(), assertobj.getLongField());
@@ -110,8 +129,333 @@ public class TcpPartitionedNetworkTestCase {
 			Assert.assertEquals(request.getStringField(), assertobj.getStringField());
 		}
 
+	}
+
+	@Test
+	public void testSendMessage_ManyPartition() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.cluster");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		serverConfig.setPartitions(new Integer[] { 1 });
+
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setDecodeBytesDebugEnabled(true);
+		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeType(SerializeType.JSON);
+		serverConfig.setSerializationConfig(codecConfig);
+
+		nettyNetworkServer = new TcpServer(serverConfig);
+		ArrayList<MessageClosure<?, ?>> handlers = new ArrayList<MessageClosure<?, ?>>();
+		handlers.add(new SampleMessageClosure());
+		nettyNetworkServer.setHandlers(handlers);
+		nettyNetworkServer.start();
+
+		NetworkServerConfig serverConfig2 = new NetworkServerConfig();
+		serverConfig2.setServiceGroup("app");
+		serverConfig2.setService("test");
+		serverConfig2.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig2.setPort(6001);
+		serverConfig2.setSerializationConfig(codecConfig);
+		serverConfig2.setPartitions(new Integer[] { 2 });
+
+		nettyNetworkServer2 = new TcpServer(serverConfig2);
+		nettyNetworkServer2.setHandlers(handlers);
+		nettyNetworkServer2.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientCodecConfig.setDecodeBytesDebugEnabled(true);
+		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeType(SerializeType.JSON);
+		clientConfig.setSerializationConfig(clientCodecConfig);
+
+		nettyNetworkClient = new TcpPartitionedClient<Integer>(clientConfig, new IntegerRoundRobinPartitionedLoadBalancerFactory());
+		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
+		nettyNetworkClient.start();
+
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
+
+		request.setByteArrayField(new byte[] { 127 });
+
+		Set<Integer> partitions = new HashSet<Integer>();
+		partitions.add(new Integer(1));
+		partitions.add(new Integer(2));
+		ResponseIterator ri = nettyNetworkClient.sendMessage(partitions, request);
+
+		while (ri.hasNext()) {
+			SampleResponse assertobj = (SampleResponse) ri.next(60L, TimeUnit.SECONDS);
+			Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+			Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+			Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+			Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+			Assert.assertEquals(request.getStringField(), assertobj.getStringField());
+		}
+
+	}
+
+	@Test
+	public void testSendMessageToNode() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.cluster");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		serverConfig.setPartitions(new Integer[] { 1 });
+
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setDecodeBytesDebugEnabled(true);
+		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeType(SerializeType.JSON);
+		serverConfig.setSerializationConfig(codecConfig);
+
+		nettyNetworkServer = new TcpServer(serverConfig);
+		ArrayList<MessageClosure<?, ?>> handlers = new ArrayList<MessageClosure<?, ?>>();
+		handlers.add(new SampleMessageClosure());
+		nettyNetworkServer.setHandlers(handlers);
+		nettyNetworkServer.start();
+
+		NetworkServerConfig serverConfig2 = new NetworkServerConfig();
+		serverConfig2.setServiceGroup("app");
+		serverConfig2.setService("test");
+		serverConfig2.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig2.setPort(6001);
+		serverConfig2.setSerializationConfig(codecConfig);
+		serverConfig2.setPartitions(new Integer[] { 1 });
+
+		nettyNetworkServer2 = new TcpServer(serverConfig2);
+		nettyNetworkServer2.setHandlers(handlers);
+		nettyNetworkServer2.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientCodecConfig.setDecodeBytesDebugEnabled(true);
+		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeType(SerializeType.JSON);
+		clientConfig.setSerializationConfig(clientCodecConfig);
+
+		nettyNetworkClient = new TcpPartitionedClient<Integer>(clientConfig, new IntegerRoundRobinPartitionedLoadBalancerFactory());
+		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
+		nettyNetworkClient.start();
+
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
+
+		request.setByteArrayField(new byte[] { 127 });
+
+		Node node = nettyNetworkClient.nextNode(new Integer(1));
+		Future<Object> f = nettyNetworkClient.sendMessageToNode(request, node);
+
+		SampleResponse assertobj = (SampleResponse) f.get(60L, TimeUnit.SECONDS);
+		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
+
+	}
+
+	@Test(expected = NoNodesAvailableException.class)
+	public void testSendMessage_NoNodeAvailable() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.cluster");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		serverConfig.setPartitions(new Integer[] { 1 });
+
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setDecodeBytesDebugEnabled(true);
+		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeType(SerializeType.JSON);
+		serverConfig.setSerializationConfig(codecConfig);
+
+		nettyNetworkServer = new TcpServer(serverConfig);
+		ArrayList<MessageClosure<?, ?>> handlers = new ArrayList<MessageClosure<?, ?>>();
+		handlers.add(new SampleMessageClosure());
+		nettyNetworkServer.setHandlers(handlers);
+		nettyNetworkServer.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientCodecConfig.setDecodeBytesDebugEnabled(true);
+		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeType(SerializeType.JSON);
+		clientConfig.setSerializationConfig(clientCodecConfig);
+
+		nettyNetworkClient = new TcpPartitionedClient<Integer>(clientConfig, new IntegerRoundRobinPartitionedLoadBalancerFactory());
+		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
+		nettyNetworkClient.start();
+
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
+
+		request.setByteArrayField(new byte[] { 127 });
+
+		nettyNetworkClient.sendMessage(new Integer(2), request);
+
+	}
+
+	@Test(expected = NetworkShutdownException.class)
+	public void testSendMessage_NetworkShutdown() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.cluster");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		serverConfig.setPartitions(new Integer[] { 1 });
+
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setDecodeBytesDebugEnabled(true);
+		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeType(SerializeType.JSON);
+		serverConfig.setSerializationConfig(codecConfig);
+
+		nettyNetworkServer = new TcpServer(serverConfig);
+		ArrayList<MessageClosure<?, ?>> handlers = new ArrayList<MessageClosure<?, ?>>();
+		handlers.add(new SampleMessageClosure());
+		nettyNetworkServer.setHandlers(handlers);
+		nettyNetworkServer.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientCodecConfig.setDecodeBytesDebugEnabled(true);
+		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeType(SerializeType.JSON);
+		clientConfig.setSerializationConfig(clientCodecConfig);
+
+		nettyNetworkClient = new TcpPartitionedClient<Integer>(clientConfig, new IntegerRoundRobinPartitionedLoadBalancerFactory());
+		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
+		nettyNetworkClient.start();
+
 		nettyNetworkClient.stop();
-		nettyNetworkServer.stop();
+
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
+
+		request.setByteArrayField(new byte[] { 127 });
+
+		nettyNetworkClient.sendMessage(new Integer(2), request);
+
+	}
+
+	@Test(expected = InvalidNodeException.class)
+	public void testSendMessage_InvalidNode() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.cluster");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		serverConfig.setPartitions(new Integer[] { 1 });
+
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setDecodeBytesDebugEnabled(true);
+		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeType(SerializeType.JSON);
+		serverConfig.setSerializationConfig(codecConfig);
+
+		nettyNetworkServer = new TcpServer(serverConfig);
+		ArrayList<MessageClosure<?, ?>> handlers = new ArrayList<MessageClosure<?, ?>>();
+		handlers.add(new SampleMessageClosure());
+		nettyNetworkServer.setHandlers(handlers);
+		nettyNetworkServer.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientCodecConfig.setDecodeBytesDebugEnabled(true);
+		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeType(SerializeType.JSON);
+		clientConfig.setSerializationConfig(clientCodecConfig);
+
+		nettyNetworkClient = new TcpPartitionedClient<Integer>(clientConfig, new IntegerRoundRobinPartitionedLoadBalancerFactory());
+		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
+		nettyNetworkClient.start();
+
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
+
+		request.setByteArrayField(new byte[] { 127 });
+
+		Node node = new Node("localhost", 1111, Arrays.asList(new Integer[] { 2 }));
+		nettyNetworkClient.sendMessageToNode(request, node);
+
 	}
 
 	@Test
@@ -132,7 +476,7 @@ public class TcpPartitionedNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		TcpServer nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		nettyNetworkServer.start();
 
@@ -147,8 +491,7 @@ public class TcpPartitionedNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		TcpPartitionedClient<Integer> nettyNetworkClient = new TcpPartitionedClient<Integer>(clientConfig,
-				new IntegerRoundRobinPartitionedLoadBalancerFactory());
+		nettyNetworkClient = new TcpPartitionedClient<Integer>(clientConfig, new IntegerRoundRobinPartitionedLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
@@ -179,12 +522,10 @@ public class TcpPartitionedNetworkTestCase {
 
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
-			client1Responses.add((SampleResponse) futures.get(i).get(1800, TimeUnit.SECONDS));
+			client1Responses.add((SampleResponse) futures.get(i).get(60, TimeUnit.SECONDS));
 		}
 		Assert.assertEquals(num, client1Responses.size());
 
-		nettyNetworkClient.stop();
-		nettyNetworkServer.stop();
 	}
 
 }

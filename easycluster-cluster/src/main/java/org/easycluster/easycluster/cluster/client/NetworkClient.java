@@ -36,11 +36,7 @@ public class NetworkClient extends BaseNetworkClient {
 
 		verifyMessageRegistered(message);
 
-		if (loadBalancer == null) {
-			throw new NoNodesAvailableException(String.format("No node available that can handle the message: %s", message));
-		}
-
-		Node node = loadBalancer.nextNode();
+		Node node = nextNode();
 		if (node == null) {
 			throw new NoNodesAvailableException(String.format("No node available that can handle the message: %s", message));
 		}
@@ -56,6 +52,10 @@ public class NetworkClient extends BaseNetworkClient {
 		});
 
 		return future;
+	}
+
+	public Node nextNode() {
+		return loadBalancer == null ? null : loadBalancer.nextNode();
 	}
 
 	@Override

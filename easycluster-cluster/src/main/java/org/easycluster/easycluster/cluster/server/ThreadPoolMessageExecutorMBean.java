@@ -14,11 +14,11 @@ public interface ThreadPoolMessageExecutorMBean {
 
 	int getActiveCount();
 
-	double getAverageWaitTime();
+	double getAverageWaitTimeInMillis();
 
 	long getKeepAliveTime();
 
-	double getAverageProcessingTime();
+	double getAverageProcessingTimeInMillis();
 
 	long getRequestCount();
 

@@ -132,7 +132,7 @@ public class DefaultClusterClient implements ClusterClient {
 	}
 
 	@Override
-	public Set<Node> getNodes() throws ClusterDisconnectedException {
+	public Set<Node> getNodes() {
 		if (!startedSwitch.get()) {
 			throw new ClusterNotStartedException();
 		}
@@ -146,20 +146,20 @@ public class DefaultClusterClient implements ClusterClient {
 	}
 
 	@Override
-	public Node getNodeWithId(String nodeId) throws ClusterDisconnectedException {
+	public Node getNodeWithId(String nodeId) {
 		Set<Node> nodes = getNodes();
-		Node node = null;
-		for (Node n : nodes) {
-			if (n.getId().equals(nodeId)) {
-				node = n;
-				break;
+		if (nodes != null) {
+			for (Node n : nodes) {
+				if (n.getId().equals(nodeId)) {
+					return n;
+				}
 			}
 		}
-		return node;
+		return null;
 	}
 
 	@Override
-	public Node addNode(Node node) throws ClusterDisconnectedException {
+	public Node addNode(Node node) {
 		if (!startedSwitch.get()) {
 			throw new ClusterNotStartedException();
 		}
@@ -178,7 +178,7 @@ public class DefaultClusterClient implements ClusterClient {
 	}
 
 	@Override
-	public void removeNode(String nodeId) throws ClusterDisconnectedException {
+	public void removeNode(String nodeId) {
 		if (!startedSwitch.get()) {
 			throw new ClusterNotStartedException();
 		}
@@ -188,12 +188,15 @@ public class DefaultClusterClient implements ClusterClient {
 		if (!isConnected()) {
 			throw new ClusterDisconnectedException();
 		}
+		if (nodeId == null) {
+			throw new IllegalArgumentException("nodeId is null");
+		}
 
 		clusterManager.removeNode(nodeId);
 	}
 
 	@Override
-	public void markNodeAvailable(String nodeId) throws ClusterDisconnectedException {
+	public void markNodeAvailable(String nodeId) {
 		if (!startedSwitch.get()) {
 			throw new ClusterNotStartedException();
 		}
@@ -208,7 +211,7 @@ public class DefaultClusterClient implements ClusterClient {
 	}
 
 	@Override
-	public void markNodeUnavailable(String nodeId) throws ClusterDisconnectedException {
+	public void markNodeUnavailable(String nodeId) {
 		if (!startedSwitch.get()) {
 			throw new ClusterNotStartedException();
 		}

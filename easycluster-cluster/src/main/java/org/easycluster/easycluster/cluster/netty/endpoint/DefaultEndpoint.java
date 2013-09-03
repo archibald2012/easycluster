@@ -72,26 +72,7 @@ public class DefaultEndpoint implements Endpoint {
 	@Override
 	public void close() {
 		if (this.channel != null) {
-
-			ChannelFuture future = this.channel.close();
-			future.addListener(new ChannelFutureListener() {
-
-				@Override
-				public void operationComplete(ChannelFuture future) throws Exception {
-					if (!future.isDone()) {
-						if (null != future.getCause()) {
-							if (LOGGER.isWarnEnabled()) {
-								LOGGER.warn("Close channel failed, channel: [" + future.getChannel().getRemoteAddress() + "], cause: ", future.getCause());
-							}
-						} else {
-							if (LOGGER.isWarnEnabled()) {
-								LOGGER.warn("Close channel failed without reason, channel: [" + future.getChannel().getRemoteAddress() + "]");
-							}
-						}
-					}
-				}
-			});
-
+			this.channel.close();
 		}
 	}
 

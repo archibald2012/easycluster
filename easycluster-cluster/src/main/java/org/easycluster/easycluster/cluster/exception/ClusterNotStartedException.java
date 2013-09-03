@@ -8,11 +8,4 @@ public class ClusterNotStartedException extends ClusterException {
 		super();
 	}
 
-	public ClusterNotStartedException(String message) {
-		super(message);
-	}
-
-	public ClusterNotStartedException(String message, Throwable cause) {
-		super(message, cause);
-	}
 }

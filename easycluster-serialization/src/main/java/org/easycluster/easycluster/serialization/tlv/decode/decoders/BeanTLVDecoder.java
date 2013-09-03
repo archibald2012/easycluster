@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 public class BeanTLVDecoder implements TLVDecoderOfBean {
 
-	private static final Logger		logger	= LoggerFactory.getLogger(BeanTLVDecoder.class);
+	private static final Logger		LOGGER	= LoggerFactory.getLogger(BeanTLVDecoder.class);
 
 	private TLVDecodeContextFactory	decodeContextFactory;
 
@@ -48,9 +48,9 @@ public class BeanTLVDecoder implements TLVDecoderOfBean {
 		try {
 			target = valueClazz.newInstance();
 		} catch (InstantiationException e) {
-			logger.error("BeanTLVDecoder:", e);
+			LOGGER.error("BeanTLVDecoder:", e);
 		} catch (IllegalAccessException e) {
-			logger.error("BeanTLVDecoder:", e);
+			LOGGER.error("BeanTLVDecoder:", e);
 		}
 
 		if (null == target) {
@@ -72,8 +72,8 @@ public class BeanTLVDecoder implements TLVDecoderOfBean {
 			Class<?> type = typeMetainfo.find(tag);
 			if (null == type) {
 				// unknow tag, just ignore
-				if (logger.isInfoEnabled()) {
-					logger.info("unknow tag:" + tag + ", just ignore.");
+				if (LOGGER.isInfoEnabled()) {
+					LOGGER.info("unknow tag:" + tag + ", just ignore.");
 				}
 				offset += len;
 				continue;
@@ -82,8 +82,8 @@ public class BeanTLVDecoder implements TLVDecoderOfBean {
 			TLVDecoder decoder = ctx.getDecoderRepository().getDecoderOf(type);
 			if (null == decoder) {
 				// unknow tag, just ignore
-				if (logger.isInfoEnabled()) {
-					logger.info("unknow decoder for [tag]:" + tag + ",[type]:" + type + " just ignore.");
+				if (LOGGER.isInfoEnabled()) {
+					LOGGER.info("unknow decoder for [tag]:" + tag + ",[type]:" + type + " just ignore.");
 				}
 				offset += len;
 				continue;
@@ -98,7 +98,7 @@ public class BeanTLVDecoder implements TLVDecoderOfBean {
 			try {
 				bean = decoder.decode(len, valueBytes, decodeContextFactory.createDecodeContext(type, field));
 			} catch (RuntimeException e) {
-				logger.error("Decode tag {}({}) error!", new String(Hex.encodeHex(tagBytes)).toUpperCase(), tag);
+				LOGGER.error("Decode tag " + new String(Hex.encodeHex(tagBytes)).toUpperCase() + "(" + tag + ") error!", e);
 				throw e;
 			}
 
@@ -116,17 +116,17 @@ public class BeanTLVDecoder implements TLVDecoderOfBean {
 					}
 					list.add(bean);
 				} catch (IllegalArgumentException e) {
-					logger.error("BeanTLVDecoder:", e);
+					LOGGER.error("BeanTLVDecoder:", e);
 				} catch (IllegalAccessException e) {
-					logger.error("BeanTLVDecoder:", e);
+					LOGGER.error("BeanTLVDecoder:", e);
 				}
 			} else {
 				try {
 					field.set(target, bean);
 				} catch (IllegalArgumentException e) {
-					logger.error("BeanTLVDecoder:", e);
+					LOGGER.error("BeanTLVDecoder:", e);
 				} catch (IllegalAccessException e) {
-					logger.error("BeanTLVDecoder:", e);
+					LOGGER.error("BeanTLVDecoder:", e);
 				}
 			}
 		}

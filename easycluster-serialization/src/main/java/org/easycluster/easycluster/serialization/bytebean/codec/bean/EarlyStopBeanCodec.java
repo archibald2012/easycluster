@@ -1,4 +1,3 @@
-
 package org.easycluster.easycluster.serialization.bytebean.codec.bean;
 
 import java.lang.reflect.Field;
@@ -18,23 +17,20 @@ import org.easycluster.easycluster.serialization.bytebean.field.Field2Desc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * TODO
  * 
  * @author Archibald.Wang
  * @version $Id: EarlyStopBeanCodec.java 14 2012-01-10 11:54:14Z archie $
  */
-public class EarlyStopBeanCodec extends AbstractCategoryCodec implements
-		BeanFieldCodec {
+public class EarlyStopBeanCodec extends AbstractCategoryCodec implements BeanFieldCodec {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(EarlyStopBeanCodec.class);
+	private static final Logger	logger	= LoggerFactory.getLogger(EarlyStopBeanCodec.class);
 
-	private DecContextFactory decContextFactory;
-	private EncContextFactory encContextFactory;
+	private DecContextFactory	decContextFactory;
+	private EncContextFactory	encContextFactory;
 
-	private BeanCodecUtil util;
+	private BeanCodecUtil		util;
 
 	public EarlyStopBeanCodec(Field2Desc field2Desc) {
 		util = new BeanCodecUtil(field2Desc);
@@ -54,23 +50,24 @@ public class EarlyStopBeanCodec extends AbstractCategoryCodec implements
 
 			ByteFieldCodec anyCodec = ctx.getCodecOf(FieldCodecCategory.ANY);
 
-			for (ByteFieldDesc desc : desces) {
-				if (0 == bytes.length) {
-					break;
+			if (desces != null) {
+				for (ByteFieldDesc desc : desces) {
+					if (0 == bytes.length) {
+						break;
+					}
+
+					Field field = desc.getField();
+
+					Class<?> fieldClass = field.getType();
+
+					DecResult ret = anyCodec.decode(decContextFactory.createDecContext(bytes, fieldClass, target, desc));
+
+					Object fieldValue = ret.getValue();
+					bytes = ret.getRemainBytes();
+
+					field.setAccessible(true);
+					field.set(target, fieldValue);
 				}
-
-				Field field = desc.getField();
-
-				Class<?> fieldClass = field.getType();
-
-				DecResult ret = anyCodec.decode(decContextFactory
-						.createDecContext(bytes, fieldClass, target, desc));
-
-				Object fieldValue = ret.getValue();
-				bytes = ret.getRemainBytes();
-
-				field.setAccessible(true);
-				field.set(target, fieldValue);
 			}
 
 		} catch (InstantiationException e) {
@@ -81,6 +78,7 @@ public class EarlyStopBeanCodec extends AbstractCategoryCodec implements
 
 		return new DecResult(target, bytes);
 	}
+
 	@Override
 	public byte[] encode(EncContext ctx) {
 		Object bean = ctx.getEncObject();
@@ -112,9 +110,7 @@ public class EarlyStopBeanCodec extends AbstractCategoryCodec implements
 				logger.error("BeanCodec:", e);
 			}
 
-			ret = (byte[]) ArrayUtils.addAll(ret, anyCodec
-					.encode(encContextFactory.createEncContext(fieldValue,
-							fieldClass, desc)));
+			ret = (byte[]) ArrayUtils.addAll(ret, anyCodec.encode(encContextFactory.createEncContext(fieldValue, fieldClass, desc)));
 		}
 
 		return ret;

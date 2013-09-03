@@ -4,10 +4,6 @@ public class ChannelPoolClosedException extends RuntimeException {
 
 	private static final long	serialVersionUID	= 1L;
 
-	public ChannelPoolClosedException() {
-		super();
-	}
-
 	public ChannelPoolClosedException(String message) {
 		super(message);
 	}

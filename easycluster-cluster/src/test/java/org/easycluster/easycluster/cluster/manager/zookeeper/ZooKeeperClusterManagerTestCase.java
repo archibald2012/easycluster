@@ -39,7 +39,7 @@ public class ZooKeeperClusterManagerTestCase {
 			node.setService("ZooKeeperClusterManagerTestCase");
 			clusterManager.addNode(node);
 			clusterManager.markNodeAvailable(node.getId());
-			Thread.sleep(1000);
+			Thread.sleep(100);
 
 			Assert.assertEquals(i + 1, clusterManager.getClusterNotification().getAvailableNodes().size());
 			Assert.assertEquals(i + 1, clusterManager2.getClusterNotification().getAvailableNodes().size());
@@ -52,7 +52,7 @@ public class ZooKeeperClusterManagerTestCase {
 			node.setServiceGroup("app");
 			node.setService("ZooKeeperClusterManagerTestCase");
 			clusterManager.removeNode(node.getId());
-			Thread.sleep(1000);
+			Thread.sleep(100);
 
 			Assert.assertEquals(10 - i - 1, clusterManager.getClusterNotification().getAvailableNodes().size());
 			Assert.assertEquals(10 - i - 1, clusterManager2.getClusterNotification().getAvailableNodes().size());
@@ -80,7 +80,7 @@ public class ZooKeeperClusterManagerTestCase {
 			node.setService("ZooKeeperClusterManagerTestCase");
 			clusterManager.addNode(node);
 			clusterManager.markNodeAvailable(node.getId());
-			Thread.sleep(1000);
+			Thread.sleep(100);
 
 			Assert.assertEquals(i + 1, clusterManager.getClusterNotification().getAvailableNodes().size());
 			Assert.assertEquals(i + 1, clusterManager2.getClusterNotification().getAvailableNodes().size());
@@ -93,7 +93,7 @@ public class ZooKeeperClusterManagerTestCase {
 			node.setServiceGroup("app");
 			node.setService("ZooKeeperClusterManagerTestCase");
 			clusterManager.markNodeUnavailable(node.getId());
-			Thread.sleep(1000);
+			Thread.sleep(100);
 
 			Assert.assertEquals(10 - i - 1, clusterManager.getClusterNotification().getAvailableNodes().size());
 			Assert.assertEquals(10 - i - 1, clusterManager2.getClusterNotification().getAvailableNodes().size());
@@ -125,7 +125,7 @@ public class ZooKeeperClusterManagerTestCase {
 			node.setService("ZooKeeperClusterManagerTestCase");
 			clusterManager.addNode(node);
 			clusterManager.markNodeAvailable(node.getId());
-			Thread.sleep(1000);
+			Thread.sleep(100);
 
 			Assert.assertEquals(1, clusterManager.getClusterNotification().getAvailableNodes().size());
 			Assert.assertEquals(1, clusterManager2.getClusterNotification().getAvailableNodes().size());
@@ -138,7 +138,7 @@ public class ZooKeeperClusterManagerTestCase {
 			node.setServiceGroup("app");
 			node.setService("ZooKeeperClusterManagerTestCase");
 			clusterManager.markNodeUnavailable(node.getId());
-			Thread.sleep(1000);
+			Thread.sleep(100);
 
 			if (i < 9) {
 				Assert.assertEquals(1, clusterManager.getClusterNotification().getAvailableNodes().size());
@@ -176,7 +176,7 @@ public class ZooKeeperClusterManagerTestCase {
 			node.setService("ZooKeeperClusterManagerTestCase");
 			clusterManager.addNode(node);
 			clusterManager.markNodeAvailable(node.getId());
-			Thread.sleep(1000);
+			Thread.sleep(100);
 
 			Assert.assertEquals(1, clusterManager.getClusterNotification().getAvailableNodes().size());
 			Assert.assertEquals(1, clusterManager2.getClusterNotification().getAvailableNodes().size());
@@ -189,7 +189,7 @@ public class ZooKeeperClusterManagerTestCase {
 			node.setServiceGroup("app");
 			node.setService("ZooKeeperClusterManagerTestCase");
 			clusterManager.removeNode(node.getId());
-			Thread.sleep(1000);
+			Thread.sleep(100);
 
 			if (i < 9) {
 				Assert.assertEquals(1, clusterManager.getClusterNotification().getAvailableNodes().size());

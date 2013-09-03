@@ -76,13 +76,7 @@ public class HttpServer extends NetworkServer {
 
 				p.addFirst("logging", loggingHandler);
 
-				// Uncomment the following lines if you want HTTPS
-				// SSLEngine engine =
-				// SecureSslContextFactory.getServerContext().createSSLEngine();
-				// engine.setUseClientMode(false);
-				// p.addLast("ssl", new SslHandler(engine));
-
-				// HttpServerCodec是非线程安全的,不能所有Channel使用同一个
+				// HttpServerCodec is not thread-safe
 				p.addLast("codec", new HttpServerCodec());
 				p.addLast("aggregator", new HttpChunkAggregator(config.getSerializationConfig().getMaxContentLength()));
 				p.addLast("idleHandler", idleStateHandler);

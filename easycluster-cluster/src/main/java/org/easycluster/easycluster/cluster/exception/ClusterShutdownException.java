@@ -8,11 +8,4 @@ public class ClusterShutdownException extends ClusterException {
 		super();
 	}
 
-	public ClusterShutdownException(String message) {
-		super(message);
-	}
-
-	public ClusterShutdownException(String message, Throwable cause) {
-		super(message, cause);
-	}
 }

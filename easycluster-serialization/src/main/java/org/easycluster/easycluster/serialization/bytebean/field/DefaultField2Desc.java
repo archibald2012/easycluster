@@ -4,6 +4,8 @@ package org.easycluster.easycluster.serialization.bytebean.field;
 import java.lang.reflect.Field;
 
 import org.easycluster.easycluster.serialization.bytebean.annotation.ByteField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -13,6 +15,8 @@ import org.easycluster.easycluster.serialization.bytebean.annotation.ByteField;
  */
 public class DefaultField2Desc implements Field2Desc {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFieldDesc.class);
+	
 	@Override
 	public ByteFieldDesc genDesc(Field field) {
 		ByteField byteField = field.getAnnotation(ByteField.class);
@@ -30,9 +34,9 @@ public class DefaultField2Desc implements Field2Desc {
 						.setFixedLength(byteField.fixedLength());
 				return desc;
 			} catch (SecurityException e) {
-				e.printStackTrace();
+				LOGGER.error("", e);
 			} catch (NoSuchFieldException e) {
-				e.printStackTrace();
+				LOGGER.error("", e);
 			}
 		}
 		return null;

@@ -28,12 +28,21 @@ import org.junit.Test;
 
 public class HttpNetworkTestCase {
 
+	private HttpServer	server;
+	private HttpClient	client;
+
 	@Before
 	public void setUp() throws Exception {
 	}
 
 	@After
 	public void tearDown() throws Exception {
+		if (client != null) {
+			client.stop();
+		}
+		if (server != null) {
+			server.stop();
+		}
 	}
 
 	@Test
@@ -55,7 +64,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setEncodeBytesDebugEnabled(true);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpServer server = new HttpServer(serverConfig);
+		server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -69,7 +78,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setDecodeBytesDebugEnabled(true);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		HttpClient client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
@@ -91,8 +100,6 @@ public class HttpNetworkTestCase {
 		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
 		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
 
-		client.stop();
-		server.stop();
 	}
 
 	@Test
@@ -111,7 +118,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpServer server = new HttpServer(serverConfig);
+		server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -124,7 +131,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		HttpClient client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
@@ -173,8 +180,6 @@ public class HttpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		client.stop();
-		server.stop();
 	}
 
 	@Test
@@ -193,8 +198,8 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpServer nettyNetworkServer = new HttpServer(serverConfig);
-		nettyNetworkServer.start();
+		server = new HttpServer(serverConfig);
+		server.start();
 
 		NetworkClientConfig clientConfig = new NetworkClientConfig();
 		clientConfig.setServiceGroup("app");
@@ -206,9 +211,9 @@ public class HttpNetworkTestCase {
 		clientConfig.setSerializationConfig(clientCodecConfig);
 		clientConfig.setWriteTimeoutMillis(600000);
 
-		HttpClient nettyNetworkClient = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
-		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
-		nettyNetworkClient.start();
+		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		client.registerRequest(SampleRequest.class, SampleResponse.class);
+		client.start();
 
 		int num = 500;
 
@@ -228,7 +233,7 @@ public class HttpNetworkTestCase {
 		}
 
 		final AtomicInteger count = new AtomicInteger();
-		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new MessageClosure<SampleRequest, SampleResponse>() {
+		server.registerHandler(SampleRequest.class, SampleResponse.class, new MessageClosure<SampleRequest, SampleResponse>() {
 
 			@Override
 			public SampleResponse execute(SampleRequest input) {
@@ -244,7 +249,7 @@ public class HttpNetworkTestCase {
 		final List<Future<Object>> futures = new ArrayList<Future<Object>>(num);
 
 		for (int i = 0; i < num; i++) {
-			futures.add(nettyNetworkClient.sendMessage(client1Requests.get(i)));
+			futures.add(client.sendMessage(client1Requests.get(i)));
 		}
 
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
@@ -256,9 +261,6 @@ public class HttpNetworkTestCase {
 
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
-
-		nettyNetworkClient.stop();
-		nettyNetworkServer.stop();
 
 	}
 
@@ -280,7 +282,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpServer server = new HttpServer(serverConfig);
+		server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -296,7 +298,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		HttpClient client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
@@ -323,8 +325,6 @@ public class HttpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		client.stop();
-		server.stop();
 	}
 
 	@Test
@@ -345,7 +345,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.TLV);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpServer server = new HttpServer(serverConfig);
+		server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -361,7 +361,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.TLV);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		HttpClient client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
@@ -388,10 +388,8 @@ public class HttpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		client.stop();
-		server.stop();
 	}
-	
+
 	@Test
 	public void testSend_kv() throws Exception {
 		List<String> packages = new ArrayList<String>();
@@ -410,7 +408,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.KV);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpServer server = new HttpServer(serverConfig);
+		server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -426,7 +424,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.KV);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		HttpClient client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
@@ -453,8 +451,6 @@ public class HttpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		client.stop();
-		server.stop();
 	}
 
 	@Test
@@ -473,7 +469,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.TLV);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpServer server = new HttpServer(serverConfig);
+		server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -488,7 +484,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.TLV);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		HttpClient client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
@@ -539,10 +535,8 @@ public class HttpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		client.stop();
-		server.stop();
 	}
-	
+
 	@Test
 	public void testSend_batchkv() throws Exception {
 		List<String> packages = new ArrayList<String>();
@@ -559,7 +553,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.KV);
 		serverConfig.setSerializationConfig(codecConfig);
 
-		HttpServer server = new HttpServer(serverConfig);
+		server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
@@ -575,7 +569,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.KV);
 		clientConfig.setSerializationConfig(clientCodecConfig);
 
-		HttpClient client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
@@ -626,7 +620,5 @@ public class HttpNetworkTestCase {
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
-		client.stop();
-		server.stop();
 	}
 }

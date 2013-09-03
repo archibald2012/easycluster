@@ -3,8 +3,8 @@ package org.easycluster.easycluster.serialization.protocol.xip;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.easycluster.easycluster.serialization.bytebean.annotation.ByteField;
-import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
-import org.easycluster.easycluster.serialization.protocol.xip.XipResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author wangqi
@@ -13,6 +13,8 @@ import org.easycluster.easycluster.serialization.protocol.xip.XipResponse;
 public class AbstractXipResponse extends AbstractXipSignal implements
 		XipResponse {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractXipResponse.class);
+	
 	@ByteField(index = 0)
 	private int errorCode;
 
@@ -25,10 +27,10 @@ public class AbstractXipResponse extends AbstractXipSignal implements
 		try {
 			resp = clazz.newInstance();
 		} catch (InstantiationException e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 			return null;
 		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 			return null;
 		}
 

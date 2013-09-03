@@ -8,11 +8,4 @@ public class NetworkShutdownException extends NetworkingException {
 		super();
 	}
 
-	public NetworkShutdownException(String message) {
-		super(message);
-	}
-
-	public NetworkShutdownException(String message, Throwable cause) {
-		super(message, cause);
-	}
 }

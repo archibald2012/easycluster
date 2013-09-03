@@ -8,11 +8,4 @@ public class ClusterDisconnectedException extends ClusterException {
 		super();
 	}
 
-	public ClusterDisconnectedException(String message) {
-		super(message);
-	}
-
-	public ClusterDisconnectedException(String message, Throwable cause) {
-		super(message, cause);
-	}
 }
