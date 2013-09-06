@@ -6,7 +6,7 @@
 	<version>1.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>easycluster-parent</name>
-	<description>EasyMetrics is a metrics framework to collect runtime usage information to indicate the realtime application performance.</description>
+	<description>Easycluster is a library to build cluster-aware distributed Java applications.</description>
 	<url>https://github.com/archibald2012/easycluster</url>
 	<inceptionYear>2013</inceptionYear>
 
@@ -216,9 +216,6 @@
 					<charset>${project.reporting.outputEncoding}</charset>
 					<aggregate>true</aggregate>
 					<show>private</show>
-					<!-- <doclet>org.umlgraph.doclet.UmlGraphDoc</doclet> <docletArtifact> 
-						<groupId>org.umlgraph</groupId> <artifactId>doclet</artifactId> <version>5.1</version> 
-						</docletArtifact> <additionalparam>-views</additionalparam> <useStandardDocletOptions>true</useStandardDocletOptions> -->
 				</configuration>
 				<executions>
 					<execution>
