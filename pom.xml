@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.easycluster</groupId>
 	<artifactId>easycluster-parent</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>easycluster-parent</name>
 	<description>Easycluster is a library to build cluster-aware distributed Java applications.</description>
