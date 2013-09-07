@@ -36,7 +36,6 @@ public class ByteArrayCodec extends AbstractPrimitiveCodec implements
 		if (null == desc) {
 			throw new RuntimeException("invalid bytearray env.");
 		} else if (desc.hasLength()) {
-			// 已经有字段记录数组长度了
 			arrayLength = desc.getLength(ctx.getDecOwner());
 		} else if (desc.getFixedLength() > 0) {
 			arrayLength = desc.getFixedLength();
@@ -70,7 +69,6 @@ public class ByteArrayCodec extends AbstractPrimitiveCodec implements
 		} else if (!desc.hasLength() && desc.getFixedLength() < 0) {
 			throw new RuntimeException("invalid bytearray env.");
 		} else {
-			// 已经存在字段记录数组长度
 		}
 
 		return ArrayUtils.addAll(bytes, array);

@@ -31,14 +31,12 @@ public class LenListCodec extends AbstractPrimitiveCodec implements
 
 	@Override
 	public FieldCodecCategory getCategory() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public DecResult decode(DecContext ctx) {
 
-		// 默认4个字节存储List长度
 		DecResult ret = ctx.getCodecOf(int.class).decode(
 				ctx.getDecContextFactory().createDecContext(ctx.getDecBytes(),
 						int.class, ctx.getDecOwner(), null));
@@ -69,7 +67,6 @@ public class LenListCodec extends AbstractPrimitiveCodec implements
 		int listLength = (null != list ? list.size() : 0);
 		Class<?> compomentClass = getCompomentClass(ctx.getField());
 
-		// 默认4个字节存储List长度
 		byte[] bytes = ctx.getCodecOf(int.class).encode(
 				ctx.getEncContextFactory().createEncContext(listLength,
 						int.class, null));

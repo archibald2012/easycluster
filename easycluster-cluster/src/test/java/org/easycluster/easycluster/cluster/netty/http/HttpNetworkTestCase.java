@@ -93,7 +93,7 @@ public class HttpNetworkTestCase {
 
 		Future<Object> future = client.sendMessage(request);
 
-		SampleResponse assertobj = (SampleResponse) future.get(1800, TimeUnit.SECONDS);
+		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
 		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
@@ -126,7 +126,8 @@ public class HttpNetworkTestCase {
 		clientConfig.setServiceGroup("app");
 		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		clientConfig.setStaleRequestTimeoutMins(60);
+		clientConfig.setWriteTimeoutMillis(10000);
+		clientConfig.setStaleRequestTimeoutMins(30);
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientConfig.setSerializationConfig(clientCodecConfig);
@@ -135,7 +136,7 @@ public class HttpNetworkTestCase {
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
 
-		int num = 500;
+		int num = 5000;
 
 		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
 
@@ -163,10 +164,8 @@ public class HttpNetworkTestCase {
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
 			try {
-				Object object = futures.get(i).get(1800, TimeUnit.SECONDS);
-				if (object instanceof SampleResponse) {
-					client1Responses.add((SampleResponse) object);
-				}
+				Object object = futures.get(i).get(60, TimeUnit.SECONDS);
+				client1Responses.add((SampleResponse) object);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} catch (ExecutionException e) {
@@ -205,6 +204,8 @@ public class HttpNetworkTestCase {
 		clientConfig.setServiceGroup("app");
 		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		clientConfig.setWriteTimeoutMillis(10000);
+		clientConfig.setStaleRequestTimeoutMins(30);
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
@@ -254,7 +255,7 @@ public class HttpNetworkTestCase {
 
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
-			client1Responses.add((SampleResponse) futures.get(i).get(1800, TimeUnit.SECONDS));
+			client1Responses.add((SampleResponse) futures.get(i).get(60, TimeUnit.SECONDS));
 		}
 		Assert.assertEquals(num, client1Responses.size());
 		Assert.assertEquals(num, count.get());
@@ -315,7 +316,7 @@ public class HttpNetworkTestCase {
 
 		Future<Object> future = client.sendMessage(request);
 
-		SampleResponse assertobj = (SampleResponse) future.get(1800, TimeUnit.SECONDS);
+		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
 		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
@@ -378,7 +379,7 @@ public class HttpNetworkTestCase {
 
 		Future<Object> future = client.sendMessage(request);
 
-		SampleResponse assertobj = (SampleResponse) future.get(1800, TimeUnit.SECONDS);
+		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
 		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
@@ -441,7 +442,7 @@ public class HttpNetworkTestCase {
 
 		Future<Object> future = client.sendMessage(request);
 
-		SampleResponse assertobj = (SampleResponse) future.get(1800, TimeUnit.SECONDS);
+		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
 		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
@@ -477,7 +478,8 @@ public class HttpNetworkTestCase {
 		clientConfig.setServiceGroup("app");
 		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		clientConfig.setStaleRequestTimeoutMins(60);
+		clientConfig.setWriteTimeoutMillis(10000);
+		clientConfig.setStaleRequestTimeoutMins(30);
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
@@ -516,7 +518,7 @@ public class HttpNetworkTestCase {
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
 			try {
-				Object object = futures.get(i).get(1800, TimeUnit.SECONDS);
+				Object object = futures.get(i).get(60, TimeUnit.SECONDS);
 				if (object instanceof SampleResponse) {
 					client1Responses.add((SampleResponse) object);
 				} else {
@@ -561,8 +563,8 @@ public class HttpNetworkTestCase {
 		clientConfig.setServiceGroup("app");
 		clientConfig.setService("test");
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		clientConfig.setStaleRequestTimeoutMins(60);
-		clientConfig.setWriteTimeoutMillis(100);
+		clientConfig.setWriteTimeoutMillis(10000);
+		clientConfig.setStaleRequestTimeoutMins(30);
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
@@ -601,7 +603,7 @@ public class HttpNetworkTestCase {
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
 			try {
-				Object object = futures.get(i).get(1800, TimeUnit.SECONDS);
+				Object object = futures.get(i).get(60, TimeUnit.SECONDS);
 				if (object instanceof SampleResponse) {
 					client1Responses.add((SampleResponse) object);
 				} else {

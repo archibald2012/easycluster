@@ -552,7 +552,7 @@ public class TcpNetworkTestCase {
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
 
-		int num = 500;
+		int num = 5000;
 
 		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
 

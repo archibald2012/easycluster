@@ -1,4 +1,3 @@
-
 package org.easycluster.easycluster.serialization.bytebean.field;
 
 import java.lang.reflect.Field;
@@ -7,26 +6,25 @@ import org.easycluster.easycluster.serialization.bytebean.ByteBeanUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
- * 字段的编解码描述
+ * 
  * 
  * @author wangqi
  * @version $Id: DefaultFieldDesc.java 14 2012-01-10 11:54:14Z archie $
  */
 public class DefaultFieldDesc extends ByteBeanUtil implements ByteFieldDesc {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFieldDesc.class);
-	
-	private Field field;
-	private int maxByteSize = -1;
-	private int index;
-	private int byteSize = -1;
-	private Field lengthField = null;
-	private String charset;
-	private int bytesPerChar = 1;
-	private String description;
-	private int fixedLength = -1;
+	private static final Logger	LOGGER			= LoggerFactory.getLogger(DefaultFieldDesc.class);
+
+	private Field				field;
+	private int					maxByteSize		= -1;
+	private int					index;
+	private int					byteSize		= -1;
+	private Field				lengthField		= null;
+	private String				charset;
+	private int					bytesPerChar	= 1;
+	private String				description;
+	private int					fixedLength		= -1;
 
 	/**
 	 * @param field

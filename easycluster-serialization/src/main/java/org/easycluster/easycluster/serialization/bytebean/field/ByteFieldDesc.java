@@ -5,7 +5,7 @@ import java.lang.reflect.Field;
 import java.util.Comparator;
 
 /**
- * 字段的编解码描述
+ * 
  * 
  * @author Archibald.Wang
  * @version $Id: ByteFieldDesc.java 14 2012-01-10 11:54:14Z archie $

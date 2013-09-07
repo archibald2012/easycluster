@@ -30,7 +30,6 @@ public class ArrayCodec extends AbstractCategoryCodec implements ByteFieldCodec 
 	public DecResult decode(DecContext ctx) {
 		byte[] bytes = ctx.getDecBytes();
 		Class<?> fieldClass = ctx.getDecClass();
-		// 实际类型
 		Class<?> compomentClass = fieldClass.getComponentType();
 		final ByteFieldDesc desc = ctx.getFieldDesc();
 		int arrayLength = 0;
@@ -38,7 +37,6 @@ public class ArrayCodec extends AbstractCategoryCodec implements ByteFieldCodec 
 		if (null == desc || !desc.hasLength()) {
 			throw new RuntimeException("invalid array env.");
 		} else {
-			// 已经有字段记录数组长度了
 			arrayLength = desc.getLength(ctx.getDecOwner());
 		}
 

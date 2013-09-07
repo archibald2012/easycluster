@@ -158,12 +158,18 @@ public class ChannelPool {
 		while (!pendingWrites.isEmpty()) {
 			MessageContext request = pendingWrites.poll();
 			if (request == null) {
-				// do nothing
+				if (LOGGER.isWarnEnabled()) {
+					LOGGER.warn("The pending request is null, skip it.");
+				}
 			} else {
-				if (((System.nanoTime() - request.getTimestamp()) / 1000000) < writeTimeoutMillis)
+				if (((System.nanoTime() - request.getTimestamp()) / 1000000) < writeTimeoutMillis) {
 					writeRequestToChannel(request, channel);
-				else {
-					request.getClosure().execute(new TimeoutException("Timed out while waiting to write"));
+				} else {
+					String error = "Timed out while waiting to write. request " + request;
+					if (LOGGER.isWarnEnabled()) {
+						LOGGER.warn(error);
+					}
+					request.getClosure().execute(new TimeoutException(error));
 				}
 			}
 		}
@@ -176,7 +182,11 @@ public class ChannelPool {
 			LOGGER.debug("Writing to {}: {}", channel, request);
 		}
 
-		requestsSent.incrementAndGet();
+		int sent = requestsSent.incrementAndGet();
+
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("request sent {}, pending requests {}", sent, pendingWrites.size());
+		}
 
 		channel.write(request).addListener(new ChannelFutureListener() {
 			public void operationComplete(ChannelFuture writeFuture) {

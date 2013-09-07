@@ -29,26 +29,26 @@ import com.alibaba.fastjson.JSON;
 
 public class ZooKeeperClusterManager implements ClusterManager {
 
-	private static final Logger	LOGGER				= LoggerFactory.getLogger(ZooKeeperClusterManager.class);
+	private static final Logger		LOGGER				= LoggerFactory.getLogger(ZooKeeperClusterManager.class);
 
-	private static final String	NODE_SEPARATOR		= "/";
+	private static final String		NODE_SEPARATOR		= "/";
 
-	private ClusterNotification	clusterNotification	= null;
-	private String				connectString		= "";
-	private int					sessionTimeout		= 0;
-	private String				rootNode			= "/clusters";
-	private String				serviceGroupNode	= null;
-	private String				serviceNode			= null;
-	private String				membershipNode		= null;
-	private String				eventNode			= null;
-	private String				availabilityNode	= null;
-	private boolean				mutexInstance		= false;
+	private ClusterNotification		clusterNotification	= null;
+	private String					connectString		= "";
+	private int						sessionTimeout		= 0;
+	private String					rootNode			= "/clusters";
+	private String					serviceGroupNode	= null;
+	private String					serviceNode			= null;
+	private String					membershipNode		= null;
+	private String					eventNode			= null;
+	private String					availabilityNode	= null;
+	private boolean					mutexInstance		= false;
 
-	private ZooKeeper			zooKeeper			= null;
-	private ClusterWatcher		watcher				= null;
-	private volatile boolean	connected			= false;
-	private Map<String, Node>	currentNodes		= new HashMap<String, Node>();
-	private Lock				nodeLock			= new ReentrantLock();
+	private volatile ZooKeeper		zooKeeper			= null;
+	private volatile ClusterWatcher	watcher				= null;
+	private volatile boolean		connected			= false;
+	private Map<String, Node>		currentNodes		= new HashMap<String, Node>();
+	private Lock					nodeLock			= new ReentrantLock();
 
 	public ZooKeeperClusterManager(String serviceGroup, String service, String zooKeeperConnectString, int zooKeeperSessionTimeoutMillis, boolean mutexInstance) {
 		this.connectString = zooKeeperConnectString;
