@@ -1,9 +1,10 @@
 package org.easycluster.easycluster.http;
 
-import org.apache.commons.lang.ArrayUtils;
+import java.io.UnsupportedEncodingException;
+
+import org.apache.commons.lang.math.NumberUtils;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.cluster.serialization.Serialization;
-import org.easycluster.easycluster.cluster.serialization.SerializationConfig;
 import org.easycluster.easycluster.core.ByteUtil;
 import org.easycluster.easycluster.core.Transformer;
 import org.easycluster.easycluster.serialization.bytebean.codec.AnyCodec;
@@ -34,14 +35,15 @@ import org.slf4j.LoggerFactory;
 
 public class HttpRequestDecoder implements Transformer<HttpRequest, Object> {
 
-	private static final Logger	LOGGER			= LoggerFactory.getLogger(HttpRequestDecoder.class);
+	private static final Logger					LOGGER				= LoggerFactory.getLogger(HttpRequestDecoder.class);
 
-	private BeanFieldCodec		beanFieldCodec	= null;
-	private Int2TypeMetainfo	typeMetaInfo	= null;
-	private int					dumpBytes		= 256;
-	private boolean				isDebugEnabled	= false;
+	private BeanFieldCodec						beanFieldCodec		= null;
+	private Int2TypeMetainfo					typeMetaInfo		= null;
+	private boolean								isDebugEnabled		= false;
+	private int									dumpBytes			= 256;
+	private Transformer<HttpRequest, String>	requestCodeGetter	= new RequestCodeGetter();
 
-	private Serialization		serialization;
+	private Serialization						serialization		= null;
 
 	@Override
 	public Object transform(HttpRequest request) {
@@ -50,23 +52,39 @@ public class HttpRequestDecoder implements Transformer<HttpRequest, Object> {
 		byte[] bytes = new byte[content.readableBytes()];
 		content.readBytes(bytes);
 
-		byte[] headerBytes = ArrayUtils.subarray(bytes, 0, 4);
-
-		int messageCode = getBeanFieldCodec().getDecContextFactory().createDecContext(headerBytes, Integer.class, null, null).getNumberCodec()
-				.bytes2Int(headerBytes, headerBytes.length);
-
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("header bytes --> {}, decoded messageCode {}", ByteUtil.bytesAsHexString(headerBytes, dumpBytes), messageCode);
+			LOGGER.debug("uri {}, bytes --> {}", request.getUri(), ByteUtil.bytesAsHexString(bytes, dumpBytes));
 		}
+
+		String requestCode = requestCodeGetter.transform(request);
+		if (!NumberUtils.isDigits(requestCode)) {
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("request code {} is not digit.", requestCode);
+			}
+			return null;
+		}
+		int messageCode = Integer.parseInt(requestCode);
 
 		Class<?> type = typeMetaInfo.find(messageCode);
 		if (null == type) {
 			throw new InvalidMessageException("unknown message code:" + messageCode);
 		}
 
-		byte[] bodyBytes = ArrayUtils.subarray(bytes, 4, bytes.length);
+		if (bytes.length == 0) {
+			String uri = request.getUri().trim();
+			// for eg:
+			// http://appid.fivesky.net:4009/UpdateProvision?param1=111&param2=222
+			int idx = uri.indexOf('?');
+			if (-1 != idx) {
+				String query = uri.substring(idx + 1);
+				try {
+					bytes = query.getBytes("UTF-8");
+				} catch (UnsupportedEncodingException ignore) {
+				}
+			}
+		}
 
-		XipSignal signal = (XipSignal) serialization.deserialize(bodyBytes, type);
+		XipSignal signal = (XipSignal) serialization.deserialize(bytes, type);
 
 		return signal;
 
@@ -108,10 +126,20 @@ public class HttpRequestDecoder implements Transformer<HttpRequest, Object> {
 		this.serialization = serialization;
 	}
 
-	public void setSerializationConfig(SerializationConfig serializationConfig) {
-		this.typeMetaInfo = serializationConfig.getTypeMetaInfo();
-		this.dumpBytes = serializationConfig.getDumpBytes();
-		this.isDebugEnabled = serializationConfig.isSerializeBytesDebugEnabled();
+	public void setTypeMetaInfo(Int2TypeMetainfo typeMetaInfo) {
+		this.typeMetaInfo = typeMetaInfo;
+	}
+
+	public void setDebugEnabled(boolean isDebugEnabled) {
+		this.isDebugEnabled = isDebugEnabled;
+	}
+
+	public void setDumpBytes(int dumpBytes) {
+		this.dumpBytes = dumpBytes;
+	}
+
+	public void setRequestCodeGetter(Transformer<HttpRequest, String> requestCodeGetter) {
+		this.requestCodeGetter = requestCodeGetter;
 	}
 
 }

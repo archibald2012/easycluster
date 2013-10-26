@@ -16,7 +16,7 @@ import org.easycluster.easycluster.core.Propertyable;
  */
 public class DefaultPropertiesSupport implements Propertyable, Cloneable {
 
-	private Map<String, Object>	properties	= new HashMap<String, Object>();
+	private transient Map<String, Object>	properties	= new HashMap<String, Object>();
 
 	@Override
 	public Object getProperty(String key) {

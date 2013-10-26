@@ -87,6 +87,10 @@ public class BeanKvSerialization implements Serialization {
 		} catch (UnsupportedEncodingException ingore) {
 		}
 
+		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
+			LOGGER.debug("After decryption, and object as KV --> {}", text);
+		}
+
 		T object = (T) kvCodec.decode(kvCodec.getDecContextFactory().createDecContext(text, type, null));
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {

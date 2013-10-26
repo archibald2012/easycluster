@@ -21,6 +21,7 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.timeout.IdleStateAwareChannelUpstreamHandler;
 import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
@@ -108,6 +109,9 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 		if (null != endpoint) {
 
 			Object signal = requestTransformer.transform((HttpRequest) request);
+			if (signal == null) {
+				return;
+			}
 
 			TransportUtil.attachSender(signal, endpoint);
 
@@ -158,12 +162,31 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 		@Override
 		public void execute(Object message) {
 
+			HttpResponse response = null;
 			if (message instanceof Exception) {
-				Exception ex = (Exception) message;
-				message = buildErrorResponse(ex);
+				message = buildErrorResponse((Exception) message);
+				response = responseTransformer.transform(message);
+				response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+			} else {
+				response = responseTransformer.transform(message);
+				response.setStatus(HttpResponseStatus.OK);
 			}
 
-			doSend(message);
+			Object requestId = keyTransformer.transform(request);
+			if (requestId != null) {
+				response.setHeader("uuid", requestId);
+			}
+
+			String keepAlive = request.getHeader(HttpHeaders.Names.CONNECTION);
+			if (keepAlive != null) {
+				response.setHeader(HttpHeaders.Names.CONNECTION, keepAlive);
+			}
+
+			channel.write(response);
+
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Sent http response: {}", response);
+			}
 		}
 
 		private Object buildErrorResponse(Exception ex) {
@@ -184,21 +207,6 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 			return response;
 		}
 
-		private void doSend(Object message) {
-			if (message != null) {
-				HttpResponse response = responseTransformer.transform(message);
-
-				Object requestId = keyTransformer.transform(request);
-				response.setHeader("uuid", requestId);
-
-				String keepAlive = request.getHeader(HttpHeaders.Names.CONNECTION);
-				if (keepAlive != null) {
-					response.setHeader(HttpHeaders.Names.CONNECTION, keepAlive);
-				}
-
-				channel.write(response);
-			}
-		}
 	}
 
 	public void setEndpointFactory(EndpointFactory endpointFactory) {

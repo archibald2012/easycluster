@@ -30,11 +30,15 @@ public class HttpClient extends NetworkClient {
 
 		final HttpRequestEncoder encoder = new HttpRequestEncoder();
 		encoder.setSerialization(new DefaultSerializationFactory(config.getEncodeSerializeConfig()).getSerialization());
-		encoder.setSerializationConfig(config.getEncodeSerializeConfig());
+		encoder.setDebugEnabled(config.getEncodeSerializeConfig().isSerializeBytesDebugEnabled());
+		encoder.setDumpBytes(config.getEncodeSerializeConfig().getDumpBytes());
+
 		final HttpResponseDecoder decoder = new HttpResponseDecoder();
 		decoder.setSerialization(new DefaultSerializationFactory(config.getDecodeSerializeConfig()).getSerialization());
-		decoder.setSerializationConfig(config.getDecodeSerializeConfig());
-
+		decoder.setDebugEnabled(config.getDecodeSerializeConfig().isSerializeBytesDebugEnabled());
+		decoder.setDumpBytes(config.getDecodeSerializeConfig().getDumpBytes());
+		decoder.setTypeMetaInfo(config.getDecodeSerializeConfig().getTypeMetaInfo());
+		
 		MessageContextHolder holder = new MessageContextHolder(messageRegistry, config.getStaleRequestTimeoutMins(),
 				config.getStaleRequestCleanupFrequencyMins());
 		final HttpClientChannelHandler handler = new HttpClientChannelHandler(holder);

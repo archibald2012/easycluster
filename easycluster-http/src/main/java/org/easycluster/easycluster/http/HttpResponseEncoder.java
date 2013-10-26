@@ -3,11 +3,9 @@
  */
 package org.easycluster.easycluster.http;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.cluster.serialization.Serialization;
-import org.easycluster.easycluster.cluster.serialization.SerializationConfig;
 import org.easycluster.easycluster.core.ByteUtil;
 import org.easycluster.easycluster.core.Transformer;
 import org.easycluster.easycluster.serialization.bytebean.codec.AnyCodec;
@@ -57,12 +55,7 @@ public class HttpResponseEncoder implements Transformer<Object, HttpResponse> {
 			throw new InvalidMessageException("invalid signal, no messageCode defined.");
 		}
 
-		byte[] headerBytes = getBeanFieldCodec().getEncContextFactory().createEncContext(Integer.valueOf(attr.messageCode()), Integer.class, null)
-				.getNumberCodec().int2Bytes(attr.messageCode(), 4);
-
-		byte[] bodyBytes = serialization.serialize(message);
-
-		byte[] bytes = ArrayUtils.addAll(headerBytes, bodyBytes);
+		byte[] bytes = serialization.serialize(message);
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
 			LOGGER.debug("encode signal {}, and signal raw bytes --> {}", ToStringBuilder.reflectionToString(message),
@@ -70,9 +63,7 @@ public class HttpResponseEncoder implements Transformer<Object, HttpResponse> {
 		}
 
 		DefaultHttpResponse resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-
-		resp.setStatus(HttpResponseStatus.OK);
-		resp.setHeader(HttpHeaders.Names.CONTENT_TYPE, "application/x-tar");
+		resp.setHeader("Msg-Code", attr.messageCode());
 
 		if (null != bytes) {
 			resp.setContent(ChannelBuffers.wrappedBuffer(bytes));
@@ -122,8 +113,12 @@ public class HttpResponseEncoder implements Transformer<Object, HttpResponse> {
 		this.serialization = serialization;
 	}
 
-	public void setSerializationConfig(SerializationConfig serializationConfig) {
-		this.dumpBytes = serializationConfig.getDumpBytes();
-		this.isDebugEnabled = serializationConfig.isSerializeBytesDebugEnabled();
+	public void setDumpBytes(int dumpBytes) {
+		this.dumpBytes = dumpBytes;
 	}
+
+	public void setDebugEnabled(boolean isDebugEnabled) {
+		this.isDebugEnabled = isDebugEnabled;
+	}
+
 }

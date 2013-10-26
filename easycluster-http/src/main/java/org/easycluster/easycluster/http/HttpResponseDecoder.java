@@ -1,9 +1,7 @@
 package org.easycluster.easycluster.http;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.cluster.serialization.Serialization;
-import org.easycluster.easycluster.cluster.serialization.SerializationConfig;
 import org.easycluster.easycluster.core.ByteUtil;
 import org.easycluster.easycluster.core.Transformer;
 import org.easycluster.easycluster.serialization.bytebean.codec.AnyCodec;
@@ -50,17 +48,14 @@ public class HttpResponseDecoder implements Transformer<HttpResponse, Object> {
 			return null;
 		}
 
+		int messageCode = Integer.parseInt(from.getHeader("Msg-Code"));
+
 		ChannelBuffer content = from.getContent();
 		byte[] bytes = new byte[content.readableBytes()];
 		content.readBytes(bytes);
 
-		byte[] headerBytes = ArrayUtils.subarray(bytes, 0, 4);
-
-		int messageCode = getBeanFieldCodec().getDecContextFactory().createDecContext(headerBytes, Integer.class, null, null).getNumberCodec()
-				.bytes2Int(headerBytes, headerBytes.length);
-
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("header bytes --> {}, decoded messageCode {}", ByteUtil.bytesAsHexString(headerBytes, dumpBytes), messageCode);
+			LOGGER.debug("code {}, bytes --> {}", messageCode, ByteUtil.bytesAsHexString(bytes, dumpBytes));
 		}
 
 		Class<?> type = typeMetaInfo.find(messageCode);
@@ -68,9 +63,7 @@ public class HttpResponseDecoder implements Transformer<HttpResponse, Object> {
 			throw new InvalidMessageException("unknown message code:" + messageCode);
 		}
 
-		byte[] bodyBytes = ArrayUtils.subarray(bytes, 4, bytes.length);
-
-		XipSignal signal = (XipSignal) serialization.deserialize(bodyBytes, type);
+		XipSignal signal = (XipSignal) serialization.deserialize(bytes, type);
 
 		return signal;
 
@@ -108,10 +101,16 @@ public class HttpResponseDecoder implements Transformer<HttpResponse, Object> {
 		return beanFieldCodec;
 	}
 
-	public void setSerializationConfig(SerializationConfig serializationConfig) {
-		this.typeMetaInfo = serializationConfig.getTypeMetaInfo();
-		this.dumpBytes = serializationConfig.getDumpBytes();
-		this.isDebugEnabled = serializationConfig.isSerializeBytesDebugEnabled();
+	public void setTypeMetaInfo(Int2TypeMetainfo typeMetaInfo) {
+		this.typeMetaInfo = typeMetaInfo;
+	}
+
+	public void setDumpBytes(int dumpBytes) {
+		this.dumpBytes = dumpBytes;
+	}
+
+	public void setDebugEnabled(boolean isDebugEnabled) {
+		this.isDebugEnabled = isDebugEnabled;
 	}
 
 	public void setSerialization(Serialization serialization) {

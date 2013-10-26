@@ -47,10 +47,14 @@ public class HttpServer extends NetworkServer {
 
 		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		encoder.setSerialization(new DefaultSerializationFactory(config.getEncodeSerializeConfig()).getSerialization());
-		encoder.setSerializationConfig(config.getEncodeSerializeConfig());
+		encoder.setDebugEnabled(config.getEncodeSerializeConfig().isSerializeBytesDebugEnabled());
+		encoder.setDumpBytes(config.getEncodeSerializeConfig().getDumpBytes());
+
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
 		decoder.setSerialization(new DefaultSerializationFactory(config.getDecodeSerializeConfig()).getSerialization());
-		decoder.setSerializationConfig(config.getDecodeSerializeConfig());
+		decoder.setTypeMetaInfo(config.getDecodeSerializeConfig().getTypeMetaInfo());
+		decoder.setDumpBytes(config.getDecodeSerializeConfig().getDumpBytes());
+		decoder.setDebugEnabled(config.getDecodeSerializeConfig().isSerializeBytesDebugEnabled());
 
 		requestHandler.setRequestTransformer(decoder);
 		requestHandler.setResponseTransformer(encoder);
