@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.SampleMessageClosure;
 import org.easycluster.easycluster.cluster.SampleRequest;
-import org.easycluster.easycluster.cluster.netty.serialization.SerializationConfig;
+import org.easycluster.easycluster.cluster.serialization.SerializationConfig;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +27,8 @@ public class NetworkServerTestCase {
 
 		NetworkServerConfig serverConfig = new NetworkServerConfig();
 		SerializationConfig codecConfig = new SerializationConfig();
-		serverConfig.setSerializationConfig(codecConfig);
+		serverConfig.setDecodeSerializeConfig(codecConfig);
+		serverConfig.setEncodeSerializeConfig(codecConfig);
 		NetworkServer server = new NetworkServer(serverConfig);
 
 		ArrayList<MessageClosure<?, ?>> handlers = new ArrayList<MessageClosure<?, ?>>();

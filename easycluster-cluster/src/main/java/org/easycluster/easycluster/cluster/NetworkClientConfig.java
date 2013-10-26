@@ -1,6 +1,6 @@
 package org.easycluster.easycluster.cluster;
 
-import org.easycluster.easycluster.cluster.netty.serialization.SerializationConfig;
+import org.easycluster.easycluster.cluster.serialization.SerializationConfig;
 
 public class NetworkClientConfig {
 
@@ -54,7 +54,9 @@ public class NetworkClientConfig {
 	/**
 	 * The serialization configuration.
 	 */
-	private SerializationConfig	serializationConfig					= null;
+	private SerializationConfig	decodeSerializeConfig				= null;
+
+	private SerializationConfig	encodeSerializeConfig				= null;
 
 	public String getServiceGroup() {
 		return serviceGroup;
@@ -128,12 +130,20 @@ public class NetworkClientConfig {
 		this.staleRequestCleanupFrequencyMins = staleRequestCleanupFrequencyMins;
 	}
 
-	public SerializationConfig getSerializationConfig() {
-		return serializationConfig;
+	public SerializationConfig getDecodeSerializeConfig() {
+		return decodeSerializeConfig;
 	}
 
-	public void setSerializationConfig(SerializationConfig serializationConfig) {
-		this.serializationConfig = serializationConfig;
+	public void setDecodeSerializeConfig(SerializationConfig decodeSerializeConfig) {
+		this.decodeSerializeConfig = decodeSerializeConfig;
+	}
+
+	public SerializationConfig getEncodeSerializeConfig() {
+		return encodeSerializeConfig;
+	}
+
+	public void setEncodeSerializeConfig(SerializationConfig encodeSerializeConfig) {
+		this.encodeSerializeConfig = encodeSerializeConfig;
 	}
 
 	public boolean isMutexInstance() {

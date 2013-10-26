@@ -1,7 +1,7 @@
 package org.easycluster.easycluster.cluster.netty.serialization;
 
 import org.easycluster.easycluster.cluster.SampleRequest;
-import org.easycluster.easycluster.cluster.netty.serialization.BeanTlvSerialization;
+import org.easycluster.easycluster.cluster.serialization.BeanTlvSerialization;
 import org.easycluster.easycluster.core.ByteUtil;
 import org.junit.Assert;
 import org.junit.Test;
