@@ -70,10 +70,6 @@ public class HttpResponseEncoder implements Transformer<Object, HttpResponse> {
 			resp.setHeader(HttpHeaders.Names.CONTENT_LENGTH, bytes.length);
 		}
 
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("encoded http response: [{}]", resp);
-		}
-
 		return resp;
 	}
 

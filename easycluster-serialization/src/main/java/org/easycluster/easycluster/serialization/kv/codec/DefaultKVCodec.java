@@ -102,6 +102,12 @@ public class DefaultKVCodec implements KVCodec {
 					} catch (Exception e) {
 						logger.error("convert", e);
 					}
+				} else {
+					if (!param.nullable()) {
+						String errmsg = "DefaultKVCodec: field [" + field + "] is configured as not nullable but is null";
+						logger.error(errmsg);
+						throw new RuntimeException(errmsg);
+					}
 				}
 			}
 		} catch (InstantiationException e) {
@@ -138,6 +144,12 @@ public class DefaultKVCodec implements KVCodec {
 
 			try {
 				fieldValue = field.get(bean);
+
+				if (fieldValue == null && !param.nullable()) {
+					String errmsg = "DefaultKVCodec: field [" + field + "] is configured as not nullable but is null.";
+					logger.error(errmsg);
+					throw new RuntimeException(errmsg);
+				}
 
 				List<String> value = null;
 				if (!fieldType.isArray()) {

@@ -12,6 +12,9 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KeyValueAttribute {
-  public abstract String key() default "";
-  public abstract String desc() default "";
+	String key() default "";
+
+	String desc() default "";
+	
+	boolean nullable() default true;
 }
