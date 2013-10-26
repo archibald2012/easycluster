@@ -8,22 +8,20 @@ public class SerializationConfig {
 	/**
 	 * The serialize type, binary as default.
 	 */
-	private SerializeType		serializeType			= SerializeType.BYTE_BEAN;
+	private SerializeType		serializeType				= SerializeType.BYTE_BEAN;
 
 	/**
 	 * The type meta info mapping.
 	 */
-	private Int2TypeMetainfo	typeMetaInfo			= null;
+	private Int2TypeMetainfo	typeMetaInfo				= null;
 
-	private boolean				encodeBytesDebugEnabled	= false;
+	private boolean				serializeBytesDebugEnabled	= false;
 
-	private boolean				decodeBytesDebugEnabled	= false;
+	private int					dumpBytes					= 256;
 
-	private int					dumpBytes				= 256;
+	private String				encryptKey					= null;
 
-	private String				encryptKey				= null;
-
-	private int					maxContentLength		= NetworkDefaults.REQUEST_MAX_CONTENT_LENGTH;
+	private int					maxContentLength			= NetworkDefaults.REQUEST_MAX_CONTENT_LENGTH;
 
 	public SerializeType getSerializeType() {
 		return serializeType;
@@ -41,28 +39,20 @@ public class SerializationConfig {
 		this.typeMetaInfo = typeMetaInfo;
 	}
 
-	public boolean isEncodeBytesDebugEnabled() {
-		return encodeBytesDebugEnabled;
-	}
-
-	public void setEncodeBytesDebugEnabled(boolean encodeBytesDebugEnabled) {
-		this.encodeBytesDebugEnabled = encodeBytesDebugEnabled;
-	}
-
-	public boolean isDecodeBytesDebugEnabled() {
-		return decodeBytesDebugEnabled;
-	}
-
-	public void setDecodeBytesDebugEnabled(boolean decodeBytesDebugEnabled) {
-		this.decodeBytesDebugEnabled = decodeBytesDebugEnabled;
-	}
-
 	public int getDumpBytes() {
 		return dumpBytes;
 	}
 
 	public void setDumpBytes(int dumpBytes) {
 		this.dumpBytes = dumpBytes;
+	}
+
+	public boolean isSerializeBytesDebugEnabled() {
+		return serializeBytesDebugEnabled;
+	}
+
+	public void setSerializeBytesDebugEnabled(boolean serializeBytesDebugEnabled) {
+		this.serializeBytesDebugEnabled = serializeBytesDebugEnabled;
 	}
 
 	public String getEncryptKey() {

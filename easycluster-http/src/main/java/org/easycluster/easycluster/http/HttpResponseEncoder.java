@@ -124,6 +124,6 @@ public class HttpResponseEncoder implements Transformer<Object, HttpResponse> {
 
 	public void setSerializationConfig(SerializationConfig serializationConfig) {
 		this.dumpBytes = serializationConfig.getDumpBytes();
-		this.isDebugEnabled = serializationConfig.isDecodeBytesDebugEnabled();
+		this.isDebugEnabled = serializationConfig.isSerializeBytesDebugEnabled();
 	}
 }

@@ -123,7 +123,7 @@ public class HttpRequestEncoder implements Transformer<Object, HttpRequest> {
 
 	public void setSerializationConfig(SerializationConfig serializationConfig) {
 		this.dumpBytes = serializationConfig.getDumpBytes();
-		this.isDebugEnabled = serializationConfig.isDecodeBytesDebugEnabled();
+		this.isDebugEnabled = serializationConfig.isSerializeBytesDebugEnabled();
 	}
 
 }

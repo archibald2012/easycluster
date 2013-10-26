@@ -111,7 +111,7 @@ public class HttpRequestDecoder implements Transformer<HttpRequest, Object> {
 	public void setSerializationConfig(SerializationConfig serializationConfig) {
 		this.typeMetaInfo = serializationConfig.getTypeMetaInfo();
 		this.dumpBytes = serializationConfig.getDumpBytes();
-		this.isDebugEnabled = serializationConfig.isDecodeBytesDebugEnabled();
+		this.isDebugEnabled = serializationConfig.isSerializeBytesDebugEnabled();
 	}
 
 }
