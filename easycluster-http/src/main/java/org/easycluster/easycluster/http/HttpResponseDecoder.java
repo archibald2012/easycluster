@@ -48,7 +48,7 @@ public class HttpResponseDecoder implements Transformer<HttpResponse, Object> {
 			return null;
 		}
 
-		int messageCode = Integer.parseInt(from.getHeader("Msg-Code"));
+		int messageCode = Integer.parseInt(from.getHeader(NettyConstants.MSG_CODE));
 
 		ChannelBuffer content = from.getContent();
 		byte[] bytes = new byte[content.readableBytes()];

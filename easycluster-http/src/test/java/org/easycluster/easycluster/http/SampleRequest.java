@@ -19,7 +19,7 @@ public class SampleRequest extends AbstractXipSignal implements XipRequest, Seri
 
 	@ByteField(index = 0)
 	@TLVAttribute(tag = 0)
-	@KeyValueAttribute(key = "intField")
+	@KeyValueAttribute(key = "intField", nullable = false)
 	private int					intField;
 
 	@ByteField(index = 1)

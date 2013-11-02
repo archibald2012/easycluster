@@ -59,7 +59,7 @@ public class HttpRequestDecoder implements Transformer<HttpRequest, Object> {
 		String requestCode = requestCodeGetter.transform(request);
 		if (!NumberUtils.isDigits(requestCode)) {
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("request code {} is not digit.", requestCode);
+				LOGGER.debug("request code {} is not digit, ignore.", requestCode);
 			}
 			return null;
 		}

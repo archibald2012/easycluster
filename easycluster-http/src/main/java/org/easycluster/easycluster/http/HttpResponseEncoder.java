@@ -63,7 +63,7 @@ public class HttpResponseEncoder implements Transformer<Object, HttpResponse> {
 		}
 
 		DefaultHttpResponse resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-		resp.setHeader("Msg-Code", attr.messageCode());
+		resp.setHeader(NettyConstants.MSG_CODE, attr.messageCode());
 
 		if (null != bytes) {
 			resp.setContent(ChannelBuffers.wrappedBuffer(bytes));

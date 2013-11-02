@@ -39,6 +39,7 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 	private final ChannelLocal<Endpoint>		endpoints				= new ChannelLocal<Endpoint>();
 	private Transformer<HttpRequest, Object>	requestTransformer		= null;
 	private Transformer<Object, HttpResponse>	responseTransformer		= null;
+	private HttpResponseSender					responseSender			= new HttpResponseSender();
 
 	public HttpServerChannelHandler(ChannelGroup channelGroup, MessageClosureRegistry messageHandlerRegistry, MessageExecutor messageExecutor) {
 		this.channelGroup = channelGroup;
@@ -93,7 +94,7 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 		}
 
 		Channel channel = e.getChannel();
-		Object request = e.getMessage();
+		HttpRequest request = (HttpRequest) e.getMessage();
 
 		Endpoint endpoint = getEndpointOfSession(channel);
 
@@ -108,14 +109,26 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 
 		if (null != endpoint) {
 
-			Object signal = requestTransformer.transform((HttpRequest) request);
+			Object signal = null;
+			try {
+				signal = requestTransformer.transform(request);
+			} catch (Exception ex) {
+				LOGGER.error("", ex);
+				HttpResponse resp = ConstantResponse.RESPONSE_400_NOBODY;
+				String uuid = request.getHeader(NettyConstants.HEADER_UUID);
+				if (uuid != null) {
+					resp.setHeader(NettyConstants.HEADER_UUID, uuid);
+				}
+				responseSender.sendResponse(channel, resp);
+				return;
+			}
 			if (signal == null) {
 				return;
 			}
 
 			TransportUtil.attachSender(signal, endpoint);
 
-			HttpResponseHandler responseHandler = new HttpResponseHandler(channel, (HttpRequest) request, signal);
+			HttpResponseHandler responseHandler = new HttpResponseHandler(channel, request, signal);
 
 			if (!messageHandlerRegistry.messageRegistered(signal.getClass())) {
 				String error = String.format("No such message of type %s registered", signal.getClass().getName());
@@ -174,7 +187,7 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 
 			Object requestId = keyTransformer.transform(request);
 			if (requestId != null) {
-				response.setHeader("uuid", requestId);
+				response.setHeader(NettyConstants.HEADER_UUID, requestId);
 			}
 
 			String keepAlive = request.getHeader(HttpHeaders.Names.CONNECTION);
@@ -227,6 +240,10 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 
 	public void setResponseTransformer(Transformer<Object, HttpResponse> responseTransformer) {
 		this.responseTransformer = responseTransformer;
+	}
+
+	public void setResponseSender(HttpResponseSender responseSender) {
+		this.responseSender = responseSender;
 	}
 
 }

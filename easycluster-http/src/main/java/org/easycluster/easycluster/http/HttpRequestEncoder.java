@@ -62,7 +62,7 @@ public class HttpRequestEncoder implements Transformer<Object, HttpRequest> {
 
 		HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, uri);
 
-		request.setHeader("uuid", UUID.randomUUID());
+		request.setHeader(NettyConstants.HEADER_UUID, UUID.randomUUID());
 
 		if (bytes != null) {
 			request.setHeader(HttpHeaders.Names.CONTENT_LENGTH, bytes.length);

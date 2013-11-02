@@ -435,6 +435,12 @@ public class ZooKeeperClusterManager implements ClusterManager {
 			LOGGER.error("{} when already connected", event);
 			return;
 		}
+		if (zooKeeper == null) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException ignore) {
+			}
+		}
 
 		doWithZooKeeper(event, zooKeeper, new ZooKeeperStatement() {
 			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {

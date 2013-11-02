@@ -1,5 +1,9 @@
 package org.easycluster.easycluster.http;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -23,6 +27,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.alibaba.fastjson.JSON;
+
 public class HttpNetworkTestCase {
 
 	private HttpServer	server;
@@ -40,6 +46,90 @@ public class HttpNetworkTestCase {
 		if (server != null) {
 			server.stop();
 		}
+	}
+
+	@Test
+	public void testOpenUrl_success() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.http");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+
+		SerializationConfig decodeSerializeConfig = new SerializationConfig();
+		decodeSerializeConfig.setTypeMetaInfo(typeMetaInfo);
+		decodeSerializeConfig.setSerializeBytesDebugEnabled(true);
+		decodeSerializeConfig.setSerializeType(SerializeType.KV);
+		serverConfig.setDecodeSerializeConfig(decodeSerializeConfig);
+		SerializationConfig encodeSerializeConfig = new SerializationConfig();
+		encodeSerializeConfig.setTypeMetaInfo(typeMetaInfo);
+		encodeSerializeConfig.setSerializeBytesDebugEnabled(true);
+		encodeSerializeConfig.setSerializeType(SerializeType.JSON);
+		serverConfig.setEncodeSerializeConfig(encodeSerializeConfig);
+
+		server = new HttpServer(serverConfig);
+		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
+		server.start();
+
+		String href = "http://127.0.0.1:6000/289?intField=1234&byteField=1&stringField=22222";
+
+		BufferedReader br = null;
+		try {
+			URL url = new URL(href);
+			br = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
+
+			StringBuffer sb = new StringBuffer();
+			String line = "";
+			while ((line = br.readLine()) != null) {
+				sb.append(line);
+			}
+
+			System.out.println(JSON.parse(sb.toString()));
+		} finally {
+			if (br != null) {
+				br.close();
+			}
+		}
+	}
+
+	@Test(expected = IOException.class)
+	public void testOpenUrl_nullField() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.http");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+
+		SerializationConfig decodeSerializeConfig = new SerializationConfig();
+		decodeSerializeConfig.setTypeMetaInfo(typeMetaInfo);
+		decodeSerializeConfig.setSerializeBytesDebugEnabled(true);
+		decodeSerializeConfig.setSerializeType(SerializeType.KV);
+		serverConfig.setDecodeSerializeConfig(decodeSerializeConfig);
+		SerializationConfig encodeSerializeConfig = new SerializationConfig();
+		encodeSerializeConfig.setTypeMetaInfo(typeMetaInfo);
+		encodeSerializeConfig.setSerializeBytesDebugEnabled(true);
+		encodeSerializeConfig.setSerializeType(SerializeType.JSON);
+		serverConfig.setEncodeSerializeConfig(encodeSerializeConfig);
+
+		server = new HttpServer(serverConfig);
+		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
+		server.start();
+
+		String href = "http://127.0.0.1:6000/289?byteField=1&stringField=22222";
+
+		URL url = new URL(href);
+		url.openStream();
+
 	}
 
 	@Test
@@ -76,7 +166,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
@@ -117,7 +207,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
-		
+
 		server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
@@ -132,7 +222,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
@@ -198,7 +288,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
-		
+
 		server = new HttpServer(serverConfig);
 		server.start();
 
@@ -213,7 +303,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		clientConfig.setWriteTimeoutMillis(600000);
 
 		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
@@ -287,7 +377,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
-		
+
 		server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
@@ -304,7 +394,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
@@ -352,7 +442,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.TLV);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
-		
+
 		server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
@@ -369,7 +459,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.TLV);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
@@ -417,7 +507,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.KV);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
-		
+
 		server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
@@ -434,7 +524,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.KV);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
@@ -463,7 +553,7 @@ public class HttpNetworkTestCase {
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
 	}
-	
+
 	@Test
 	public void testKvInJsonOut() throws Exception {
 		List<String> packages = new ArrayList<String>();
@@ -487,7 +577,7 @@ public class HttpNetworkTestCase {
 		decodeConfig.setSerializeBytesDebugEnabled(true);
 		decodeConfig.setSerializeType(SerializeType.KV);
 		serverConfig.setDecodeSerializeConfig(decodeConfig);
-		
+
 		server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
@@ -509,7 +599,7 @@ public class HttpNetworkTestCase {
 		clientDecodeConfig.setSerializeBytesDebugEnabled(true);
 		clientDecodeConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setDecodeSerializeConfig(clientDecodeConfig);
-		
+
 		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
@@ -555,7 +645,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.TLV);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
-		
+
 		server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
@@ -572,7 +662,7 @@ public class HttpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.TLV);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		client.registerRequest(SampleRequest.class, SampleResponse.class);
 		client.start();
@@ -642,7 +732,7 @@ public class HttpNetworkTestCase {
 		codecConfig.setSerializeType(SerializeType.KV);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
-		
+
 		server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
