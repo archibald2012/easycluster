@@ -4,6 +4,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+
 import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.NettyIoServer;
@@ -19,9 +22,12 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.jboss.netty.handler.codec.frame.DelimiterBasedFrameDecoder;
+import org.jboss.netty.handler.codec.frame.Delimiters;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
 import org.jboss.netty.handler.codec.http.HttpServerCodec;
 import org.jboss.netty.handler.logging.LoggingHandler;
+import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 
@@ -50,6 +56,8 @@ public class HttpServer extends NetworkServer {
 		encoder.setDebugEnabled(config.getEncodeSerializeConfig().isSerializeBytesDebugEnabled());
 		encoder.setDumpBytes(config.getEncodeSerializeConfig().getDumpBytes());
 
+		requestHandler.setResponseTransformer(encoder);
+
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
 		decoder.setSerialization(new DefaultSerializationFactory(config.getDecodeSerializeConfig()).getSerialization());
 		decoder.setTypeMetaInfo(config.getDecodeSerializeConfig().getTypeMetaInfo());
@@ -57,7 +65,8 @@ public class HttpServer extends NetworkServer {
 		decoder.setDebugEnabled(config.getDecodeSerializeConfig().isSerializeBytesDebugEnabled());
 
 		requestHandler.setRequestTransformer(decoder);
-		requestHandler.setResponseTransformer(encoder);
+
+		final SSLContext sslContext = config.getSslConfig() != null ? new SslContextFactory(config.getSslConfig()).getServerContext() : null;
 
 		ServerBootstrap bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(workerExecutor, workerExecutor));
 
@@ -78,11 +87,20 @@ public class HttpServer extends NetworkServer {
 
 				p.addFirst("logging", loggingHandler);
 
+				if (sslContext != null) {
+					SSLEngine engine = sslContext.createSSLEngine();
+					engine.setUseClientMode(false);
+					p.addLast("ssl", new SslHandler(engine));
+					// On top of the SSL handler, add the text line codec.
+					p.addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
+				}
+
 				// HttpServerCodec is not thread-safe
 				p.addLast("codec", new HttpServerCodec());
 				p.addLast("aggregator", new HttpChunkAggregator(config.getDecodeSerializeConfig().getMaxContentLength()));
 				p.addLast("idleHandler", idleStateHandler);
 				p.addLast("handler", requestHandler);
+
 				return p;
 			}
 		});

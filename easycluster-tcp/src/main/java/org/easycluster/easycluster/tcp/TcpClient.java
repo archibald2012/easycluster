@@ -50,14 +50,14 @@ public class TcpClient extends NetworkClient {
 
 				TcpBeanEncoder encoder = new TcpBeanEncoder();
 				final SerializationConfig encodeSerializeConfig = config.getEncodeSerializeConfig();
-				encoder.setDebugEnabled(encodeSerializeConfig.isEncodeBytesDebugEnabled());
+				encoder.setDebugEnabled(encodeSerializeConfig.isSerializeBytesDebugEnabled());
 				encoder.setDumpBytes(encodeSerializeConfig.getDumpBytes());
 				encoder.setSerialization(new DefaultSerializationFactory(encodeSerializeConfig).getSerialization());
 				p.addLast("encoder", encoder);
 
 				TcpBeanDecoder decoder = new TcpBeanDecoder();
 				SerializationConfig decodeSerializeConfig = config.getDecodeSerializeConfig();
-				decoder.setDebugEnabled(decodeSerializeConfig.isDecodeBytesDebugEnabled());
+				decoder.setDebugEnabled(decodeSerializeConfig.isSerializeBytesDebugEnabled());
 				decoder.setDumpBytes(decodeSerializeConfig.getDumpBytes());
 				decoder.setTypeMetaInfo(decodeSerializeConfig.getTypeMetaInfo());
 				decoder.setMaxMessageLength(decodeSerializeConfig.getMaxContentLength());

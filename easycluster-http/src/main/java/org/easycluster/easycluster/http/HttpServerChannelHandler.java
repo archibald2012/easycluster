@@ -1,5 +1,7 @@
 package org.easycluster.easycluster.http;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.cluster.netty.endpoint.DefaultEndpointFactory;
 import org.easycluster.easycluster.cluster.netty.endpoint.Endpoint;
@@ -12,6 +14,8 @@ import org.easycluster.easycluster.core.KeyTransformer;
 import org.easycluster.easycluster.core.Transformer;
 import org.easycluster.easycluster.core.TransportUtil;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelLocal;
 import org.jboss.netty.channel.ChannelStateEvent;
@@ -22,6 +26,7 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.timeout.IdleStateAwareChannelUpstreamHandler;
 import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
@@ -59,6 +64,29 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 		}
 		channelGroup.add(channel);
 
+	}
+
+	@Override
+	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+		final SslHandler sslHandler = ctx.getPipeline().get(SslHandler.class);
+		if (sslHandler != null) {
+			// Get notified when SSL handshake is done.
+			ChannelFuture handshakeFuture = sslHandler.handshake();
+			handshakeFuture.addListener(new ChannelFutureListener() {
+
+				@Override
+				public void operationComplete(ChannelFuture future) throws Exception {
+					if (future.isSuccess()) {
+						if (LOGGER.isInfoEnabled()) {
+							LOGGER.info("Your session is protected by " + sslHandler.getEngine().getSession().getCipherSuite() + " cipher suite.\n");
+						}
+						future.getChannel().write("Your session is protected by " + sslHandler.getEngine().getSession().getCipherSuite() + " cipher suite.\n");
+					} else {
+						future.getChannel().close();
+					}
+				}
+			});
+		}
 	}
 
 	@Override
@@ -107,6 +135,11 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 			endpoint = getEndpointOfSession(channel);
 		}
 
+		if ("/favicon.ico".equals(request.getUri())) {
+			responseSender.sendNotFoundResponse(channel);
+			return;
+		}
+
 		if (null != endpoint) {
 
 			Object signal = null;
@@ -120,9 +153,6 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 					resp.setHeader(NettyConstants.HEADER_UUID, uuid);
 				}
 				responseSender.sendResponse(channel, resp);
-				return;
-			}
-			if (signal == null) {
 				return;
 			}
 
@@ -174,6 +204,9 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 
 		@Override
 		public void execute(Object message) {
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Reply message: {}", ToStringBuilder.reflectionToString(message, ToStringStyle.SHORT_PREFIX_STYLE));
+			}
 
 			HttpResponse response = null;
 			if (message instanceof Exception) {

@@ -9,13 +9,13 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface TLVAttribute {
 
-	public abstract int tag();
+	int tag();
 
-	public abstract Class<?> type() default TLVAttribute.class;
+	Class<?> type() default TLVAttribute.class;
 
-	public abstract String charset() default "";
+	String charset() default "";
 
-	public abstract String description() default "";
+	String description() default "";
 
-	public abstract int bytes() default -1;
+	int bytes() default -1;
 }

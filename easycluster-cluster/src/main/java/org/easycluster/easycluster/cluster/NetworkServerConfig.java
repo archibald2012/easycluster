@@ -72,6 +72,8 @@ public class NetworkServerConfig {
 
 	private EventHandler		clusterEventHandler				= null;
 
+	private SslConfig			sslConfig						= null;
+
 	public String getServiceGroup() {
 		return serviceGroup;
 	}
@@ -222,6 +224,14 @@ public class NetworkServerConfig {
 
 	public void setMutexInstance(boolean mutexInstance) {
 		this.mutexInstance = mutexInstance;
+	}
+
+	public SslConfig getSslConfig() {
+		return sslConfig;
+	}
+
+	public void setSslConfig(SslConfig sslConfig) {
+		this.sslConfig = sslConfig;
 	}
 
 }

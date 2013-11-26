@@ -91,7 +91,7 @@ public class TcpNetworkTestCase {
 		serverConfig.setPort(6000);
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setDecodeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
 
@@ -149,8 +149,8 @@ public class TcpNetworkTestCase {
 		serverConfig.setPort(6000);
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
@@ -168,8 +168,8 @@ public class TcpNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setDecodeBytesDebugEnabled(true);
-		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
@@ -212,8 +212,8 @@ public class TcpNetworkTestCase {
 		serverConfig.setPort(6000);
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
@@ -253,8 +253,8 @@ public class TcpNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setDecodeBytesDebugEnabled(true);
-		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
@@ -302,8 +302,8 @@ public class TcpNetworkTestCase {
 		serverConfig.setPort(6000);
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
 		codecConfig.setSerializeType(SerializeType.JAVA);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
@@ -319,8 +319,8 @@ public class TcpNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setDecodeBytesDebugEnabled(true);
-		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeType(SerializeType.JAVA);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
@@ -362,8 +362,8 @@ public class TcpNetworkTestCase {
 		serverConfig.setPort(6000);
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
 		codecConfig.setSerializeType(SerializeType.BYTE_BEAN);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
@@ -379,8 +379,8 @@ public class TcpNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setDecodeBytesDebugEnabled(true);
-		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeType(SerializeType.BYTE_BEAN);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
@@ -423,8 +423,8 @@ public class TcpNetworkTestCase {
 		serverConfig.setPort(6000);
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
 		codecConfig.setSerializeType(SerializeType.TLV);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
@@ -440,8 +440,8 @@ public class TcpNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setDecodeBytesDebugEnabled(true);
-		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeType(SerializeType.TLV);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
@@ -485,8 +485,8 @@ public class TcpNetworkTestCase {
 		serverConfig.setPort(6000);
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
 		codecConfig.setSerializeType(SerializeType.KV);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
@@ -501,8 +501,8 @@ public class TcpNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setDecodeBytesDebugEnabled(true);
-		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeType(SerializeType.KV);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);

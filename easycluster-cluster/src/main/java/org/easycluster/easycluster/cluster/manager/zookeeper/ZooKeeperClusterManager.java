@@ -94,7 +94,7 @@ public class ZooKeeperClusterManager implements ClusterManager {
 			LOGGER.debug("Handling a Shutdown message");
 		}
 
-		doWithZooKeeper("Expired", zooKeeper, new ZooKeeperStatement() {
+		doWithZooKeeper("shutdown", zooKeeper, new ZooKeeperStatement() {
 			public void doInZooKeeper(ZooKeeper zk) throws KeeperException, InterruptedException {
 				connected = false;
 				currentNodes.clear();

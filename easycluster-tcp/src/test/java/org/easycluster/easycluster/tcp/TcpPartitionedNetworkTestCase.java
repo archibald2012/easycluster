@@ -67,8 +67,8 @@ public class TcpPartitionedNetworkTestCase {
 
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
@@ -99,8 +99,8 @@ public class TcpPartitionedNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setDecodeBytesDebugEnabled(true);
-		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
@@ -147,8 +147,8 @@ public class TcpPartitionedNetworkTestCase {
 
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
@@ -179,8 +179,8 @@ public class TcpPartitionedNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setDecodeBytesDebugEnabled(true);
-		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
@@ -230,8 +230,8 @@ public class TcpPartitionedNetworkTestCase {
 
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
@@ -262,8 +262,8 @@ public class TcpPartitionedNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setDecodeBytesDebugEnabled(true);
-		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
@@ -309,8 +309,8 @@ public class TcpPartitionedNetworkTestCase {
 
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
@@ -328,8 +328,8 @@ public class TcpPartitionedNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setDecodeBytesDebugEnabled(true);
-		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
@@ -367,8 +367,8 @@ public class TcpPartitionedNetworkTestCase {
 
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
@@ -386,8 +386,8 @@ public class TcpPartitionedNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setDecodeBytesDebugEnabled(true);
-		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
@@ -427,8 +427,8 @@ public class TcpPartitionedNetworkTestCase {
 
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
-		codecConfig.setDecodeBytesDebugEnabled(true);
-		codecConfig.setEncodeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
@@ -446,8 +446,8 @@ public class TcpPartitionedNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setDecodeBytesDebugEnabled(true);
-		clientCodecConfig.setEncodeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
@@ -500,7 +500,7 @@ public class TcpPartitionedNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setDecodeBytesDebugEnabled(false);
+		clientCodecConfig.setSerializeBytesDebugEnabled(false);
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);

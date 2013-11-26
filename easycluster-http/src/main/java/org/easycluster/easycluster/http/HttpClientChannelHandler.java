@@ -4,13 +4,17 @@ import org.easycluster.easycluster.cluster.common.MessageContext;
 import org.easycluster.easycluster.cluster.netty.MessageContextHolder;
 import org.easycluster.easycluster.core.KeyTransformer;
 import org.easycluster.easycluster.core.Transformer;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.ssl.SslHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +29,31 @@ public class HttpClientChannelHandler extends SimpleChannelHandler {
 
 	public HttpClientChannelHandler(MessageContextHolder messageContextHolder) {
 		this.messageContextHolder = messageContextHolder;
+	}
+
+	@Override
+	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+		final SslHandler sslHandler = ctx.getPipeline().get(SslHandler.class);
+		if (sslHandler != null) {
+			ChannelFuture handshakeFuture = sslHandler.handshake();
+			handshakeFuture.addListener(new ChannelFutureListener() {
+
+				@Override
+				public void operationComplete(ChannelFuture future) throws Exception {
+					if (future.isSuccess()) {
+						if (LOGGER.isInfoEnabled()) {
+							LOGGER.info("Your session is protected by " + sslHandler.getEngine().getSession().getCipherSuite() + " cipher suite.\n");
+						}
+						future.getChannel().write("Your session is protected by " + sslHandler.getEngine().getSession().getCipherSuite() + " cipher suite.\n");
+					} else {
+						future.getChannel().close();
+					}
+				}
+			});
+			
+			Thread.sleep(3000);
+			
+		}
 	}
 
 	@Override

@@ -58,6 +58,8 @@ public class NetworkClientConfig {
 
 	private SerializationConfig	encodeSerializeConfig				= null;
 
+	private SslConfig			sslConfig							= null;
+
 	public String getServiceGroup() {
 		return serviceGroup;
 	}
@@ -152,6 +154,14 @@ public class NetworkClientConfig {
 
 	public void setMutexInstance(boolean mutexInstance) {
 		this.mutexInstance = mutexInstance;
+	}
+
+	public SslConfig getSslConfig() {
+		return sslConfig;
+	}
+
+	public void setSslConfig(SslConfig sslConfig) {
+		this.sslConfig = sslConfig;
 	}
 
 }

@@ -3,6 +3,9 @@ package org.easycluster.easycluster.http;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+
 import org.easycluster.easycluster.cluster.NetworkClientConfig;
 import org.easycluster.easycluster.cluster.client.NetworkClient;
 import org.easycluster.easycluster.cluster.client.loadbalancer.LoadBalancerFactory;
@@ -16,9 +19,12 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.DefaultChannelPipeline;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
+import org.jboss.netty.handler.codec.frame.DelimiterBasedFrameDecoder;
+import org.jboss.netty.handler.codec.frame.Delimiters;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
 import org.jboss.netty.handler.codec.http.HttpClientCodec;
 import org.jboss.netty.handler.logging.LoggingHandler;
+import org.jboss.netty.handler.ssl.SslHandler;
 
 public class HttpClient extends NetworkClient {
 
@@ -38,12 +44,14 @@ public class HttpClient extends NetworkClient {
 		decoder.setDebugEnabled(config.getDecodeSerializeConfig().isSerializeBytesDebugEnabled());
 		decoder.setDumpBytes(config.getDecodeSerializeConfig().getDumpBytes());
 		decoder.setTypeMetaInfo(config.getDecodeSerializeConfig().getTypeMetaInfo());
-		
+
 		MessageContextHolder holder = new MessageContextHolder(messageRegistry, config.getStaleRequestTimeoutMins(),
 				config.getStaleRequestCleanupFrequencyMins());
 		final HttpClientChannelHandler handler = new HttpClientChannelHandler(holder);
 		handler.setRequestTransformer(encoder);
 		handler.setResponseTransformer(decoder);
+
+		final SSLContext sslContext = config.getSslConfig() != null ? new SslContextFactory(config.getSslConfig()).getClientContext() : null;
 
 		bootstrap.setOption("tcpNoDelay", true);
 		bootstrap.setOption("keepAlive", true);
@@ -57,6 +65,15 @@ public class HttpClient extends NetworkClient {
 				ChannelPipeline p = new DefaultChannelPipeline();
 
 				p.addFirst("logging", loggingHandler);
+
+				if (sslContext != null) {
+					SSLEngine engine = sslContext.createSSLEngine();
+					engine.setUseClientMode(false);
+					p.addLast("ssl", new SslHandler(engine));
+					// On top of the SSL handler, add the text line codec.
+					p.addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
+				}
+
 				p.addLast("codec", new HttpClientCodec());
 				p.addLast("aggregator", new HttpChunkAggregator(config.getDecodeSerializeConfig().getMaxContentLength()));
 				p.addLast("handler", handler);

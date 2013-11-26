@@ -17,6 +17,7 @@ import junit.framework.Assert;
 
 import org.easycluster.easycluster.cluster.NetworkClientConfig;
 import org.easycluster.easycluster.cluster.NetworkServerConfig;
+import org.easycluster.easycluster.cluster.SslConfig;
 import org.easycluster.easycluster.cluster.client.loadbalancer.RoundRobinLoadBalancerFactory;
 import org.easycluster.easycluster.cluster.serialization.SerializationConfig;
 import org.easycluster.easycluster.cluster.serialization.SerializeType;
@@ -47,6 +48,83 @@ public class HttpNetworkTestCase {
 			server.stop();
 		}
 	}
+
+//	@Test
+//	public void testSend_sslEnabled() throws Exception {
+//
+//		List<String> packages = new ArrayList<String>();
+//		packages.add("org.easycluster.easycluster.http");
+//		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+//
+//		NetworkServerConfig serverConfig = new NetworkServerConfig();
+//		serverConfig.setServiceGroup("app");
+//		serverConfig.setService("test");
+//		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+//		serverConfig.setPort(6000);
+//
+//		SslConfig sslConfig = new SslConfig();
+//		sslConfig.setKeyStore("/tmp/.serverkeystore");
+//		sslConfig.setKeyStorePassword("123456");
+//		serverConfig.setSslConfig(sslConfig);
+//
+//		SerializationConfig decodeSerializeConfig = new SerializationConfig();
+//		decodeSerializeConfig.setTypeMetaInfo(typeMetaInfo);
+//		decodeSerializeConfig.setSerializeBytesDebugEnabled(true);
+//		decodeSerializeConfig.setSerializeType(SerializeType.KV);
+//		serverConfig.setDecodeSerializeConfig(decodeSerializeConfig);
+//
+//		SerializationConfig encodeSerializeConfig = new SerializationConfig();
+//		encodeSerializeConfig.setTypeMetaInfo(typeMetaInfo);
+//		encodeSerializeConfig.setSerializeBytesDebugEnabled(true);
+//		encodeSerializeConfig.setSerializeType(SerializeType.JSON);
+//
+//		serverConfig.setEncodeSerializeConfig(encodeSerializeConfig);
+//
+//		server = new HttpServer(serverConfig);
+//		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
+//		server.start();
+//
+//		NetworkClientConfig clientConfig = new NetworkClientConfig();
+//		clientConfig.setServiceGroup("app");
+//		clientConfig.setService("test");
+//		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+//
+//		SslConfig clientSslConfig = new SslConfig();
+//		clientSslConfig.setTrustStore("/tmp/.clientkeystore");
+//		clientSslConfig.setTrustStorePassword("123456");
+//		clientConfig.setSslConfig(clientSslConfig);
+//
+//		SerializationConfig clientCodecConfig = new SerializationConfig();
+//		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+//		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+//		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
+//		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
+//
+//		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+//		client.registerRequest(SampleRequest.class, SampleResponse.class);
+//		client.start();
+//
+//		SampleRequest request = new SampleRequest();
+//		request.setIntField(1);
+//		request.setShortField((byte) 1);
+//		request.setByteField((byte) 1);
+//		request.setLongField(1L);
+//		request.setStringField("test");
+//
+//		request.setByteArrayField(new byte[] { 127 });
+//
+//		Future<Object> future = client.sendMessage(request);
+//
+//		Thread.sleep(50000);
+//
+//		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
+//		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+//		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+//		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+//		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+//		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
+//
+//	}
 
 	@Test
 	public void testOpenUrl_success() throws Exception {
@@ -148,7 +226,6 @@ public class HttpNetworkTestCase {
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		codecConfig.setSerializeBytesDebugEnabled(true);
-		codecConfig.setSerializeBytesDebugEnabled(true);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
 
@@ -162,7 +239,6 @@ public class HttpNetworkTestCase {
 		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
@@ -373,7 +449,6 @@ public class HttpNetworkTestCase {
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		codecConfig.setSerializeBytesDebugEnabled(true);
-		codecConfig.setSerializeBytesDebugEnabled(true);
 		codecConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
@@ -389,7 +464,6 @@ public class HttpNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
@@ -438,7 +512,6 @@ public class HttpNetworkTestCase {
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		codecConfig.setSerializeBytesDebugEnabled(true);
-		codecConfig.setSerializeBytesDebugEnabled(true);
 		codecConfig.setSerializeType(SerializeType.TLV);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
@@ -454,7 +527,6 @@ public class HttpNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeType(SerializeType.TLV);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
@@ -503,7 +575,6 @@ public class HttpNetworkTestCase {
 		SerializationConfig codecConfig = new SerializationConfig();
 		codecConfig.setTypeMetaInfo(typeMetaInfo);
 		codecConfig.setSerializeBytesDebugEnabled(true);
-		codecConfig.setSerializeBytesDebugEnabled(true);
 		codecConfig.setSerializeType(SerializeType.KV);
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
@@ -519,7 +590,6 @@ public class HttpNetworkTestCase {
 
 		SerializationConfig clientCodecConfig = new SerializationConfig();
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
-		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeBytesDebugEnabled(true);
 		clientCodecConfig.setSerializeType(SerializeType.KV);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
@@ -568,12 +638,10 @@ public class HttpNetworkTestCase {
 		SerializationConfig encodeConfig = new SerializationConfig();
 		encodeConfig.setTypeMetaInfo(typeMetaInfo);
 		encodeConfig.setSerializeBytesDebugEnabled(true);
-		encodeConfig.setSerializeBytesDebugEnabled(true);
 		encodeConfig.setSerializeType(SerializeType.JSON);
 		serverConfig.setEncodeSerializeConfig(encodeConfig);
 		SerializationConfig decodeConfig = new SerializationConfig();
 		decodeConfig.setTypeMetaInfo(typeMetaInfo);
-		decodeConfig.setSerializeBytesDebugEnabled(true);
 		decodeConfig.setSerializeBytesDebugEnabled(true);
 		decodeConfig.setSerializeType(SerializeType.KV);
 		serverConfig.setDecodeSerializeConfig(decodeConfig);
@@ -590,12 +658,10 @@ public class HttpNetworkTestCase {
 		SerializationConfig clientEncodeConfig = new SerializationConfig();
 		clientEncodeConfig.setTypeMetaInfo(typeMetaInfo);
 		clientEncodeConfig.setSerializeBytesDebugEnabled(true);
-		clientEncodeConfig.setSerializeBytesDebugEnabled(true);
 		clientEncodeConfig.setSerializeType(SerializeType.KV);
 		clientConfig.setEncodeSerializeConfig(clientEncodeConfig);
 		SerializationConfig clientDecodeConfig = new SerializationConfig();
 		clientDecodeConfig.setTypeMetaInfo(typeMetaInfo);
-		clientDecodeConfig.setSerializeBytesDebugEnabled(true);
 		clientDecodeConfig.setSerializeBytesDebugEnabled(true);
 		clientDecodeConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setDecodeSerializeConfig(clientDecodeConfig);
