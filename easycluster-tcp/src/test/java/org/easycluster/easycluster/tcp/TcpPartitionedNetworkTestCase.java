@@ -22,6 +22,7 @@ import org.easycluster.easycluster.cluster.exception.NoNodesAvailableException;
 import org.easycluster.easycluster.cluster.serialization.SerializationConfig;
 import org.easycluster.easycluster.cluster.serialization.SerializeType;
 import org.easycluster.easycluster.cluster.server.MessageClosure;
+import org.easycluster.easycluster.cluster.ssl.SSLConfig;
 import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
 import org.junit.After;
@@ -539,6 +540,105 @@ public class TcpPartitionedNetworkTestCase {
 			client1Responses.add((SampleResponse) futures.get(i).get(60, TimeUnit.SECONDS));
 		}
 		Assert.assertEquals(num, client1Responses.size());
+
+	}
+
+	@Test
+	public void testSendMessageTls_ManyPartition() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.tcp");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		serverConfig.setPartitions(new Integer[] { 1 });
+
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeType(SerializeType.JSON);
+		serverConfig.setEncodeSerializeConfig(codecConfig);
+		serverConfig.setDecodeSerializeConfig(codecConfig);
+
+		SSLConfig sslConfig = new SSLConfig();
+		sslConfig.setKeyStore("/Users/wangqi/.serverkeystore");
+		sslConfig.setKeyStorePassword("123456");
+		sslConfig.setTrustStore("/Users/wangqi/.servertruststore");
+		sslConfig.setTrustStorePassword("123456");
+		serverConfig.setSslConfig(sslConfig);
+		
+		nettyNetworkServer = new TcpServer(serverConfig);
+		ArrayList<MessageClosure<?, ?>> handlers = new ArrayList<MessageClosure<?, ?>>();
+		handlers.add(new SampleMessageClosure());
+		nettyNetworkServer.setHandlers(handlers);
+		nettyNetworkServer.start();
+
+		NetworkServerConfig serverConfig2 = new NetworkServerConfig();
+		serverConfig2.setServiceGroup("app");
+		serverConfig2.setService("test");
+		serverConfig2.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig2.setPort(6001);
+		serverConfig2.setEncodeSerializeConfig(codecConfig);
+		serverConfig2.setDecodeSerializeConfig(codecConfig);
+		serverConfig2.setPartitions(new Integer[] { 2 });
+
+		serverConfig2.setSslConfig(sslConfig);
+		
+		nettyNetworkServer2 = new TcpServer(serverConfig2);
+		nettyNetworkServer2.setHandlers(handlers);
+		nettyNetworkServer2.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeType(SerializeType.JSON);
+		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
+		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
+		
+		SSLConfig clientSslConfig = new SSLConfig();
+		clientSslConfig.setKeyStore("/Users/wangqi/.clientkeystore");
+		clientSslConfig.setKeyStorePassword("123456");
+		clientSslConfig.setTrustStore("/Users/wangqi/.clienttruststore");
+		clientSslConfig.setTrustStorePassword("123456");
+		clientConfig.setSslConfig(clientSslConfig);
+
+		nettyNetworkClient = new TcpPartitionedClient<Integer>(clientConfig, new IntegerRoundRobinPartitionedLoadBalancerFactory());
+		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
+		nettyNetworkClient.start();
+
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
+
+		request.setByteArrayField(new byte[] { 127 });
+
+		Set<Integer> partitions = new HashSet<Integer>();
+		partitions.add(new Integer(1));
+		partitions.add(new Integer(2));
+		ResponseIterator ri = nettyNetworkClient.sendMessage(partitions, request);
+
+		while (ri.hasNext()) {
+			SampleResponse assertobj = (SampleResponse) ri.next(60L, TimeUnit.SECONDS);
+			Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+			Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+			Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+			Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+			Assert.assertEquals(request.getStringField(), assertobj.getStringField());
+		}
 
 	}
 

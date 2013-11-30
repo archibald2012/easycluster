@@ -1,19 +1,19 @@
-package org.easycluster.easycluster.cluster;
+package org.easycluster.easycluster.cluster.ssl;
 
-public class SslConfig {
+public class SSLConfig {
 	
-	private String	sslProtocol			= "TLS";
+	private String	protocol			= "TLS";
 	private String	keyStore			= null;
 	private String	keyStorePassword	= null;
 	private String	trustStore			= null;
 	private String	trustStorePassword	= null;
 
-	public String getSslProtocol() {
-		return sslProtocol;
+	public String getProtocol() {
+		return protocol;
 	}
 
-	public void setSslProtocol(String sslProtocol) {
-		this.sslProtocol = sslProtocol;
+	public void setProtocol(String protocol) {
+		this.protocol = protocol;
 	}
 
 	public String getKeyStore() {

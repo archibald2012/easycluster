@@ -3,6 +3,9 @@ package org.easycluster.easycluster.tcp;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+
 import org.easycluster.easycluster.cluster.NetworkClientConfig;
 import org.easycluster.easycluster.cluster.client.PartitionedNetworkClient;
 import org.easycluster.easycluster.cluster.client.loadbalancer.PartitionedLoadBalancerFactory;
@@ -12,6 +15,7 @@ import org.easycluster.easycluster.cluster.netty.MessageContextHolder;
 import org.easycluster.easycluster.cluster.netty.NettyIoClient;
 import org.easycluster.easycluster.cluster.serialization.DefaultSerializationFactory;
 import org.easycluster.easycluster.cluster.serialization.SerializationConfig;
+import org.easycluster.easycluster.cluster.ssl.SSLContextFactory;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -19,6 +23,7 @@ import org.jboss.netty.channel.DefaultChannelPipeline;
 import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.logging.LoggingHandler;
+import org.jboss.netty.handler.ssl.SslHandler;
 
 public class TcpPartitionedClient<PartitionedId> extends PartitionedNetworkClient<PartitionedId> {
 
@@ -31,6 +36,8 @@ public class TcpPartitionedClient<PartitionedId> extends PartitionedNetworkClien
 		MessageContextHolder holder = new MessageContextHolder(messageRegistry, config.getStaleRequestTimeoutMins(),
 				config.getStaleRequestCleanupFrequencyMins());
 		final SimpleChannelHandler handler = new ClientChannelHandler(holder);
+
+		final SSLContext sslContext = config.getSslConfig() != null ? new SSLContextFactory().createSslContext(config.getSslConfig()) : null;
 
 		bootstrap.setOption("connectTimeoutMillis", config.getConnectTimeoutMillis());
 		bootstrap.setOption("tcpNoDelay", true);
@@ -45,7 +52,15 @@ public class TcpPartitionedClient<PartitionedId> extends PartitionedNetworkClien
 			public ChannelPipeline getPipeline() throws Exception {
 				ChannelPipeline p = new DefaultChannelPipeline();
 
+				if (sslContext != null) {
+					SSLEngine engine = sslContext.createSSLEngine();
+					engine.setUseClientMode(true);
+					engine.setNeedClientAuth(true);
+					p.addLast("ssl", new SslHandler(engine));
+				}
+
 				p.addFirst("logging", loggingHandler);
+				
 				TcpBeanEncoder encoder = new TcpBeanEncoder();
 				final SerializationConfig encodeSerializeConfig = config.getEncodeSerializeConfig();
 				encoder.setDebugEnabled(encodeSerializeConfig.isSerializeBytesDebugEnabled());

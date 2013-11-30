@@ -4,6 +4,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+
 import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.NettyIoServer;
@@ -13,6 +16,7 @@ import org.easycluster.easycluster.cluster.server.MessageExecutor;
 import org.easycluster.easycluster.cluster.server.NetworkServer;
 import org.easycluster.easycluster.cluster.server.PartitionedThreadPoolMessageExecutor;
 import org.easycluster.easycluster.cluster.server.ThreadPoolMessageExecutor;
+import org.easycluster.easycluster.cluster.ssl.SSLContextFactory;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -21,6 +25,7 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.logging.LoggingHandler;
+import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 
@@ -44,6 +49,8 @@ public class TcpServer extends NetworkServer {
 		final ServerChannelHandler requestHandler = new ServerChannelHandler(config.getService(), channelGroup, messageClosureRegistry, messageExecutor);
 		requestHandler.setEndpointListener(config.getEndpointListener());
 
+		final SSLContext sslContext = config.getSslConfig() != null ? new SSLContextFactory().createSslContext(config.getSslConfig()) : null;
+
 		ServerBootstrap bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(workerExecutor, workerExecutor));
 
 		bootstrap.setOption("reuseAddress", true);
@@ -61,6 +68,12 @@ public class TcpServer extends NetworkServer {
 			public ChannelPipeline getPipeline() throws Exception {
 				ChannelPipeline p = Channels.pipeline();
 
+				if (sslContext != null) {
+					SSLEngine engine = sslContext.createSSLEngine();
+					engine.setUseClientMode(false);
+					p.addLast("ssl", new SslHandler(engine));
+				}
+				
 				p.addFirst("logging", loggingHandler);
 				p.addLast("idleHandler", idleStateHandler);
 

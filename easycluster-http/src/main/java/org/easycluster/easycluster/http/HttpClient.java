@@ -14,13 +14,12 @@ import org.easycluster.easycluster.cluster.netty.ChannelPoolFactory;
 import org.easycluster.easycluster.cluster.netty.MessageContextHolder;
 import org.easycluster.easycluster.cluster.netty.NettyIoClient;
 import org.easycluster.easycluster.cluster.serialization.DefaultSerializationFactory;
+import org.easycluster.easycluster.cluster.ssl.SSLContextFactory;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.DefaultChannelPipeline;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
-import org.jboss.netty.handler.codec.frame.DelimiterBasedFrameDecoder;
-import org.jboss.netty.handler.codec.frame.Delimiters;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
 import org.jboss.netty.handler.codec.http.HttpClientCodec;
 import org.jboss.netty.handler.logging.LoggingHandler;
@@ -51,7 +50,7 @@ public class HttpClient extends NetworkClient {
 		handler.setRequestTransformer(encoder);
 		handler.setResponseTransformer(decoder);
 
-		final SSLContext sslContext = config.getSslConfig() != null ? new SslContextFactory(config.getSslConfig()).getClientContext() : null;
+		final SSLContext sslContext = config.getSslConfig() != null ? new SSLContextFactory().createDummySslContext(config.getSslConfig().getProtocol()) : null;
 
 		bootstrap.setOption("tcpNoDelay", true);
 		bootstrap.setOption("keepAlive", true);
@@ -68,10 +67,9 @@ public class HttpClient extends NetworkClient {
 
 				if (sslContext != null) {
 					SSLEngine engine = sslContext.createSSLEngine();
-					engine.setUseClientMode(false);
+					engine.setUseClientMode(true);
+					engine.setNeedClientAuth(true);
 					p.addLast("ssl", new SslHandler(engine));
-					// On top of the SSL handler, add the text line codec.
-					p.addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
 				}
 
 				p.addLast("codec", new HttpClientCodec());

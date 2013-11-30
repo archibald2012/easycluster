@@ -4,6 +4,7 @@ import org.easycluster.easycluster.cluster.common.SystemUtil;
 import org.easycluster.easycluster.cluster.manager.event.EventHandler;
 import org.easycluster.easycluster.cluster.netty.endpoint.EndpointListener;
 import org.easycluster.easycluster.cluster.serialization.SerializationConfig;
+import org.easycluster.easycluster.cluster.ssl.SSLConfig;
 
 public class NetworkServerConfig {
 
@@ -72,7 +73,7 @@ public class NetworkServerConfig {
 
 	private EventHandler		clusterEventHandler				= null;
 
-	private SslConfig			sslConfig						= null;
+	private SSLConfig			sslConfig						= null;
 
 	public String getServiceGroup() {
 		return serviceGroup;
@@ -226,11 +227,11 @@ public class NetworkServerConfig {
 		this.mutexInstance = mutexInstance;
 	}
 
-	public SslConfig getSslConfig() {
+	public SSLConfig getSslConfig() {
 		return sslConfig;
 	}
 
-	public void setSslConfig(SslConfig sslConfig) {
+	public void setSslConfig(SSLConfig sslConfig) {
 		this.sslConfig = sslConfig;
 	}
 

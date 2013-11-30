@@ -1,6 +1,7 @@
 package org.easycluster.easycluster.cluster;
 
 import org.easycluster.easycluster.cluster.serialization.SerializationConfig;
+import org.easycluster.easycluster.cluster.ssl.SSLConfig;
 
 public class NetworkClientConfig {
 
@@ -58,7 +59,7 @@ public class NetworkClientConfig {
 
 	private SerializationConfig	encodeSerializeConfig				= null;
 
-	private SslConfig			sslConfig							= null;
+	private SSLConfig			sslConfig							= null;
 
 	public String getServiceGroup() {
 		return serviceGroup;
@@ -156,11 +157,11 @@ public class NetworkClientConfig {
 		this.mutexInstance = mutexInstance;
 	}
 
-	public SslConfig getSslConfig() {
+	public SSLConfig getSslConfig() {
 		return sslConfig;
 	}
 
-	public void setSslConfig(SslConfig sslConfig) {
+	public void setSslConfig(SSLConfig sslConfig) {
 		this.sslConfig = sslConfig;
 	}
 

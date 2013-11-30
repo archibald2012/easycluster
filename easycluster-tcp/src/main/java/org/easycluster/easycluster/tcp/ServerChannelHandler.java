@@ -17,12 +17,15 @@ import org.easymetrics.easymetrics.MetricsCollectorFactory;
 import org.easymetrics.easymetrics.engine.MetricsCollector;
 import org.easymetrics.easymetrics.engine.MetricsTimer;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelLocal;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.timeout.IdleStateAwareChannelUpstreamHandler;
 import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
@@ -71,6 +74,30 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 		}
 	}
 
+	@Override
+	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+		final SslHandler sslHandler = ctx.getPipeline().get(SslHandler.class);
+		if (sslHandler != null) {
+			// Get notified when SSL handshake is done.
+			ChannelFuture handshakeFuture = sslHandler.handshake();
+			handshakeFuture.addListener(new ChannelFutureListener() {
+
+				@Override
+				public void operationComplete(ChannelFuture future) throws Exception {
+					if (future.isSuccess()) {
+						if (LOGGER.isDebugEnabled()) {
+							LOGGER.debug("Your session is protected by " + sslHandler.getEngine().getSession().getCipherSuite() + " cipher suite.\n");
+						}
+						//future.getChannel().write("Your session is protected by " + sslHandler.getEngine().getSession().getCipherSuite() + " cipher suite.\n");
+					} else {
+						future.getChannel().close();
+					}
+				}
+			});
+		}
+	}
+
+	
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
 		SocketAddress remoteAddress = e.getChannel().getRemoteAddress();

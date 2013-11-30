@@ -15,6 +15,7 @@ import org.easycluster.easycluster.cluster.server.MessageExecutor;
 import org.easycluster.easycluster.cluster.server.NetworkServer;
 import org.easycluster.easycluster.cluster.server.PartitionedThreadPoolMessageExecutor;
 import org.easycluster.easycluster.cluster.server.ThreadPoolMessageExecutor;
+import org.easycluster.easycluster.cluster.ssl.SSLContextFactory;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -22,9 +23,8 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.jboss.netty.handler.codec.frame.DelimiterBasedFrameDecoder;
-import org.jboss.netty.handler.codec.frame.Delimiters;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
+import org.jboss.netty.handler.codec.http.HttpContentCompressor;
 import org.jboss.netty.handler.codec.http.HttpServerCodec;
 import org.jboss.netty.handler.logging.LoggingHandler;
 import org.jboss.netty.handler.ssl.SslHandler;
@@ -66,7 +66,7 @@ public class HttpServer extends NetworkServer {
 
 		requestHandler.setRequestTransformer(decoder);
 
-		final SSLContext sslContext = config.getSslConfig() != null ? new SslContextFactory(config.getSslConfig()).getServerContext() : null;
+		final SSLContext sslContext = config.getSslConfig() != null ? new SSLContextFactory().createSslContext(config.getSslConfig()) : null;
 
 		ServerBootstrap bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(workerExecutor, workerExecutor));
 
@@ -91,14 +91,15 @@ public class HttpServer extends NetworkServer {
 					SSLEngine engine = sslContext.createSSLEngine();
 					engine.setUseClientMode(false);
 					p.addLast("ssl", new SslHandler(engine));
-					// On top of the SSL handler, add the text line codec.
-					p.addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
 				}
 
 				// HttpServerCodec is not thread-safe
 				p.addLast("codec", new HttpServerCodec());
 				p.addLast("aggregator", new HttpChunkAggregator(config.getDecodeSerializeConfig().getMaxContentLength()));
 				p.addLast("idleHandler", idleStateHandler);
+				// Remove the following line if you don't want automatic content
+				// compression.
+				p.addLast("deflater", new HttpContentCompressor());
 				p.addLast("handler", requestHandler);
 
 				return p;

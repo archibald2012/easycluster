@@ -17,6 +17,7 @@ import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.cluster.serialization.SerializationConfig;
 import org.easycluster.easycluster.cluster.serialization.SerializeType;
 import org.easycluster.easycluster.cluster.server.MessageClosure;
+import org.easycluster.easycluster.cluster.ssl.SSLConfig;
 import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.meta.MetainfoUtils;
 import org.junit.After;
@@ -616,6 +617,104 @@ public class TcpNetworkTestCase {
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
 	}
+	
+	@Test
+	public void testSendTLS_batchBinary() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.tcp");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		serverConfig.setEncodeSerializeConfig(codecConfig);
+		serverConfig.setDecodeSerializeConfig(codecConfig);
+
+		SSLConfig sslConfig = new SSLConfig();
+		sslConfig.setKeyStore("/Users/wangqi/.serverkeystore");
+		sslConfig.setKeyStorePassword("123456");
+		sslConfig.setTrustStore("/Users/wangqi/.servertruststore");
+		sslConfig.setTrustStorePassword("123456");
+		serverConfig.setSslConfig(sslConfig);
+		
+		nettyNetworkServer = new TcpServer(serverConfig);
+		nettyNetworkServer.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		clientConfig.setWriteTimeoutMillis(10000);
+		clientConfig.setStaleRequestTimeoutMins(30);
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
+		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
+		
+		SSLConfig clientSslConfig = new SSLConfig();
+		clientSslConfig.setKeyStore("/Users/wangqi/.clientkeystore");
+		clientSslConfig.setKeyStorePassword("123456");
+		clientSslConfig.setTrustStore("/Users/wangqi/.clienttruststore");
+		clientSslConfig.setTrustStorePassword("123456");
+		clientConfig.setSslConfig(clientSslConfig);
+
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
+		nettyNetworkClient.start();
+
+		int num = 5000;
+
+		List<SampleRequest> client1Requests = new ArrayList<SampleRequest>();
+
+		for (int i = 0; i < num; i++) {
+			SampleRequest request = new SampleRequest();
+			request.setIntField(1);
+			request.setShortField((byte) 1);
+			request.setByteField((byte) 1);
+			request.setLongField(1L);
+			request.setStringField("test");
+			request.setByteArrayField(new byte[] { 127 });
+			request.setClient(UUID.randomUUID().getMostSignificantBits());
+
+			client1Requests.add(request);
+		}
+
+		final AtomicInteger count = new AtomicInteger();
+		nettyNetworkServer.registerHandler(SampleRequest.class, SampleResponse.class, new MessageClosure<SampleRequest, SampleResponse>() {
+
+			@Override
+			public SampleResponse execute(SampleRequest input) {
+				count.incrementAndGet();
+				SampleResponse response = new SampleResponse();
+
+				return response;
+			}
+		});
+
+		long startTime = System.nanoTime();
+
+		final List<Future<Object>> futures = new ArrayList<Future<Object>>(num);
+
+		for (int i = 0; i < num; i++) {
+			futures.add(nettyNetworkClient.sendMessage(client1Requests.get(i)));
+		}
+
+		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
+		for (int i = 0; i < num; i++) {
+			client1Responses.add((SampleResponse) futures.get(i).get(60, TimeUnit.SECONDS));
+		}
+		Assert.assertEquals(num, count.get());
+		Assert.assertEquals(num, client1Responses.size());
+
+		long endTime = System.nanoTime();
+		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
+
+	}
 
 	@Test
 	public void testSend_batchJava() throws Exception {
@@ -863,7 +962,7 @@ public class TcpNetworkTestCase {
 
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
-			client1Responses.add((SampleResponse) futures.get(i).get(60, TimeUnit.SECONDS));
+			client1Responses.add((SampleResponse) futures.get(i).get(600, TimeUnit.SECONDS));
 		}
 		Assert.assertEquals(num, count.get());
 		Assert.assertEquals(num, client1Responses.size());
@@ -956,6 +1055,83 @@ public class TcpNetworkTestCase {
 
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
+
+	}
+
+	@Test
+	public void testSendTLS_json() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.tcp");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeType(SerializeType.JSON);
+		serverConfig.setEncodeSerializeConfig(codecConfig);
+		serverConfig.setDecodeSerializeConfig(codecConfig);
+
+		SSLConfig sslConfig = new SSLConfig();
+		sslConfig.setKeyStore("/Users/wangqi/.serverkeystore");
+		sslConfig.setKeyStorePassword("123456");
+		sslConfig.setTrustStore("/Users/wangqi/.servertruststore");
+		sslConfig.setTrustStorePassword("123456");
+		serverConfig.setSslConfig(sslConfig);
+
+		nettyNetworkServer = new TcpServer(serverConfig);
+		ArrayList<MessageClosure<?, ?>> handlers = new ArrayList<MessageClosure<?, ?>>();
+		handlers.add(new SampleMessageClosure());
+		nettyNetworkServer.setHandlers(handlers);
+		nettyNetworkServer.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeType(SerializeType.JSON);
+		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
+		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
+		
+		SSLConfig clientSslConfig = new SSLConfig();
+		clientSslConfig.setKeyStore("/Users/wangqi/.clientkeystore");
+		clientSslConfig.setKeyStorePassword("123456");
+		clientSslConfig.setTrustStore("/Users/wangqi/.clienttruststore");
+		clientSslConfig.setTrustStorePassword("123456");
+		clientConfig.setSslConfig(clientSslConfig);
+		
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
+		nettyNetworkClient.start();
+
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
+
+		request.setByteArrayField(new byte[] { 127 });
+
+		Future<Object> future = nettyNetworkClient.sendMessage(request);
+
+		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
+		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
+		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
+		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
+		Assert.assertEquals(request.getByteField(), assertobj.getByteField());
+		Assert.assertEquals(request.getStringField(), assertobj.getStringField());
 
 	}
 
