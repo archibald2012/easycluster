@@ -17,7 +17,7 @@ import org.apache.commons.lang.builder.ToStringStyle;
  * The abstract event type for all events in the framework.
  * 
  */
-@XmlSeeAlso({ LogUpdateEvent.class, MetricsUpdateEvent.class, MessageFilterEvent.class })
+@XmlSeeAlso({ LogUpdateEvent.class, MetricsUpdateEvent.class, MessageFilterEvent.class, BlackListUpdateEvent.class })
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(propOrder = { "type", "hostName", "pid", "serviceName", "componentName", "componentType" })
 public abstract class CoreEvent implements Serializable {

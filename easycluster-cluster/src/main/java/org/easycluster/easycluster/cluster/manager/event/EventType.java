@@ -19,5 +19,10 @@ public enum EventType {
 	/**
 	 * For updating the message registry.
 	 */
-	MESSAGE_FILTER;
+	MESSAGE_FILTER,
+	
+	/**
+	 * For updating the black list.
+	 */
+	BLACKLIST_UPDATE;
 }

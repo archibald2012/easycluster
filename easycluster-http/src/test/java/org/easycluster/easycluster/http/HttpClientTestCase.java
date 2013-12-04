@@ -64,10 +64,9 @@ public class HttpClientTestCase {
 
 		String href = "http://127.0.0.1:8080/289?intField=1&shortField=1&longField=1&byteArrayField=127&nanoTime=1385779140881579000&stringField=test&byteField=1";
 
-		BufferedReader br = null;
 		try {
 			URL url = new URL(href);
-			br = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
+			BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
 
 			StringBuffer sb = new StringBuffer();
 			String line = "";
@@ -77,9 +76,6 @@ public class HttpClientTestCase {
 
 			System.out.println(JSON.parse(sb.toString()));
 		} finally {
-			if (br != null) {
-				br.close();
-			}
 			server.stop();
 		}
 	}

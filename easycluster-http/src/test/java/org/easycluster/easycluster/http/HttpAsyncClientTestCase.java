@@ -102,38 +102,40 @@ public class HttpAsyncClientTestCase {
 
 		httpPost.setEntity(httpEntity);
 
-		final CountDownLatch latch = new CountDownLatch(1);
+		try {
+			final CountDownLatch latch = new CountDownLatch(1);
 
-		httpAsyncClient.execute(httpPost, new FutureCallback<HttpResponse>() {
+			httpAsyncClient.execute(httpPost, new FutureCallback<HttpResponse>() {
 
-			@Override
-			public void completed(final HttpResponse response) {
+				@Override
+				public void completed(final HttpResponse response) {
 
-				try {
-					byte[] content = EntityUtils.toByteArray(response.getEntity());
-					System.out.println(JSON.parse(new String(content)));
-				} catch (Exception e) {
-					e.printStackTrace();
+					try {
+						byte[] content = EntityUtils.toByteArray(response.getEntity());
+						System.out.println(JSON.parse(new String(content)));
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					latch.countDown();
+
 				}
-				latch.countDown();
 
-			}
+				@Override
+				public void failed(final Exception ex) {
+					fail(ex.getMessage());
 
-			@Override
-			public void failed(final Exception ex) {
-				fail(ex.getMessage());
+				}
 
-			}
+				@Override
+				public void cancelled() {
+				}
 
-			@Override
-			public void cancelled() {
-			}
+			});
 
-		});
-
-		latch.await();
-		
-		server.stop();
+			latch.await();
+		} finally {
+			server.stop();
+		}
 	}
 
 	@Test
@@ -169,38 +171,42 @@ public class HttpAsyncClientTestCase {
 		String url = "http://127.0.0.1:8080/289?intField=1&shortField=1&longField=1&byteArrayField=127&nanoTime=1385779140881579000&stringField=test&byteField=1";
 		HttpGet httpGet = new HttpGet(url);
 
-		final CountDownLatch latch = new CountDownLatch(1);
+		try {
+			final CountDownLatch latch = new CountDownLatch(1);
 
-		httpAsyncClient.execute(httpGet, new FutureCallback<HttpResponse>() {
+			httpAsyncClient.execute(httpGet, new FutureCallback<HttpResponse>() {
 
-			@Override
-			public void completed(final HttpResponse response) {
+				@Override
+				public void completed(final HttpResponse response) {
 
-				try {
-					byte[] content = EntityUtils.toByteArray(response.getEntity());
-					System.out.println(JSON.parse(new String(content)));
+					try {
+						byte[] content = EntityUtils.toByteArray(response.getEntity());
+						System.out.println(JSON.parse(new String(content)));
 
-				} catch (Exception e) {
-					e.printStackTrace();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					latch.countDown();
+
 				}
-				latch.countDown();
 
-			}
+				@Override
+				public void failed(final Exception ex) {
+					fail(ex.getMessage());
 
-			@Override
-			public void failed(final Exception ex) {
-				fail(ex.getMessage());
+				}
 
-			}
+				@Override
+				public void cancelled() {
+				}
 
-			@Override
-			public void cancelled() {
-			}
+			});
 
-		});
+			latch.await();
 
-		latch.await();
-		server.stop();
+		} finally {
+			server.stop();
+		}
 	}
 
 }

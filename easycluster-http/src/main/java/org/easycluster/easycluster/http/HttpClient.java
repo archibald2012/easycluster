@@ -50,7 +50,7 @@ public class HttpClient extends NetworkClient {
 		handler.setRequestTransformer(encoder);
 		handler.setResponseTransformer(decoder);
 
-		final SSLContext sslContext = config.getSslConfig() != null ? new SSLContextFactory().createDummySslContext(config.getSslConfig().getProtocol()) : null;
+		final SSLContext sslContext = config.getSslConfig() != null ? new SSLContextFactory().createSslContext(config.getSslConfig()) : null;
 
 		bootstrap.setOption("tcpNoDelay", true);
 		bootstrap.setOption("keepAlive", true);

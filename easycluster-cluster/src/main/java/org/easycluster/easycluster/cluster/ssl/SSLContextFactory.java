@@ -33,13 +33,16 @@ public class SSLContextFactory {
 				algorithm = "SunX509";
 			}
 
-			String keyStoreLocation = sslConfig.getKeyStore();
-			String keyStorePassword = sslConfig.getKeyStorePassword();
-			KeyStore ks = KeyStore.getInstance("JKS");
-			ks.load(new FileInputStream(new File(keyStoreLocation)), keyStorePassword.toCharArray());
-			KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
-			kmf.init(ks, keyStorePassword.toCharArray());
-			KeyManager[] keyManagers = kmf.getKeyManagers();
+			KeyManager[] keyManagers = null;
+			if (sslConfig.getKeyStore() != null) {
+				String keyStoreLocation = sslConfig.getKeyStore();
+				String keyStorePassword = sslConfig.getKeyStorePassword();
+				KeyStore ks = KeyStore.getInstance("JKS");
+				ks.load(new FileInputStream(new File(keyStoreLocation)), keyStorePassword.toCharArray());
+				KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
+				kmf.init(ks, keyStorePassword.toCharArray());
+				keyManagers = kmf.getKeyManagers();
+			}
 
 			// if it's two-way certification
 			TrustManager[] trustManagers = null;
@@ -50,23 +53,13 @@ public class SSLContextFactory {
 				tmf.init(trustStore);
 				trustManagers = tmf.getTrustManagers();
 			}
+			trustManagers = (trustManagers == null) ? DummyTrustManagerFactory.getTrustManagers() : trustManagers;
 
 			// Initialise the SSLContext to work with our key managers.
 			context = SSLContext.getInstance(sslConfig.getProtocol());
 			context.init(keyManagers, trustManagers, null);
 		} catch (Exception ex) {
 			throw new Error("Failed to initialize the server-side SSLContext. " + ex.getMessage(), ex);
-		}
-		return context;
-	}
-
-	public SSLContext createDummySslContext(String protocol) {
-		SSLContext context = null;
-		try {
-			context = SSLContext.getInstance(protocol);
-			context.init(null, DummyTrustManagerFactory.getTrustManagers(), null);
-		} catch (Exception ex) {
-			throw new Error("Failed to initialize the client-side SSLContext. " + ex.getMessage(), ex);
 		}
 		return context;
 	}

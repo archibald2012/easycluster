@@ -10,6 +10,7 @@ import javax.net.ssl.SSLEngine;
 import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.NettyIoServer;
+import org.easycluster.easycluster.cluster.security.BlackList;
 import org.easycluster.easycluster.cluster.serialization.DefaultSerializationFactory;
 import org.easycluster.easycluster.cluster.server.MessageExecutor;
 import org.easycluster.easycluster.cluster.server.NetworkServer;
@@ -48,7 +49,8 @@ public class HttpServer extends NetworkServer {
 		ExecutorService workerExecutor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("http-server-pool-%s", config.getService())));
 		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("http-server-group-%s", config.getService()));
 
-		final HttpServerChannelHandler requestHandler = new HttpServerChannelHandler(channelGroup, messageClosureRegistry, messageExecutor);
+		BlackList blackList = (config.getBlacklist() != null) ? new BlackList(config.getBlacklist(), config.getClusterEventHandler()) : null;
+		final HttpServerChannelHandler requestHandler = new HttpServerChannelHandler(channelGroup, messageClosureRegistry, messageExecutor, blackList);
 		requestHandler.setEndpointListener(config.getEndpointListener());
 
 		HttpResponseEncoder encoder = new HttpResponseEncoder();

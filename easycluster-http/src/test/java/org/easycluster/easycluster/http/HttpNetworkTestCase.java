@@ -128,7 +128,6 @@ public class HttpNetworkTestCase {
 
 	}
 
-	
 	@Test
 	public void testHttps_twoway() throws Exception {
 
@@ -173,6 +172,8 @@ public class HttpNetworkTestCase {
 
 		SSLConfig clientSslConfig = new SSLConfig();
 		clientSslConfig.setKeyStore("/Users/wangqi/.clientkeystore");
+		clientSslConfig.setKeyStorePassword("123456");
+		clientSslConfig.setKeyStore("/Users/wangqi/.clienttruststore");
 		clientSslConfig.setKeyStorePassword("123456");
 		clientConfig.setSslConfig(clientSslConfig);
 
@@ -952,6 +953,61 @@ public class HttpNetworkTestCase {
 
 		long endTime = System.nanoTime();
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
+
+	}
+
+	@Test(expected = TimeoutException.class)
+	public void testSend_blackList() throws Exception {
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.http");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeType(SerializeType.JSON);
+		serverConfig.setEncodeSerializeConfig(codecConfig);
+		serverConfig.setDecodeSerializeConfig(codecConfig);
+
+		serverConfig.setBlacklist("10.68.147.33,127.0.0.1");
+		
+		server = new HttpServer(serverConfig);
+		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
+		server.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeType(SerializeType.JSON);
+		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
+		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
+
+		client = new HttpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		client.registerRequest(SampleRequest.class, SampleResponse.class);
+		client.start();
+
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
+
+		request.setByteArrayField(new byte[] { 127 });
+
+		Future<Object> future = client.sendMessage(request);
+
+		future.get(1, TimeUnit.SECONDS);
 
 	}
 }

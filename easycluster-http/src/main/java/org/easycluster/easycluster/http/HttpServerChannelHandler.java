@@ -1,5 +1,8 @@
 package org.easycluster.easycluster.http;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
@@ -7,6 +10,7 @@ import org.easycluster.easycluster.cluster.netty.endpoint.DefaultEndpointFactory
 import org.easycluster.easycluster.cluster.netty.endpoint.Endpoint;
 import org.easycluster.easycluster.cluster.netty.endpoint.EndpointFactory;
 import org.easycluster.easycluster.cluster.netty.endpoint.EndpointListener;
+import org.easycluster.easycluster.cluster.security.BlackList;
 import org.easycluster.easycluster.cluster.server.MessageClosureRegistry;
 import org.easycluster.easycluster.cluster.server.MessageExecutor;
 import org.easycluster.easycluster.core.Closure;
@@ -45,11 +49,14 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 	private Transformer<HttpRequest, Object>	requestTransformer		= null;
 	private Transformer<Object, HttpResponse>	responseTransformer		= null;
 	private HttpResponseSender					responseSender			= new HttpResponseSender();
+	private BlackList							blackList				= null;
 
-	public HttpServerChannelHandler(ChannelGroup channelGroup, MessageClosureRegistry messageHandlerRegistry, MessageExecutor messageExecutor) {
+	public HttpServerChannelHandler(final ChannelGroup channelGroup, final MessageClosureRegistry messageHandlerRegistry,
+			final MessageExecutor messageExecutor, final BlackList blackList) {
 		this.channelGroup = channelGroup;
 		this.messageHandlerRegistry = messageHandlerRegistry;
 		this.messageExecutor = messageExecutor;
+		this.blackList = blackList;
 	}
 
 	@Override
@@ -57,6 +64,22 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 		Channel channel = e.getChannel();
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("channelOpen: " + channel);
+		}
+		// the following should be done really fast because it runs under a boss
+		// thread
+		if (blackList != null) {
+			SocketAddress address = channel.getRemoteAddress();
+			if (address instanceof InetSocketAddress) {
+				InetSocketAddress inetAddresses = (InetSocketAddress) address;
+				String hostAddress = inetAddresses.getAddress().getHostAddress();
+				if (blackList.containsIp(hostAddress)) {
+					if (LOGGER.isInfoEnabled()) {
+						LOGGER.info("Close channel now since the ip '{}' is in the blacklist {}.", hostAddress, blackList);
+					}
+					channel.close();
+					return;
+				}
+			}
 		}
 		Endpoint endpoint = endpointFactory.createEndpoint(e.getChannel());
 		if (null != endpoint) {
@@ -80,7 +103,10 @@ public class HttpServerChannelHandler extends IdleStateAwareChannelUpstreamHandl
 						if (LOGGER.isDebugEnabled()) {
 							LOGGER.debug("Your session is protected by " + sslHandler.getEngine().getSession().getCipherSuite() + " cipher suite.\n");
 						}
-						//future.getChannel().write("Your session is protected by " + sslHandler.getEngine().getSession().getCipherSuite() + " cipher suite.\n");
+						// future.getChannel().write("Your session is protected by "
+						// +
+						// sslHandler.getEngine().getSession().getCipherSuite()
+						// + " cipher suite.\n");
 					} else {
 						future.getChannel().close();
 					}

@@ -1,5 +1,6 @@
 package org.easycluster.easycluster.tcp;
 
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
@@ -7,6 +8,7 @@ import org.easycluster.easycluster.cluster.netty.endpoint.DefaultEndpointFactory
 import org.easycluster.easycluster.cluster.netty.endpoint.Endpoint;
 import org.easycluster.easycluster.cluster.netty.endpoint.EndpointFactory;
 import org.easycluster.easycluster.cluster.netty.endpoint.EndpointListener;
+import org.easycluster.easycluster.cluster.security.BlackList;
 import org.easycluster.easycluster.cluster.server.MessageClosureRegistry;
 import org.easycluster.easycluster.cluster.server.MessageExecutor;
 import org.easycluster.easycluster.core.Closure;
@@ -42,12 +44,14 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 	private KeyTransformer					keyTransformer			= new KeyTransformer();
 	private EndpointFactory					endpointFactory			= new DefaultEndpointFactory();
 	private final ChannelLocal<Endpoint>	endpoints				= new ChannelLocal<Endpoint>();
+	private BlackList						blackList				= null;
 
 	public ServerChannelHandler(final String service, final ChannelGroup channelGroup, final MessageClosureRegistry messageHandlerRegistry,
-			final MessageExecutor messageExecutor) {
+			final MessageExecutor messageExecutor, final BlackList blackList) {
 		this.channelGroup = channelGroup;
 		this.messageHandlerRegistry = messageHandlerRegistry;
 		this.messageExecutor = messageExecutor;
+		this.blackList = blackList;
 	}
 
 	@Override
@@ -55,6 +59,22 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 		Channel channel = e.getChannel();
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("channelOpen: " + channel);
+		}
+		// the following should be done really fast because it runs under a boss
+		// thread
+		if (blackList != null) {
+			SocketAddress address = channel.getRemoteAddress();
+			if (address instanceof InetSocketAddress) {
+				InetSocketAddress inetAddresses = (InetSocketAddress) address;
+				String hostAddress = inetAddresses.getAddress().getHostAddress();
+				if (blackList.containsIp(hostAddress)) {
+					if (LOGGER.isInfoEnabled()) {
+						LOGGER.info("Close channel now since the ip '{}' is in the blacklist {}.", hostAddress, blackList);
+					}
+					channel.close();
+					return;
+				}
+			}
 		}
 		Exception exception = null;
 		MetricsTimer metricsTimer = COLLECTOR.startInitialTimer("channelOpen");
@@ -88,7 +108,10 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 						if (LOGGER.isDebugEnabled()) {
 							LOGGER.debug("Your session is protected by " + sslHandler.getEngine().getSession().getCipherSuite() + " cipher suite.\n");
 						}
-						//future.getChannel().write("Your session is protected by " + sslHandler.getEngine().getSession().getCipherSuite() + " cipher suite.\n");
+						// future.getChannel().write("Your session is protected by "
+						// +
+						// sslHandler.getEngine().getSession().getCipherSuite()
+						// + " cipher suite.\n");
 					} else {
 						future.getChannel().close();
 					}
@@ -97,7 +120,6 @@ public class ServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 		}
 	}
 
-	
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
 		SocketAddress remoteAddress = e.getChannel().getRemoteAddress();

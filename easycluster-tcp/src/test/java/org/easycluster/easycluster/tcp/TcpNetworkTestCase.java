@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import junit.framework.Assert;
@@ -174,7 +175,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
@@ -259,7 +260,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
@@ -325,7 +326,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JAVA);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
@@ -385,7 +386,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.BYTE_BEAN);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
@@ -446,7 +447,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.TLV);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 
@@ -507,7 +508,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.KV);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 
@@ -564,7 +565,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
@@ -617,7 +618,7 @@ public class TcpNetworkTestCase {
 		System.out.println("Runtime estimated: " + (endTime - startTime) / 1000000 + "ms.");
 
 	}
-	
+
 	@Test
 	public void testSendTLS_batchBinary() throws Exception {
 
@@ -641,7 +642,7 @@ public class TcpNetworkTestCase {
 		sslConfig.setTrustStore("/Users/wangqi/.servertruststore");
 		sslConfig.setTrustStorePassword("123456");
 		serverConfig.setSslConfig(sslConfig);
-		
+
 		nettyNetworkServer = new TcpServer(serverConfig);
 		nettyNetworkServer.start();
 
@@ -655,7 +656,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		SSLConfig clientSslConfig = new SSLConfig();
 		clientSslConfig.setKeyStore("/Users/wangqi/.clientkeystore");
 		clientSslConfig.setKeyStorePassword("123456");
@@ -748,7 +749,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JAVA);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
@@ -792,7 +793,7 @@ public class TcpNetworkTestCase {
 
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
-			client1Responses.add((SampleResponse) futures.get(i).get(60, TimeUnit.SECONDS));
+			client1Responses.add((SampleResponse) futures.get(i).get(600, TimeUnit.SECONDS));
 		}
 		Assert.assertEquals(num, count.get());
 		Assert.assertEquals(num, client1Responses.size());
@@ -832,7 +833,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
@@ -918,7 +919,7 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.TLV);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
@@ -1103,14 +1104,14 @@ public class TcpNetworkTestCase {
 		clientCodecConfig.setSerializeType(SerializeType.JSON);
 		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
 		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
-		
+
 		SSLConfig clientSslConfig = new SSLConfig();
 		clientSslConfig.setKeyStore("/Users/wangqi/.clientkeystore");
 		clientSslConfig.setKeyStorePassword("123456");
 		clientSslConfig.setTrustStore("/Users/wangqi/.clienttruststore");
 		clientSslConfig.setTrustStorePassword("123456");
 		clientConfig.setSslConfig(clientSslConfig);
-		
+
 		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
 		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
 		nettyNetworkClient.start();
@@ -1135,4 +1136,63 @@ public class TcpNetworkTestCase {
 
 	}
 
+	@Test(expected = TimeoutException.class)
+	public void testSend_blackList() throws Exception {
+
+		List<String> packages = new ArrayList<String>();
+		packages.add("org.easycluster.easycluster.tcp");
+		Int2TypeMetainfo typeMetaInfo = MetainfoUtils.createTypeMetainfo(packages);
+
+		NetworkServerConfig serverConfig = new NetworkServerConfig();
+		serverConfig.setServiceGroup("app");
+		serverConfig.setService("test");
+		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
+		serverConfig.setPort(6000);
+		SerializationConfig codecConfig = new SerializationConfig();
+		codecConfig.setTypeMetaInfo(typeMetaInfo);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeBytesDebugEnabled(true);
+		codecConfig.setSerializeType(SerializeType.JSON);
+		serverConfig.setEncodeSerializeConfig(codecConfig);
+		serverConfig.setDecodeSerializeConfig(codecConfig);
+
+		serverConfig.setBlacklist("10.68.147.33,127.0.0.1");
+
+		nettyNetworkServer = new TcpServer(serverConfig);
+		ArrayList<MessageClosure<?, ?>> handlers = new ArrayList<MessageClosure<?, ?>>();
+		handlers.add(new SampleMessageClosure());
+		nettyNetworkServer.setHandlers(handlers);
+		nettyNetworkServer.start();
+
+		NetworkClientConfig clientConfig = new NetworkClientConfig();
+		clientConfig.setServiceGroup("app");
+		clientConfig.setService("test");
+		clientConfig.setZooKeeperConnectString("127.0.0.1:2181");
+
+		SerializationConfig clientCodecConfig = new SerializationConfig();
+		clientCodecConfig.setTypeMetaInfo(typeMetaInfo);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeBytesDebugEnabled(true);
+		clientCodecConfig.setSerializeType(SerializeType.JSON);
+		clientConfig.setEncodeSerializeConfig(clientCodecConfig);
+		clientConfig.setDecodeSerializeConfig(clientCodecConfig);
+
+		nettyNetworkClient = new TcpClient(clientConfig, new RoundRobinLoadBalancerFactory());
+		nettyNetworkClient.registerRequest(SampleRequest.class, SampleResponse.class);
+		nettyNetworkClient.start();
+
+		SampleRequest request = new SampleRequest();
+		request.setIntField(1);
+		request.setShortField((byte) 1);
+		request.setByteField((byte) 1);
+		request.setLongField(1L);
+		request.setStringField("test");
+
+		request.setByteArrayField(new byte[] { 127 });
+
+		Future<Object> future = nettyNetworkClient.sendMessage(request);
+
+		future.get(1, TimeUnit.SECONDS);
+
+	}
 }

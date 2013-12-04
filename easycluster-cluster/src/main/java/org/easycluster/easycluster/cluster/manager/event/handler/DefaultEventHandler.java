@@ -144,8 +144,8 @@ public class DefaultEventHandler implements EventHandler {
 		} else if (EventType.MESSAGE_FILTER.name().equalsIgnoreCase(event.getType())) {
 			handleMessageFilterEvent(component, (MessageFilterEvent) event);
 		} else {
-			if (LOGGER.isWarnEnabled()) {
-				LOGGER.warn("No default handler for component " + component + " on event " + event);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("No default handler for component " + component + " on event " + event);
 			}
 		}
 	}

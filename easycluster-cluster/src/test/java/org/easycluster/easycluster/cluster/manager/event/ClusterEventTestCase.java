@@ -79,6 +79,21 @@ public class ClusterEventTestCase {
 		Assert.assertEquals(requestUpdateEvent.getPid(), assertRequestUpdateEvent.getPid());
 		Assert.assertEquals(requestUpdateEvent.getServiceName(), assertRequestUpdateEvent.getServiceName());
 		Assert.assertEquals(requestUpdateEvent.getType(), assertRequestUpdateEvent.getType());
+		
+		BlackListUpdateEvent blackListUpdateEvent = new BlackListUpdateEvent();
+		blackListUpdateEvent.setIps("127.0.0.1,192.168.1.1");
+		blackListUpdateEvent.setUsers("test1,test2");
+		clusterEvent = new ClusterEvent(blackListUpdateEvent);
+
+		xmlString = XmlUtil.marshal(clusterEvent);
+		System.out.println(xmlString);
+
+		assertobj = XmlUtil.unmarshal(xmlString, ClusterEvent.class);
+		System.out.println(assertobj);
+		
+		BlackListUpdateEvent assertBlackListUpdateEvent = (BlackListUpdateEvent) assertobj.getEvent();
+		Assert.assertEquals(blackListUpdateEvent.getIps(), assertBlackListUpdateEvent.getIps());
+		Assert.assertEquals(blackListUpdateEvent.getUsers(), assertBlackListUpdateEvent.getUsers());
 	}
 
 }

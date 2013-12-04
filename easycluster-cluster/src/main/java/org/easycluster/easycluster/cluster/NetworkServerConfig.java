@@ -71,6 +71,8 @@ public class NetworkServerConfig {
 
 	private String				url								= null;
 
+	private String				blacklist						= null;
+
 	private EventHandler		clusterEventHandler				= null;
 
 	private SSLConfig			sslConfig						= null;
@@ -233,6 +235,14 @@ public class NetworkServerConfig {
 
 	public void setSslConfig(SSLConfig sslConfig) {
 		this.sslConfig = sslConfig;
+	}
+
+	public String getBlacklist() {
+		return blacklist;
+	}
+
+	public void setBlacklist(String blacklist) {
+		this.blacklist = blacklist;
 	}
 
 }

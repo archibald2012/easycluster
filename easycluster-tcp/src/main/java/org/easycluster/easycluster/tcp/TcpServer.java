@@ -10,6 +10,7 @@ import javax.net.ssl.SSLEngine;
 import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.common.NamedPoolThreadFactory;
 import org.easycluster.easycluster.cluster.netty.NettyIoServer;
+import org.easycluster.easycluster.cluster.security.BlackList;
 import org.easycluster.easycluster.cluster.serialization.DefaultSerializationFactory;
 import org.easycluster.easycluster.cluster.serialization.SerializationConfig;
 import org.easycluster.easycluster.cluster.server.MessageExecutor;
@@ -46,7 +47,9 @@ public class TcpServer extends NetworkServer {
 		ExecutorService workerExecutor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("tcp-server-pool-%s", config.getService())));
 		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("netty-server-group-%s", config.getService()));
 
-		final ServerChannelHandler requestHandler = new ServerChannelHandler(config.getService(), channelGroup, messageClosureRegistry, messageExecutor);
+		BlackList blackList = (config.getBlacklist() != null) ? new BlackList(config.getBlacklist(), config.getClusterEventHandler()) : null;
+		final ServerChannelHandler requestHandler = new ServerChannelHandler(config.getService(), channelGroup, messageClosureRegistry, messageExecutor,
+				blackList);
 		requestHandler.setEndpointListener(config.getEndpointListener());
 
 		final SSLContext sslContext = config.getSslConfig() != null ? new SSLContextFactory().createSslContext(config.getSslConfig()) : null;
@@ -73,7 +76,7 @@ public class TcpServer extends NetworkServer {
 					engine.setUseClientMode(false);
 					p.addLast("ssl", new SslHandler(engine));
 				}
-				
+
 				p.addFirst("logging", loggingHandler);
 				p.addLast("idleHandler", idleStateHandler);
 
