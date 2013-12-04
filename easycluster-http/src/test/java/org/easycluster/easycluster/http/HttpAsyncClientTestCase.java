@@ -75,7 +75,7 @@ public class HttpAsyncClientTestCase {
 		serverConfig.setServiceGroup("app");
 		serverConfig.setService("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		serverConfig.setPort(8080);
+		serverConfig.setPort(6060);
 
 		SerializationConfig decodeSerializeConfig = new SerializationConfig();
 		decodeSerializeConfig.setTypeMetaInfo(typeMetaInfo);
@@ -94,7 +94,7 @@ public class HttpAsyncClientTestCase {
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
-		String url = "http://127.0.0.1:8080/289";
+		String url = "http://127.0.0.1:6060/289";
 
 		HttpPost httpPost = new HttpPost(url);
 		HttpEntity httpEntity = new NStringEntity(
@@ -149,7 +149,7 @@ public class HttpAsyncClientTestCase {
 		serverConfig.setServiceGroup("app");
 		serverConfig.setService("test");
 		serverConfig.setZooKeeperConnectString("127.0.0.1:2181");
-		serverConfig.setPort(8080);
+		serverConfig.setPort(6060);
 
 		SerializationConfig decodeSerializeConfig = new SerializationConfig();
 		decodeSerializeConfig.setTypeMetaInfo(typeMetaInfo);
@@ -168,7 +168,7 @@ public class HttpAsyncClientTestCase {
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
 
-		String url = "http://127.0.0.1:8080/289?intField=1&shortField=1&longField=1&byteArrayField=127&nanoTime=1385779140881579000&stringField=test&byteField=1";
+		String url = "http://127.0.0.1:6060/289?intField=1&shortField=1&longField=1&byteArrayField=127&nanoTime=1385779140881579000&stringField=test&byteField=1";
 		HttpGet httpGet = new HttpGet(url);
 
 		try {

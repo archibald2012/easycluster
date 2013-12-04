@@ -17,6 +17,7 @@ import org.apache.commons.httpclient.params.HttpConnectionParams;
 import org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.easycluster.easycluster.cluster.ssl.EasyX509TrustManager;
 
 /**
  * <p>

@@ -46,6 +46,14 @@ public class BlackList implements Closure {
 	public boolean containsUser(String uid) {
 		return ArrayUtils.contains(users, uid);
 	}
+	
+	public void addIp(String ip){
+		ArrayUtils.add(ips, ip);
+	}
+	
+	public void addUser(String user){
+		ArrayUtils.add(users, user);
+	}
 
 	private void udpateConfig(String configInfo) {
 		int index = configInfo.indexOf("|");
