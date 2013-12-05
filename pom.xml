@@ -44,6 +44,7 @@
 		<module>easycluster-cluster</module>
 		<module>easycluster-http</module>
 		<module>easycluster-tcp</module>
+		<module>easycluster-websocket</module>
 	</modules>
 
 	<dependencies>
