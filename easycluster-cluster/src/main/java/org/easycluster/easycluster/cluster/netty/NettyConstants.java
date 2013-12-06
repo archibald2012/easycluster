@@ -1,4 +1,4 @@
-package org.easycluster.easycluster.http;
+package org.easycluster.easycluster.cluster.netty;
 
 public class NettyConstants {
 

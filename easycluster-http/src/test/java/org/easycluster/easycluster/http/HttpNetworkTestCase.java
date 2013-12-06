@@ -119,7 +119,7 @@ public class HttpNetworkTestCase {
 
 		Future<Object> future = client.sendMessage(request);
 
-		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
+		SampleResponse assertobj = (SampleResponse) future.get(600, TimeUnit.SECONDS);
 		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
@@ -204,7 +204,7 @@ public class HttpNetworkTestCase {
 
 		Future<Object> future = client.sendMessage(request);
 
-		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
+		SampleResponse assertobj = (SampleResponse) future.get(600, TimeUnit.SECONDS);
 		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
@@ -345,7 +345,7 @@ public class HttpNetworkTestCase {
 
 		Future<Object> future = client.sendMessage(request);
 
-		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
+		SampleResponse assertobj = (SampleResponse) future.get(600, TimeUnit.SECONDS);
 		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
@@ -418,7 +418,7 @@ public class HttpNetworkTestCase {
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
 			try {
-				Object object = futures.get(i).get(60, TimeUnit.SECONDS);
+				Object object = futures.get(i).get(600, TimeUnit.SECONDS);
 				client1Responses.add((SampleResponse) object);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -512,7 +512,7 @@ public class HttpNetworkTestCase {
 
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
-			client1Responses.add((SampleResponse) futures.get(i).get(60, TimeUnit.SECONDS));
+			client1Responses.add((SampleResponse) futures.get(i).get(600, TimeUnit.SECONDS));
 		}
 		Assert.assertEquals(num, client1Responses.size());
 		Assert.assertEquals(num, count.get());
@@ -573,7 +573,7 @@ public class HttpNetworkTestCase {
 
 		Future<Object> future = client.sendMessage(request);
 
-		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
+		SampleResponse assertobj = (SampleResponse) future.get(600, TimeUnit.SECONDS);
 		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
@@ -636,7 +636,7 @@ public class HttpNetworkTestCase {
 
 		Future<Object> future = client.sendMessage(request);
 
-		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
+		SampleResponse assertobj = (SampleResponse) future.get(600, TimeUnit.SECONDS);
 		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
@@ -699,7 +699,7 @@ public class HttpNetworkTestCase {
 
 		Future<Object> future = client.sendMessage(request);
 
-		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
+		SampleResponse assertobj = (SampleResponse) future.get(600, TimeUnit.SECONDS);
 		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
@@ -770,7 +770,7 @@ public class HttpNetworkTestCase {
 
 		Future<Object> future = client.sendMessage(request);
 
-		SampleResponse assertobj = (SampleResponse) future.get(60, TimeUnit.SECONDS);
+		SampleResponse assertobj = (SampleResponse) future.get(600, TimeUnit.SECONDS);
 		Assert.assertEquals(request.getIntField(), assertobj.getIntField());
 		Assert.assertEquals(request.getShortField(), assertobj.getShortField());
 		Assert.assertEquals(request.getLongField(), assertobj.getLongField());
@@ -848,7 +848,7 @@ public class HttpNetworkTestCase {
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
 			try {
-				Object object = futures.get(i).get(60, TimeUnit.SECONDS);
+				Object object = futures.get(i).get(600, TimeUnit.SECONDS);
 				if (object instanceof SampleResponse) {
 					client1Responses.add((SampleResponse) object);
 				} else {
@@ -935,7 +935,7 @@ public class HttpNetworkTestCase {
 		final List<SampleResponse> client1Responses = new ArrayList<SampleResponse>();
 		for (int i = 0; i < num; i++) {
 			try {
-				Object object = futures.get(i).get(60, TimeUnit.SECONDS);
+				Object object = futures.get(i).get(600, TimeUnit.SECONDS);
 				if (object instanceof SampleResponse) {
 					client1Responses.add((SampleResponse) object);
 				} else {

@@ -6,6 +6,7 @@ import java.net.SocketAddress;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
+import org.easycluster.easycluster.cluster.netty.NettyConstants;
 import org.easycluster.easycluster.cluster.netty.endpoint.DefaultEndpointFactory;
 import org.easycluster.easycluster.cluster.netty.endpoint.Endpoint;
 import org.easycluster.easycluster.cluster.netty.endpoint.EndpointFactory;

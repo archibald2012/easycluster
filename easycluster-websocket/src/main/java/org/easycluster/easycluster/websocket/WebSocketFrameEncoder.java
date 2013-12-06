@@ -1,7 +1,11 @@
-package org.easycluster.easycluster.http;
+/**
+ * 
+ */
+package org.easycluster.easycluster.websocket;
 
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
-import org.easycluster.easycluster.cluster.netty.NettyConstants;
 import org.easycluster.easycluster.cluster.serialization.Serialization;
 import org.easycluster.easycluster.core.ByteUtil;
 import org.easycluster.easycluster.core.Transformer;
@@ -24,50 +28,79 @@ import org.easycluster.easycluster.serialization.bytebean.codec.primitive.ShortC
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultDecContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.context.DefaultEncContextFactory;
 import org.easycluster.easycluster.serialization.bytebean.field.DefaultField2Desc;
-import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
+import org.easycluster.easycluster.serialization.protocol.annotation.SignalCode;
+import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
+import org.easycluster.easycluster.serialization.protocol.xip.XipHeader;
 import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class HttpResponseDecoder implements Transformer<HttpResponse, Object> {
+public class WebSocketFrameEncoder implements Transformer<Object, WebSocketFrame> {
 
-	private static final Logger	LOGGER			= LoggerFactory.getLogger(HttpResponseDecoder.class);
+	private static final Logger	LOGGER			= LoggerFactory.getLogger(WebSocketFrameEncoder.class);
+
+	private static final byte	BASIC_VER		= (byte) 1;
 
 	private BeanFieldCodec		beanFieldCodec	= null;
-	private Int2TypeMetainfo	typeMetaInfo	= null;
 	private int					dumpBytes		= 256;
-	private boolean				isDebugEnabled	= false;
-
-	private Serialization		serialization;
+	private boolean				isDebugEnabled	= true;
+	private Serialization		serialization	= null;
 
 	@Override
-	public Object transform(HttpResponse from) {
-		if (from.getStatus().getCode() != HttpResponseStatus.OK.getCode()) {
-			return null;
+	public WebSocketFrame transform(Object signal) {
+		TextWebSocketFrame frame = new TextWebSocketFrame();
+		if (signal instanceof XipSignal) {
+			byte[] bytes = encodeXip((XipSignal) signal);
+			if (null != bytes) {
+				frame.setBinaryData(ChannelBuffers.wrappedBuffer(bytes));
+			}
 		}
+		return frame;
+	}
 
-		int messageCode = Integer.parseInt(from.getHeader(NettyConstants.MSG_CODE));
+	private byte[] encodeXip(XipSignal signal) {
+		byte[] bytes = serialization.serialize(signal);
 
-		ChannelBuffer content = from.getContent();
-		byte[] bytes = new byte[content.readableBytes()];
-		content.readBytes(bytes);
+		SignalCode attr = signal.getClass().getAnnotation(SignalCode.class);
+		if (null == attr) {
+			throw new InvalidMessageException("invalid signal, no messageCode defined.");
+		}
+		XipHeader header = createHeader(BASIC_VER, signal.getIdentification(), bytes.length, attr.messageCode());
+
+		header.setClientId(((AbstractXipSignal) signal).getClient());
+		header.setTypeForClass(signal.getClass());
+
+		bytes = ArrayUtils
+				.addAll(getBeanFieldCodec().encode(getBeanFieldCodec().getEncContextFactory().createEncContext(header, XipHeader.class, null)), bytes);
 
 		if (LOGGER.isDebugEnabled() && isDebugEnabled) {
-			LOGGER.debug("code {}, bytes --> {}", messageCode, ByteUtil.bytesAsHexString(bytes, dumpBytes));
+			LOGGER.debug("encode signal {}, and signal raw bytes --> {}", ToStringBuilder.reflectionToString(signal),
+					ByteUtil.bytesAsHexString(bytes, dumpBytes));
 		}
 
-		Class<?> type = typeMetaInfo.find(messageCode);
-		if (null == type) {
-			throw new InvalidMessageException("unknown message code:" + messageCode);
-		}
+		return bytes;
+	}
 
-		XipSignal signal = (XipSignal) serialization.deserialize(bytes, type);
+	private XipHeader createHeader(byte basicVer, long sequence, int messageLen, int messageCode) {
 
-		return signal;
+		XipHeader header = new XipHeader();
 
+		header.setSequence(sequence);
+
+		int headerSize = getBeanFieldCodec().getStaticByteSize(XipHeader.class);
+
+		header.setLength(headerSize + messageLen);
+		header.setBasicVer(basicVer);
+		header.setMessageCode(messageCode);
+
+		return header;
+	}
+
+	public void setSerialization(Serialization serialization) {
+		this.serialization = serialization;
 	}
 
 	public void setBeanFieldCodec(BeanFieldCodec beanFieldCodec) {
@@ -102,20 +135,20 @@ public class HttpResponseDecoder implements Transformer<HttpResponse, Object> {
 		return beanFieldCodec;
 	}
 
-	public void setTypeMetaInfo(Int2TypeMetainfo typeMetaInfo) {
-		this.typeMetaInfo = typeMetaInfo;
-	}
-
 	public void setDumpBytes(int dumpBytes) {
 		this.dumpBytes = dumpBytes;
 	}
 
-	public void setDebugEnabled(boolean isDebugEnabled) {
-		this.isDebugEnabled = isDebugEnabled;
+	public int getDumpBytes() {
+		return dumpBytes;
 	}
 
-	public void setSerialization(Serialization serialization) {
-		this.serialization = serialization;
+	public boolean isDebugEnabled() {
+		return isDebugEnabled;
+	}
+
+	public void setDebugEnabled(boolean isDebugEnabled) {
+		this.isDebugEnabled = isDebugEnabled;
 	}
 
 }

@@ -3,6 +3,7 @@ package org.easycluster.easycluster.http;
 import java.util.UUID;
 
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
+import org.easycluster.easycluster.cluster.netty.NettyConstants;
 import org.easycluster.easycluster.cluster.serialization.Serialization;
 import org.easycluster.easycluster.core.ByteUtil;
 import org.easycluster.easycluster.core.Transformer;
