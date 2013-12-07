@@ -10,7 +10,6 @@ import java.net.SocketAddress;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
-import org.easycluster.easycluster.cluster.netty.endpoint.DefaultEndpointFactory;
 import org.easycluster.easycluster.cluster.netty.endpoint.Endpoint;
 import org.easycluster.easycluster.cluster.netty.endpoint.EndpointFactory;
 import org.easycluster.easycluster.cluster.netty.endpoint.EndpointListener;
@@ -22,6 +21,9 @@ import org.easycluster.easycluster.core.Identifiable;
 import org.easycluster.easycluster.core.KeyTransformer;
 import org.easycluster.easycluster.core.Transformer;
 import org.easycluster.easycluster.core.TransportUtil;
+import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
+import org.easycluster.easycluster.websocket.endpoint.WebSocketEndpoint;
+import org.easycluster.easycluster.websocket.endpoint.WebSocketEndpointFactory;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
@@ -29,7 +31,6 @@ import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelLocal;
 import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.group.ChannelGroup;
@@ -42,7 +43,6 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
-import org.jboss.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.PongWebSocketFrame;
@@ -59,20 +59,19 @@ import org.slf4j.LoggerFactory;
 
 public class WebSocketServerChannelHandler extends IdleStateAwareChannelUpstreamHandler {
 
-	private static final Logger					LOGGER					= LoggerFactory.getLogger(WebSocketServerChannelHandler.class);
+	private static final Logger							LOGGER					= LoggerFactory.getLogger(WebSocketServerChannelHandler.class);
 
-	private static final String					WEBSOCKET_PATH			= "/ws";
+	private static final String							WEBSOCKET_PATH			= "/ws";
 
-	private ChannelGroup						channelGroup			= null;
-	private MessageClosureRegistry				messageHandlerRegistry	= null;
-	private MessageExecutor						messageExecutor			= null;
-	private KeyTransformer						keyTransformer			= new KeyTransformer();
-	private EndpointFactory						endpointFactory			= new DefaultEndpointFactory();
-	private final ChannelLocal<Endpoint>		endpoints				= new ChannelLocal<Endpoint>();
-	private volatile WebSocketServerHandshaker	handshaker				= null;
-	private BlackList							blackList				= null;
-	private Transformer<WebSocketFrame, Object>	webSocketFrameDecoder	= null;
-	private Transformer<Object, WebSocketFrame>	webSocketFrameEncoder	= null;
+	private ChannelGroup								channelGroup			= null;
+	private MessageClosureRegistry						messageHandlerRegistry	= null;
+	private MessageExecutor								messageExecutor			= null;
+	private KeyTransformer								keyTransformer			= new KeyTransformer();
+	private EndpointFactory								endpointFactory			= new WebSocketEndpointFactory();
+	private final ChannelLocal<Endpoint>				endpoints				= new ChannelLocal<Endpoint>();
+	private BlackList									blackList				= null;
+	private Transformer<TextWebSocketFrame, XipSignal>	webSocketFrameDecoder	= null;
+	private Transformer<XipSignal, TextWebSocketFrame>	webSocketFrameEncoder	= null;
 
 	public WebSocketServerChannelHandler(final ChannelGroup channelGroup, final MessageClosureRegistry messageHandlerRegistry,
 			final MessageExecutor messageExecutor, final BlackList blackList) {
@@ -196,23 +195,18 @@ public class WebSocketServerChannelHandler extends IdleStateAwareChannelUpstream
 			if (handshaker == null) {
 				wsFactory.sendUnsupportedWebSocketVersionResponse(ctx.getChannel());
 			} else {
+				WebSocketEndpoint endpoint = (WebSocketEndpoint) ctx.getChannel().getAttachment();
+				endpoint.setHandshaker(handshaker);
+
 				ChannelFuture future = handshaker.handshake(ctx.getChannel(), req);
 				future.addListener(WebSocketServerHandshaker.HANDSHAKE_LISTENER);
-				future.addListener(new ChannelFutureListener() {
-					@Override
-					public void operationComplete(ChannelFuture future) throws Exception {
-						if (!future.isSuccess()) {
-							Channels.fireExceptionCaught(future.getChannel(), future.getCause());
-						}
-					}
-				});
 			}
 		}
 	}
 
 	private void handleWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame frame) {
 
-		Endpoint endpoint = (Endpoint) ctx.getChannel().getAttachment();
+		WebSocketEndpoint endpoint = (WebSocketEndpoint) ctx.getChannel().getAttachment();
 		if (null == endpoint) {
 			LOGGER.warn("missing endpoint, ignore incoming msg:", frame);
 			return;
@@ -221,15 +215,13 @@ public class WebSocketServerChannelHandler extends IdleStateAwareChannelUpstream
 		Object signal = null;
 
 		if (frame instanceof CloseWebSocketFrame) {
-			handshaker.close(ctx.getChannel(), (CloseWebSocketFrame) frame);
+			endpoint.getHandshaker().close(ctx.getChannel(), (CloseWebSocketFrame) frame);
 			return;
 		} else if (frame instanceof PingWebSocketFrame) {
 			ctx.getChannel().write(new PongWebSocketFrame(frame.getBinaryData()));
 			return;
 		} else if (frame instanceof TextWebSocketFrame) {
-			signal = webSocketFrameDecoder.transform(frame);
-		} else if (frame instanceof BinaryWebSocketFrame) {
-			signal = webSocketFrameDecoder.transform(frame);
+			signal = webSocketFrameDecoder.transform((TextWebSocketFrame) frame);
 		} else {
 			throw new UnsupportedOperationException(String.format("%s frame types not supported", frame.getClass().getName()));
 		}
@@ -272,13 +264,13 @@ public class WebSocketServerChannelHandler extends IdleStateAwareChannelUpstream
 				message = buildErrorResponse(ex);
 			}
 
+			Object requestId = keyTransformer.transform(request);
+
 			if (message instanceof Identifiable) {
-				Object requestId = keyTransformer.transform(request);
 				((Identifiable) message).setIdentification((Long) requestId);
 			}
 
-			WebSocketFrame frame = webSocketFrameEncoder.transform(message);
-
+			TextWebSocketFrame frame = webSocketFrameEncoder.transform((XipSignal) message);
 			channel.write(frame);
 
 			if (LOGGER.isDebugEnabled()) {
@@ -354,12 +346,8 @@ public class WebSocketServerChannelHandler extends IdleStateAwareChannelUpstream
 		this.keyTransformer = keyTransformer;
 	}
 
-	public void setWebSocketFrameDecoder(Transformer<WebSocketFrame, Object> webSocketFrameDecoder) {
+	public void setWebSocketFrameDecoder(Transformer<TextWebSocketFrame, XipSignal> webSocketFrameDecoder) {
 		this.webSocketFrameDecoder = webSocketFrameDecoder;
-	}
-
-	public void setWebSocketFrameEncoder(Transformer<Object, WebSocketFrame> webSocketFrameEncoder) {
-		this.webSocketFrameEncoder = webSocketFrameEncoder;
 	}
 
 }

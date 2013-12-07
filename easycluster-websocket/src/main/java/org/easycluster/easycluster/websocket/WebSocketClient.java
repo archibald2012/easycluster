@@ -34,19 +34,13 @@ public class WebSocketClient extends NetworkClient {
 		ExecutorService workExecutor = Executors.newCachedThreadPool(new NamedPoolThreadFactory(String.format("client-pool-%s", config.getService())));
 		ClientBootstrap bootstrap = new ClientBootstrap(new NioClientSocketChannelFactory(workExecutor, workExecutor));
 
-		final WebSocketFrameEncoder encoder = new WebSocketFrameEncoder();
-		encoder.setSerialization(new DefaultSerializationFactory(config.getEncodeSerializeConfig()).getSerialization());
-		encoder.setDebugEnabled(config.getEncodeSerializeConfig().isSerializeBytesDebugEnabled());
-		encoder.setDumpBytes(config.getEncodeSerializeConfig().getDumpBytes());
-
-		final WebSocketFrameDecoder decoder = new WebSocketFrameDecoder();
+		final TextWebSocketFrameDecoder decoder = new TextWebSocketFrameDecoder();
 		decoder.setSerialization(new DefaultSerializationFactory(config.getDecodeSerializeConfig()).getSerialization());
 		decoder.setTypeMetaInfo(config.getDecodeSerializeConfig().getTypeMetaInfo());
 
 		MessageContextHolder holder = new MessageContextHolder(messageRegistry, config.getStaleRequestTimeoutMins(),
 				config.getStaleRequestCleanupFrequencyMins());
 		final WebSocketClientChannelHandler handler = new WebSocketClientChannelHandler(holder);
-		handler.setWebSocketFrameEncoder(encoder);
 		handler.setWebSocketFrameDecoder(decoder);
 
 		final SSLContext sslContext = config.getSslConfig() != null ? new SSLContextFactory().createSslContext(config.getSslConfig()) : null;

@@ -14,6 +14,7 @@ import org.easycluster.easycluster.cluster.NetworkClientConfig;
 import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.client.loadbalancer.RoundRobinLoadBalancerFactory;
 import org.easycluster.easycluster.cluster.common.ResponseIterator;
+import org.easycluster.easycluster.cluster.common.SystemUtil;
 import org.easycluster.easycluster.cluster.exception.InvalidMessageException;
 import org.easycluster.easycluster.cluster.serialization.SerializationConfig;
 import org.easycluster.easycluster.cluster.serialization.SerializeType;
@@ -1156,7 +1157,7 @@ public class TcpNetworkTestCase {
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
 
-		serverConfig.setBlacklist("10.68.147.33,127.0.0.1");
+		serverConfig.setBlacklist("127.0.0.1," + SystemUtil.getIpAddress());
 
 		nettyNetworkServer = new TcpServer(serverConfig);
 		ArrayList<MessageClosure<?, ?>> handlers = new ArrayList<MessageClosure<?, ?>>();

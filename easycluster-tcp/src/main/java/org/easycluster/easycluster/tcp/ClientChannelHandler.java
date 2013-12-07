@@ -40,16 +40,15 @@ public class ClientChannelHandler extends SimpleChannelHandler {
 						if (LOGGER.isDebugEnabled()) {
 							LOGGER.debug("Your session is protected by " + sslHandler.getEngine().getSession().getCipherSuite() + " cipher suite.\n");
 						}
-						//future.getChannel().write("Your session is protected by " + sslHandler.getEngine().getSession().getCipherSuite() + " cipher suite.\n");
 					} else {
 						future.getChannel().close();
 					}
 				}
 			});
-			
+
 		}
 	}
-	
+
 	@Override
 	public void writeRequested(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
 		if (LOGGER.isDebugEnabled()) {

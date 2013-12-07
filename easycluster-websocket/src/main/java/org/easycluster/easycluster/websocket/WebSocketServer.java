@@ -72,19 +72,13 @@ public class WebSocketServer extends NetworkServer {
 				String.format("websocket-server-pool-%s", config.getService())));
 		ChannelGroup channelGroup = new DefaultChannelGroup(String.format("websocket-server-group-%s", config.getService()));
 
-		final WebSocketFrameEncoder encoder = new WebSocketFrameEncoder();
-		encoder.setSerialization(new DefaultSerializationFactory(config.getEncodeSerializeConfig()).getSerialization());
-		encoder.setDebugEnabled(config.getEncodeSerializeConfig().isSerializeBytesDebugEnabled());
-		encoder.setDumpBytes(config.getEncodeSerializeConfig().getDumpBytes());
-
-		final WebSocketFrameDecoder decoder = new WebSocketFrameDecoder();
+		final TextWebSocketFrameDecoder decoder = new TextWebSocketFrameDecoder();
 		decoder.setSerialization(new DefaultSerializationFactory(config.getDecodeSerializeConfig()).getSerialization());
 		decoder.setTypeMetaInfo(config.getDecodeSerializeConfig().getTypeMetaInfo());
 
 		BlackList blackList = (config.getBlacklist() != null) ? new BlackList(config.getBlacklist(), config.getClusterEventHandler()) : null;
 		final WebSocketServerChannelHandler handler = new WebSocketServerChannelHandler(channelGroup, messageClosureRegistry, messageExecutor, blackList);
 		handler.setEndpointListener(config.getEndpointListener());
-		handler.setWebSocketFrameEncoder(encoder);
 		handler.setWebSocketFrameDecoder(decoder);
 
 		final SSLContext sslContext = config.getSslConfig() != null ? new SSLContextFactory().createSslContext(config.getSslConfig()) : null;

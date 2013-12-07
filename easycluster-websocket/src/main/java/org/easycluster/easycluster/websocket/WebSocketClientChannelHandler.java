@@ -9,6 +9,7 @@ import org.easycluster.easycluster.cluster.common.MessageContext;
 import org.easycluster.easycluster.cluster.netty.MessageContextHolder;
 import org.easycluster.easycluster.core.KeyTransformer;
 import org.easycluster.easycluster.core.Transformer;
+import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
@@ -19,7 +20,6 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.PongWebSocketFrame;
@@ -35,13 +35,13 @@ import org.slf4j.LoggerFactory;
 
 public class WebSocketClientChannelHandler extends SimpleChannelHandler {
 
-	private static final Logger					LOGGER					= LoggerFactory.getLogger(WebSocketClientChannelHandler.class);
+	private static final Logger							LOGGER					= LoggerFactory.getLogger(WebSocketClientChannelHandler.class);
 
-	private MessageContextHolder				messageContextHolder	= null;
-	private KeyTransformer						keyTransformer			= new KeyTransformer();
-	private WebSocketClientHandshaker			handshaker				= null;
-	private Transformer<WebSocketFrame, Object>	webSocketFrameDecoder	= null;
-	private Transformer<Object, WebSocketFrame>	webSocketFrameEncoder	= null;
+	private MessageContextHolder						messageContextHolder	= null;
+	private KeyTransformer								keyTransformer			= new KeyTransformer();
+	private WebSocketClientHandshaker					handshaker				= null;
+	private Transformer<TextWebSocketFrame, XipSignal>	webSocketFrameDecoder	= null;
+	private Transformer<XipSignal, TextWebSocketFrame>	webSocketFrameEncoder	= null;
 
 	public WebSocketClientChannelHandler(MessageContextHolder messageContextHolder) {
 		this.messageContextHolder = messageContextHolder;
@@ -104,8 +104,9 @@ public class WebSocketClientChannelHandler extends SimpleChannelHandler {
 			Object message = requestContext.getMessage();
 			Object requestId = keyTransformer.transform(message);
 			messageContextHolder.add(requestId, requestContext);
-			WebSocketFrame request = webSocketFrameEncoder.transform(message);
-			Channels.write(ctx, e.getFuture(), request);
+
+			TextWebSocketFrame frame = webSocketFrameEncoder.transform((XipSignal) message);
+			Channels.write(ctx, e.getFuture(), frame);
 		}
 		super.writeRequested(ctx, e);
 	}
@@ -129,8 +130,8 @@ public class WebSocketClientChannelHandler extends SimpleChannelHandler {
 		}
 
 		WebSocketFrame frame = (WebSocketFrame) e.getMessage();
-		if (frame instanceof BinaryWebSocketFrame) {
-			Object message = webSocketFrameDecoder.transform((BinaryWebSocketFrame) frame);
+		if (frame instanceof TextWebSocketFrame) {
+			Object message = webSocketFrameDecoder.transform((TextWebSocketFrame) frame);
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Received message: {}", message);
 			}
@@ -139,8 +140,6 @@ public class WebSocketClientChannelHandler extends SimpleChannelHandler {
 			if (requestContext != null) {
 				requestContext.getClosure().execute(message);
 			}
-		} else if (frame instanceof TextWebSocketFrame) {
-
 		} else if (frame instanceof PingWebSocketFrame) {
 			if (LOGGER.isInfoEnabled()) {
 				LOGGER.info("Received ping, channel:" + ctx.getChannel());
@@ -169,12 +168,8 @@ public class WebSocketClientChannelHandler extends SimpleChannelHandler {
 		this.keyTransformer = keyTransformer;
 	}
 
-	public void setWebSocketFrameDecoder(Transformer<WebSocketFrame, Object> webSocketFrameDecoder) {
+	public void setWebSocketFrameDecoder(Transformer<TextWebSocketFrame, XipSignal> webSocketFrameDecoder) {
 		this.webSocketFrameDecoder = webSocketFrameDecoder;
-	}
-
-	public void setWebSocketFrameEncoder(Transformer<Object, WebSocketFrame> webSocketFrameEncoder) {
-		this.webSocketFrameEncoder = webSocketFrameEncoder;
 	}
 
 }

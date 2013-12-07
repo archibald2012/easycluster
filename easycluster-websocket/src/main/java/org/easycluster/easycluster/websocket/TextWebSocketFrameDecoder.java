@@ -9,19 +9,19 @@ import org.easycluster.easycluster.core.Transformer;
 import org.easycluster.easycluster.serialization.protocol.meta.Int2TypeMetainfo;
 import org.easycluster.easycluster.serialization.protocol.xip.XipSignal;
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WebSocketFrameDecoder implements Transformer<WebSocketFrame, Object> {
+public class TextWebSocketFrameDecoder implements Transformer<TextWebSocketFrame, XipSignal> {
 
-	private static final Logger	LOGGER			= LoggerFactory.getLogger(WebSocketFrameDecoder.class);
+	private static final Logger	LOGGER			= LoggerFactory.getLogger(TextWebSocketFrameDecoder.class);
 
 	private Int2TypeMetainfo	typeMetaInfo	= null;
 	private Serialization		serialization	= null;
 
 	@Override
-	public Object transform(WebSocketFrame frame) {
+	public XipSignal transform(TextWebSocketFrame frame) {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("transform [{}]", frame);
 		}
