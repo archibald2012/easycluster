@@ -18,6 +18,7 @@ import junit.framework.Assert;
 import org.easycluster.easycluster.cluster.NetworkClientConfig;
 import org.easycluster.easycluster.cluster.NetworkServerConfig;
 import org.easycluster.easycluster.cluster.client.loadbalancer.RoundRobinLoadBalancerFactory;
+import org.easycluster.easycluster.cluster.common.SystemUtil;
 import org.easycluster.easycluster.cluster.serialization.SerializationConfig;
 import org.easycluster.easycluster.cluster.serialization.SerializeType;
 import org.easycluster.easycluster.cluster.server.MessageClosure;
@@ -974,8 +975,8 @@ public class HttpNetworkTestCase {
 		serverConfig.setEncodeSerializeConfig(codecConfig);
 		serverConfig.setDecodeSerializeConfig(codecConfig);
 
-		serverConfig.setBlacklist("10.68.147.33,127.0.0.1");
-		
+		serverConfig.setBlacklist("10.68.147.33,127.0.0.1," + SystemUtil.getIpAddress());
+
 		server = new HttpServer(serverConfig);
 		server.registerHandler(SampleRequest.class, SampleResponse.class, new SampleMessageClosure());
 		server.start();
