@@ -8,12 +8,11 @@ import org.apache.commons.lang.builder.ToStringStyle;
 import org.easycluster.easycluster.serialization.bytebean.annotation.ByteField;
 import org.easycluster.easycluster.serialization.kv.annotation.KeyValueAttribute;
 import org.easycluster.easycluster.serialization.protocol.annotation.SignalCode;
-import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
-import org.easycluster.easycluster.serialization.protocol.xip.XipRequest;
+import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipRequest;
 import org.easycluster.easycluster.serialization.tlv.annotation.TLVAttribute;
 
 @SignalCode(messageCode = 0x121)
-public class SampleRequest extends AbstractXipSignal implements XipRequest, Serializable {
+public class SampleRequest extends AbstractXipRequest implements Serializable {
 
 	private static final long	serialVersionUID	= 1L;
 

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.easycluster.easycluster.core.Closure;
-import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipSignal;
+import org.easycluster.easycluster.serialization.protocol.xip.AbstractXipRequest;
 
 public class PartitionedThreadPoolMessageExecutor implements MessageExecutor {
 
@@ -23,8 +23,8 @@ public class PartitionedThreadPoolMessageExecutor implements MessageExecutor {
 	public void execute(Object message, Closure closure) {
 
 		int index;
-		if (message instanceof AbstractXipSignal) {
-			long client = Math.abs(((AbstractXipSignal) message).getClient());
+		if (message instanceof AbstractXipRequest) {
+			long client = Math.abs(((AbstractXipRequest) message).getClient());
 			index = (int) (client % messageExecutors.size());
 		} else {
 			index = message.hashCode() % messageExecutors.size();
