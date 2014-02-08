@@ -16,23 +16,25 @@ public class RequestCodeGetter implements Transformer<HttpRequest, String> {
 		if (requestCode.startsWith("/")) {
 			requestCode = requestCode.substring(1);
 		}
-		if (requestCode.endsWith("/")) {
-			requestCode = requestCode.substring(0, requestCode.length() - 1);
+
+		// for eg: UpdateProvision?param1=111&param2=222
+		int idx = requestCode.indexOf('?');
+		if (-1 != idx) {
+			requestCode = requestCode.substring(0, idx); // escape '?' character
+															// and mroe
 		}
 
 		// for eg: http://appid.fivesky.net:4009/UpdateProvision
-		int idx = requestCode.lastIndexOf('/');
+		idx = requestCode.lastIndexOf('/');
 		if (-1 != idx) {
 			requestCode = requestCode.substring(idx + 1); // escape '/'
 															// character
 		}
 
-		// for eg: UpdateProvision?param1=111&param2=222
-		idx = requestCode.indexOf('?');
-		if (-1 != idx) {
-			requestCode = requestCode.substring(0, idx); // escape '?' character
-															// and mroe
+		if (requestCode.endsWith("/")) {
+			requestCode = requestCode.substring(0, requestCode.length() - 1);
 		}
+
 		return requestCode;
 	}
 
